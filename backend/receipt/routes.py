@@ -1,17 +1,16 @@
 import uuid
 from fastapi import APIRouter, UploadFile, File, HTTPException, Depends, Query
-from sqlmodel import Session, select, or_, and_, func
+from sqlmodel import Session, select, func
 import shutil
 import os
 from typing import List, Optional
 from datetime import datetime
 from sqlalchemy import text
 
-from backend.auth.models import User, RoleEnum
+from backend.auth.models import User
 from backend.auth.routes import get_current_user, engine
 from backend.auth.schemas import Role
 from backend.receipt.ai.agent import recognize_receipt
-from backend.receipt.ai.structured_output import Receipt as AIReceipt
 from backend.receipt.models import Market, Receipt, ReceiptItem
 from backend.receipt.schemas import ReceiptOut, MarketOut, ReceiptItemOut, UserOut, ReceiptListOut, ReceiptUpdateRequest, ReceiptItemUpdateRequest, MarketUpdateRequest, ReceiptCreateRequest
 from backend.receipt.utils import is_admin_user, get_receipts_count, get_receipts_paginated
