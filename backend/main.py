@@ -1,6 +1,8 @@
 from fastapi import FastAPI
+from starlette.middleware.cors import CORSMiddleware
+
 from backend.auth.routes import router as auth_router
-from backend.auth.models import Role
+from backend.auth.models import Role, RoleEnum
 
 from backend.receipt.routes import router as receipt_router
 from sqlmodel import SQLModel, Session, select
@@ -11,7 +13,23 @@ import uvicorn
 
 load_dotenv()
 
-app = FastAPI()
+app = FastAPI(
+    title="Receipt Tracker API",
+    description="API for managing receipts and markets",
+    version="1.0.0",
+    openapi_url="/openapi.json",
+    docs_url="/docs",
+    redoc_url="/redoc"
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 
 @app.on_event("startup")
 def on_startup():
@@ -20,16 +38,16 @@ def on_startup():
     # Create default roles if they don't exist
     with Session(engine) as session:
         # Check if admin role exists
-        admin_role = session.exec(select(Role).where(Role.name == "admin")).first()
+        admin_role = session.exec(select(Role).where(Role.name == RoleEnum.admin)).first()
         if not admin_role:
-            admin_role = Role(name="admin")
+            admin_role = Role(name=RoleEnum.admin)
             session.add(admin_role)
             print("Admin role created")
         
         # Check if user role exists
-        user_role = session.exec(select(Role).where(Role.name == "user")).first()
+        user_role = session.exec(select(Role).where(Role.name == RoleEnum.user)).first()
         if not user_role:
-            user_role = Role(name="user")
+            user_role = Role(name=RoleEnum.user)
             session.add(user_role)
             print("User role created")
         

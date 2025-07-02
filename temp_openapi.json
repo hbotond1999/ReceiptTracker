@@ -1,0 +1,1750 @@
+﻿{
+    "openapi":  "3.1.0",
+    "info":  {
+                 "title":  "Receipt Tracker API",
+                 "description":  "API for managing receipts and markets",
+                 "version":  "1.0.0"
+             },
+    "paths":  {
+                  "/auth/login":  {
+                                      "post":  {
+                                                   "tags":  [
+                                                                "auth"
+                                                            ],
+                                                   "summary":  "Login",
+                                                   "operationId":  "login_auth_login_post",
+                                                   "requestBody":  {
+                                                                       "content":  {
+                                                                                       "application/x-www-form-urlencoded":  {
+                                                                                                                                 "schema":  {
+                                                                                                                                                "$ref":  "#/components/schemas/Body_login_auth_login_post"
+                                                                                                                                            }
+                                                                                                                             }
+                                                                                   },
+                                                                       "required":  true
+                                                                   },
+                                                   "responses":  {
+                                                                     "200":  {
+                                                                                 "description":  "Successful Response",
+                                                                                 "content":  {
+                                                                                                 "application/json":  {
+                                                                                                                          "schema":  {
+                                                                                                                                         "$ref":  "#/components/schemas/TokenOut"
+                                                                                                                                     }
+                                                                                                                      }
+                                                                                             }
+                                                                             },
+                                                                     "422":  {
+                                                                                 "description":  "Validation Error",
+                                                                                 "content":  {
+                                                                                                 "application/json":  {
+                                                                                                                          "schema":  {
+                                                                                                                                         "$ref":  "#/components/schemas/HTTPValidationError"
+                                                                                                                                     }
+                                                                                                                      }
+                                                                                             }
+                                                                             }
+                                                                 }
+                                               }
+                                  },
+                  "/auth/refresh":  {
+                                        "post":  {
+                                                     "tags":  [
+                                                                  "auth"
+                                                              ],
+                                                     "summary":  "Refresh Token",
+                                                     "operationId":  "refresh_token_auth_refresh_post",
+                                                     "parameters":  [
+                                                                        {
+                                                                            "name":  "refresh_token",
+                                                                            "in":  "query",
+                                                                            "required":  true,
+                                                                            "schema":  {
+                                                                                           "type":  "string",
+                                                                                           "title":  "Refresh Token"
+                                                                                       }
+                                                                        }
+                                                                    ],
+                                                     "responses":  {
+                                                                       "200":  {
+                                                                                   "description":  "Successful Response",
+                                                                                   "content":  {
+                                                                                                   "application/json":  {
+                                                                                                                            "schema":  {
+                                                                                                                                           "$ref":  "#/components/schemas/TokenOut"
+                                                                                                                                       }
+                                                                                                                        }
+                                                                                               }
+                                                                               },
+                                                                       "422":  {
+                                                                                   "description":  "Validation Error",
+                                                                                   "content":  {
+                                                                                                   "application/json":  {
+                                                                                                                            "schema":  {
+                                                                                                                                           "$ref":  "#/components/schemas/HTTPValidationError"
+                                                                                                                                       }
+                                                                                                                        }
+                                                                                               }
+                                                                               }
+                                                                   }
+                                                 }
+                                    },
+                  "/auth/register":  {
+                                         "post":  {
+                                                      "tags":  [
+                                                                   "auth"
+                                                               ],
+                                                      "summary":  "Register User",
+                                                      "operationId":  "register_user_auth_register_post",
+                                                      "requestBody":  {
+                                                                          "content":  {
+                                                                                          "application/json":  {
+                                                                                                                   "schema":  {
+                                                                                                                                  "$ref":  "#/components/schemas/UserInDB"
+                                                                                                                              }
+                                                                                                               }
+                                                                                      },
+                                                                          "required":  true
+                                                                      },
+                                                      "responses":  {
+                                                                        "200":  {
+                                                                                    "description":  "Successful Response",
+                                                                                    "content":  {
+                                                                                                    "application/json":  {
+                                                                                                                             "schema":  {
+                                                                                                                                            "$ref":  "#/components/schemas/UserOut"
+                                                                                                                                        }
+                                                                                                                         }
+                                                                                                }
+                                                                                },
+                                                                        "422":  {
+                                                                                    "description":  "Validation Error",
+                                                                                    "content":  {
+                                                                                                    "application/json":  {
+                                                                                                                             "schema":  {
+                                                                                                                                            "$ref":  "#/components/schemas/HTTPValidationError"
+                                                                                                                                        }
+                                                                                                                         }
+                                                                                                }
+                                                                                }
+                                                                    },
+                                                      "security":  [
+                                                                       {
+                                                                           "HTTPBearer":  [
+
+                                                                                          ]
+                                                                       }
+                                                                   ]
+                                                  }
+                                     },
+                  "/auth/users":  {
+                                      "get":  {
+                                                  "tags":  [
+                                                               "auth"
+                                                           ],
+                                                  "summary":  "List Users",
+                                                  "operationId":  "list_users_auth_users_get",
+                                                  "security":  [
+                                                                   {
+                                                                       "HTTPBearer":  [
+
+                                                                                      ]
+                                                                   }
+                                                               ],
+                                                  "parameters":  [
+                                                                     {
+                                                                         "name":  "skip",
+                                                                         "in":  "query",
+                                                                         "required":  false,
+                                                                         "schema":  {
+                                                                                        "type":  "integer",
+                                                                                        "minimum":  0,
+                                                                                        "default":  0,
+                                                                                        "title":  "Skip"
+                                                                                    }
+                                                                     },
+                                                                     {
+                                                                         "name":  "limit",
+                                                                         "in":  "query",
+                                                                         "required":  false,
+                                                                         "schema":  {
+                                                                                        "type":  "integer",
+                                                                                        "maximum":  100,
+                                                                                        "minimum":  1,
+                                                                                        "default":  10,
+                                                                                        "title":  "Limit"
+                                                                                    }
+                                                                     }
+                                                                 ],
+                                                  "responses":  {
+                                                                    "200":  {
+                                                                                "description":  "Successful Response",
+                                                                                "content":  {
+                                                                                                "application/json":  {
+                                                                                                                         "schema":  {
+                                                                                                                                        "$ref":  "#/components/schemas/UserListOut"
+                                                                                                                                    }
+                                                                                                                     }
+                                                                                            }
+                                                                            },
+                                                                    "422":  {
+                                                                                "description":  "Validation Error",
+                                                                                "content":  {
+                                                                                                "application/json":  {
+                                                                                                                         "schema":  {
+                                                                                                                                        "$ref":  "#/components/schemas/HTTPValidationError"
+                                                                                                                                    }
+                                                                                                                     }
+                                                                                            }
+                                                                            }
+                                                                }
+                                              }
+                                  },
+                  "/auth/profile-picture":  {
+                                                "post":  {
+                                                             "tags":  [
+                                                                          "auth"
+                                                                      ],
+                                                             "summary":  "Upload Profile Picture",
+                                                             "operationId":  "upload_profile_picture_auth_profile_picture_post",
+                                                             "requestBody":  {
+                                                                                 "content":  {
+                                                                                                 "multipart/form-data":  {
+                                                                                                                             "schema":  {
+                                                                                                                                            "$ref":  "#/components/schemas/Body_upload_profile_picture_auth_profile_picture_post"
+                                                                                                                                        }
+                                                                                                                         }
+                                                                                             },
+                                                                                 "required":  true
+                                                                             },
+                                                             "responses":  {
+                                                                               "200":  {
+                                                                                           "description":  "Successful Response",
+                                                                                           "content":  {
+                                                                                                           "application/json":  {
+                                                                                                                                    "schema":  {
+                                                                                                                                                   "$ref":  "#/components/schemas/ProfilePictureOut"
+                                                                                                                                               }
+                                                                                                                                }
+                                                                                                       }
+                                                                                       },
+                                                                               "422":  {
+                                                                                           "description":  "Validation Error",
+                                                                                           "content":  {
+                                                                                                           "application/json":  {
+                                                                                                                                    "schema":  {
+                                                                                                                                                   "$ref":  "#/components/schemas/HTTPValidationError"
+                                                                                                                                               }
+                                                                                                                                }
+                                                                                                       }
+                                                                                       }
+                                                                           },
+                                                             "security":  [
+                                                                              {
+                                                                                  "HTTPBearer":  [
+
+                                                                                                 ]
+                                                                              }
+                                                                          ]
+                                                         }
+                                            },
+                  "/auth/me":  {
+                                   "get":  {
+                                               "tags":  [
+                                                            "auth"
+                                                        ],
+                                               "summary":  "Get Me",
+                                               "operationId":  "get_me_auth_me_get",
+                                               "responses":  {
+                                                                 "200":  {
+                                                                             "description":  "Successful Response",
+                                                                             "content":  {
+                                                                                             "application/json":  {
+                                                                                                                      "schema":  {
+                                                                                                                                     "$ref":  "#/components/schemas/UserOut"
+                                                                                                                                 }
+                                                                                                                  }
+                                                                                         }
+                                                                         }
+                                                             },
+                                               "security":  [
+                                                                {
+                                                                    "HTTPBearer":  [
+
+                                                                                   ]
+                                                                }
+                                                            ]
+                                           }
+                               },
+                  "/receipt/recognize":  {
+                                             "post":  {
+                                                          "tags":  [
+                                                                       "receipt"
+                                                                   ],
+                                                          "summary":  "Create Receipt",
+                                                          "operationId":  "create_receipt_receipt_recognize_post",
+                                                          "requestBody":  {
+                                                                              "content":  {
+                                                                                              "multipart/form-data":  {
+                                                                                                                          "schema":  {
+                                                                                                                                         "$ref":  "#/components/schemas/Body_create_receipt_receipt_recognize_post"
+                                                                                                                                     }
+                                                                                                                      }
+                                                                                          },
+                                                                              "required":  true
+                                                                          },
+                                                          "responses":  {
+                                                                            "200":  {
+                                                                                        "description":  "Successful Response",
+                                                                                        "content":  {
+                                                                                                        "application/json":  {
+                                                                                                                                 "schema":  {
+                                                                                                                                                "$ref":  "#/components/schemas/ReceiptOut"
+                                                                                                                                            }
+                                                                                                                             }
+                                                                                                    }
+                                                                                    },
+                                                                            "422":  {
+                                                                                        "description":  "Validation Error",
+                                                                                        "content":  {
+                                                                                                        "application/json":  {
+                                                                                                                                 "schema":  {
+                                                                                                                                                "$ref":  "#/components/schemas/HTTPValidationError"
+                                                                                                                                            }
+                                                                                                                             }
+                                                                                                    }
+                                                                                    }
+                                                                        },
+                                                          "security":  [
+                                                                           {
+                                                                               "HTTPBearer":  [
+
+                                                                                              ]
+                                                                           }
+                                                                       ]
+                                                      }
+                                         },
+                  "/receipt/":  {
+                                    "get":  {
+                                                "tags":  [
+                                                             "receipt"
+                                                         ],
+                                                "summary":  "Get Receipts",
+                                                "description":  "Get receipts with optional filtering - admin users see all, regular users see only their own",
+                                                "operationId":  "get_receipts_receipt__get",
+                                                "security":  [
+                                                                 {
+                                                                     "HTTPBearer":  [
+
+                                                                                    ]
+                                                                 }
+                                                             ],
+                                                "parameters":  [
+                                                                   {
+                                                                       "name":  "skip",
+                                                                       "in":  "query",
+                                                                       "required":  false,
+                                                                       "schema":  {
+                                                                                      "type":  "integer",
+                                                                                      "minimum":  0,
+                                                                                      "description":  "KihagyandÃ³ rekordok szÃ¡ma",
+                                                                                      "default":  0,
+                                                                                      "title":  "Skip"
+                                                                                  },
+                                                                       "description":  "KihagyandÃ³ rekordok szÃ¡ma"
+                                                                   },
+                                                                   {
+                                                                       "name":  "limit",
+                                                                       "in":  "query",
+                                                                       "required":  false,
+                                                                       "schema":  {
+                                                                                      "type":  "integer",
+                                                                                      "maximum":  100,
+                                                                                      "minimum":  1,
+                                                                                      "description":  "VisszaadandÃ³ rekordok szÃ¡ma (max 100)",
+                                                                                      "default":  10,
+                                                                                      "title":  "Limit"
+                                                                                  },
+                                                                       "description":  "VisszaadandÃ³ rekordok szÃ¡ma (max 100)"
+                                                                   },
+                                                                   {
+                                                                       "name":  "user_id",
+                                                                       "in":  "query",
+                                                                       "required":  false,
+                                                                       "schema":  {
+                                                                                      "anyOf":  [
+                                                                                                    {
+                                                                                                        "type":  "integer"
+                                                                                                    },
+                                                                                                    {
+                                                                                                        "type":  "null"
+                                                                                                    }
+                                                                                                ],
+                                                                                      "description":  "SzÅ±rÃ©s felhasznÃ¡lÃ³ ID alapjÃ¡n (csak adminoknak)",
+                                                                                      "title":  "User Id"
+                                                                                  },
+                                                                       "description":  "SzÅ±rÃ©s felhasznÃ¡lÃ³ ID alapjÃ¡n (csak adminoknak)"
+                                                                   },
+                                                                   {
+                                                                       "name":  "market_id",
+                                                                       "in":  "query",
+                                                                       "required":  false,
+                                                                       "schema":  {
+                                                                                      "anyOf":  [
+                                                                                                    {
+                                                                                                        "type":  "integer"
+                                                                                                    },
+                                                                                                    {
+                                                                                                        "type":  "null"
+                                                                                                    }
+                                                                                                ],
+                                                                                      "description":  "SzÅ±rÃ©s market ID alapjÃ¡n",
+                                                                                      "title":  "Market Id"
+                                                                                  },
+                                                                       "description":  "SzÅ±rÃ©s market ID alapjÃ¡n"
+                                                                   },
+                                                                   {
+                                                                       "name":  "market_name",
+                                                                       "in":  "query",
+                                                                       "required":  false,
+                                                                       "schema":  {
+                                                                                      "anyOf":  [
+                                                                                                    {
+                                                                                                        "type":  "string"
+                                                                                                    },
+                                                                                                    {
+                                                                                                        "type":  "null"
+                                                                                                    }
+                                                                                                ],
+                                                                                      "description":  "SzÅ±rÃ©s market nÃ©v alapjÃ¡n (tartalmazÃ³ keresÃ©s)",
+                                                                                      "title":  "Market Name"
+                                                                                  },
+                                                                       "description":  "SzÅ±rÃ©s market nÃ©v alapjÃ¡n (tartalmazÃ³ keresÃ©s)"
+                                                                   },
+                                                                   {
+                                                                       "name":  "item_name",
+                                                                       "in":  "query",
+                                                                       "required":  false,
+                                                                       "schema":  {
+                                                                                      "anyOf":  [
+                                                                                                    {
+                                                                                                        "type":  "string"
+                                                                                                    },
+                                                                                                    {
+                                                                                                        "type":  "null"
+                                                                                                    }
+                                                                                                ],
+                                                                                      "description":  "SzÅ±rÃ©s tÃ©tel neve alapjÃ¡n (tartalmazÃ³ keresÃ©s)",
+                                                                                      "title":  "Item Name"
+                                                                                  },
+                                                                       "description":  "SzÅ±rÃ©s tÃ©tel neve alapjÃ¡n (tartalmazÃ³ keresÃ©s)"
+                                                                   },
+                                                                   {
+                                                                       "name":  "date_from",
+                                                                       "in":  "query",
+                                                                       "required":  false,
+                                                                       "schema":  {
+                                                                                      "anyOf":  [
+                                                                                                    {
+                                                                                                        "type":  "string",
+                                                                                                        "format":  "date-time"
+                                                                                                    },
+                                                                                                    {
+                                                                                                        "type":  "null"
+                                                                                                    }
+                                                                                                ],
+                                                                                      "description":  "SzÅ±rÃ©s kezdÅ dÃ¡tum alapjÃ¡n",
+                                                                                      "title":  "Date From"
+                                                                                  },
+                                                                       "description":  "SzÅ±rÃ©s kezdÅ dÃ¡tum alapjÃ¡n"
+                                                                   },
+                                                                   {
+                                                                       "name":  "date_to",
+                                                                       "in":  "query",
+                                                                       "required":  false,
+                                                                       "schema":  {
+                                                                                      "anyOf":  [
+                                                                                                    {
+                                                                                                        "type":  "string",
+                                                                                                        "format":  "date-time"
+                                                                                                    },
+                                                                                                    {
+                                                                                                        "type":  "null"
+                                                                                                    }
+                                                                                                ],
+                                                                                      "description":  "SzÅ±rÃ©s vÃ©g dÃ¡tum alapjÃ¡n",
+                                                                                      "title":  "Date To"
+                                                                                  },
+                                                                       "description":  "SzÅ±rÃ©s vÃ©g dÃ¡tum alapjÃ¡n"
+                                                                   }
+                                                               ],
+                                                "responses":  {
+                                                                  "200":  {
+                                                                              "description":  "Successful Response",
+                                                                              "content":  {
+                                                                                              "application/json":  {
+                                                                                                                       "schema":  {
+                                                                                                                                      "$ref":  "#/components/schemas/ReceiptListOut"
+                                                                                                                                  }
+                                                                                                                   }
+                                                                                          }
+                                                                          },
+                                                                  "422":  {
+                                                                              "description":  "Validation Error",
+                                                                              "content":  {
+                                                                                              "application/json":  {
+                                                                                                                       "schema":  {
+                                                                                                                                      "$ref":  "#/components/schemas/HTTPValidationError"
+                                                                                                                                  }
+                                                                                                                   }
+                                                                                          }
+                                                                          }
+                                                              }
+                                            }
+                                },
+                  "/receipt/{receipt_id}":  {
+                                                "put":  {
+                                                            "tags":  [
+                                                                         "receipt"
+                                                                     ],
+                                                            "summary":  "Update Receipt",
+                                                            "description":  "Update receipt data, items, and market",
+                                                            "operationId":  "update_receipt_receipt__receipt_id__put",
+                                                            "security":  [
+                                                                             {
+                                                                                 "HTTPBearer":  [
+
+                                                                                                ]
+                                                                             }
+                                                                         ],
+                                                            "parameters":  [
+                                                                               {
+                                                                                   "name":  "receipt_id",
+                                                                                   "in":  "path",
+                                                                                   "required":  true,
+                                                                                   "schema":  {
+                                                                                                  "type":  "integer",
+                                                                                                  "title":  "Receipt Id"
+                                                                                              }
+                                                                               }
+                                                                           ],
+                                                            "requestBody":  {
+                                                                                "required":  true,
+                                                                                "content":  {
+                                                                                                "application/json":  {
+                                                                                                                         "schema":  {
+                                                                                                                                        "$ref":  "#/components/schemas/ReceiptUpdateRequest"
+                                                                                                                                    }
+                                                                                                                     }
+                                                                                            }
+                                                                            },
+                                                            "responses":  {
+                                                                              "200":  {
+                                                                                          "description":  "Successful Response",
+                                                                                          "content":  {
+                                                                                                          "application/json":  {
+                                                                                                                                   "schema":  {
+                                                                                                                                                  "$ref":  "#/components/schemas/ReceiptOut"
+                                                                                                                                              }
+                                                                                                                               }
+                                                                                                      }
+                                                                                      },
+                                                                              "422":  {
+                                                                                          "description":  "Validation Error",
+                                                                                          "content":  {
+                                                                                                          "application/json":  {
+                                                                                                                                   "schema":  {
+                                                                                                                                                  "$ref":  "#/components/schemas/HTTPValidationError"
+                                                                                                                                              }
+                                                                                                                               }
+                                                                                                      }
+                                                                                      }
+                                                                          }
+                                                        }
+                                            },
+                  "/receipt/market/{market_id}":  {
+                                                      "put":  {
+                                                                  "tags":  [
+                                                                               "receipt"
+                                                                           ],
+                                                                  "summary":  "Update Market",
+                                                                  "description":  "Update market information",
+                                                                  "operationId":  "update_market_receipt_market__market_id__put",
+                                                                  "security":  [
+                                                                                   {
+                                                                                       "HTTPBearer":  [
+
+                                                                                                      ]
+                                                                                   }
+                                                                               ],
+                                                                  "parameters":  [
+                                                                                     {
+                                                                                         "name":  "market_id",
+                                                                                         "in":  "path",
+                                                                                         "required":  true,
+                                                                                         "schema":  {
+                                                                                                        "type":  "integer",
+                                                                                                        "title":  "Market Id"
+                                                                                                    }
+                                                                                     }
+                                                                                 ],
+                                                                  "requestBody":  {
+                                                                                      "required":  true,
+                                                                                      "content":  {
+                                                                                                      "application/json":  {
+                                                                                                                               "schema":  {
+                                                                                                                                              "$ref":  "#/components/schemas/MarketUpdateRequest"
+                                                                                                                                          }
+                                                                                                                           }
+                                                                                                  }
+                                                                                  },
+                                                                  "responses":  {
+                                                                                    "200":  {
+                                                                                                "description":  "Successful Response",
+                                                                                                "content":  {
+                                                                                                                "application/json":  {
+                                                                                                                                         "schema":  {
+                                                                                                                                                        "$ref":  "#/components/schemas/MarketOut"
+                                                                                                                                                    }
+                                                                                                                                     }
+                                                                                                            }
+                                                                                            },
+                                                                                    "422":  {
+                                                                                                "description":  "Validation Error",
+                                                                                                "content":  {
+                                                                                                                "application/json":  {
+                                                                                                                                         "schema":  {
+                                                                                                                                                        "$ref":  "#/components/schemas/HTTPValidationError"
+                                                                                                                                                    }
+                                                                                                                                     }
+                                                                                                            }
+                                                                                            }
+                                                                                }
+                                                              },
+                                                      "get":  {
+                                                                  "tags":  [
+                                                                               "receipt"
+                                                                           ],
+                                                                  "summary":  "Get Market",
+                                                                  "description":  "Get market by ID",
+                                                                  "operationId":  "get_market_receipt_market__market_id__get",
+                                                                  "security":  [
+                                                                                   {
+                                                                                       "HTTPBearer":  [
+
+                                                                                                      ]
+                                                                                   }
+                                                                               ],
+                                                                  "parameters":  [
+                                                                                     {
+                                                                                         "name":  "market_id",
+                                                                                         "in":  "path",
+                                                                                         "required":  true,
+                                                                                         "schema":  {
+                                                                                                        "type":  "integer",
+                                                                                                        "title":  "Market Id"
+                                                                                                    }
+                                                                                     }
+                                                                                 ],
+                                                                  "responses":  {
+                                                                                    "200":  {
+                                                                                                "description":  "Successful Response",
+                                                                                                "content":  {
+                                                                                                                "application/json":  {
+                                                                                                                                         "schema":  {
+                                                                                                                                                        "$ref":  "#/components/schemas/MarketOut"
+                                                                                                                                                    }
+                                                                                                                                     }
+                                                                                                            }
+                                                                                            },
+                                                                                    "422":  {
+                                                                                                "description":  "Validation Error",
+                                                                                                "content":  {
+                                                                                                                "application/json":  {
+                                                                                                                                         "schema":  {
+                                                                                                                                                        "$ref":  "#/components/schemas/HTTPValidationError"
+                                                                                                                                                    }
+                                                                                                                                     }
+                                                                                                            }
+                                                                                            }
+                                                                                }
+                                                              },
+                                                      "delete":  {
+                                                                     "tags":  [
+                                                                                  "receipt"
+                                                                              ],
+                                                                     "summary":  "Delete Market",
+                                                                     "description":  "Delete a market (only if no receipts are associated with it)",
+                                                                     "operationId":  "delete_market_receipt_market__market_id__delete",
+                                                                     "security":  [
+                                                                                      {
+                                                                                          "HTTPBearer":  [
+
+                                                                                                         ]
+                                                                                      }
+                                                                                  ],
+                                                                     "parameters":  [
+                                                                                        {
+                                                                                            "name":  "market_id",
+                                                                                            "in":  "path",
+                                                                                            "required":  true,
+                                                                                            "schema":  {
+                                                                                                           "type":  "integer",
+                                                                                                           "title":  "Market Id"
+                                                                                                       }
+                                                                                        }
+                                                                                    ],
+                                                                     "responses":  {
+                                                                                       "200":  {
+                                                                                                   "description":  "Successful Response",
+                                                                                                   "content":  {
+                                                                                                                   "application/json":  {
+                                                                                                                                            "schema":  {
+
+                                                                                                                                                       }
+                                                                                                                                        }
+                                                                                                               }
+                                                                                               },
+                                                                                       "422":  {
+                                                                                                   "description":  "Validation Error",
+                                                                                                   "content":  {
+                                                                                                                   "application/json":  {
+                                                                                                                                            "schema":  {
+                                                                                                                                                           "$ref":  "#/components/schemas/HTTPValidationError"
+                                                                                                                                                       }
+                                                                                                                                        }
+                                                                                                               }
+                                                                                               }
+                                                                                   }
+                                                                 }
+                                                  },
+                  "/receipt/markets":  {
+                                           "get":  {
+                                                       "tags":  [
+                                                                    "receipt"
+                                                                ],
+                                                       "summary":  "Get Markets",
+                                                       "description":  "Get all markets with optional filtering",
+                                                       "operationId":  "get_markets_receipt_markets_get",
+                                                       "security":  [
+                                                                        {
+                                                                            "HTTPBearer":  [
+
+                                                                                           ]
+                                                                        }
+                                                                    ],
+                                                       "parameters":  [
+                                                                          {
+                                                                              "name":  "skip",
+                                                                              "in":  "query",
+                                                                              "required":  false,
+                                                                              "schema":  {
+                                                                                             "type":  "integer",
+                                                                                             "minimum":  0,
+                                                                                             "description":  "KihagyandÃ³ rekordok szÃ¡ma",
+                                                                                             "default":  0,
+                                                                                             "title":  "Skip"
+                                                                                         },
+                                                                              "description":  "KihagyandÃ³ rekordok szÃ¡ma"
+                                                                          },
+                                                                          {
+                                                                              "name":  "limit",
+                                                                              "in":  "query",
+                                                                              "required":  false,
+                                                                              "schema":  {
+                                                                                             "type":  "integer",
+                                                                                             "maximum":  1000,
+                                                                                             "minimum":  1,
+                                                                                             "description":  "VisszaadandÃ³ rekordok szÃ¡ma (max 1000)",
+                                                                                             "default":  100,
+                                                                                             "title":  "Limit"
+                                                                                         },
+                                                                              "description":  "VisszaadandÃ³ rekordok szÃ¡ma (max 1000)"
+                                                                          },
+                                                                          {
+                                                                              "name":  "name",
+                                                                              "in":  "query",
+                                                                              "required":  false,
+                                                                              "schema":  {
+                                                                                             "anyOf":  [
+                                                                                                           {
+                                                                                                               "type":  "string"
+                                                                                                           },
+                                                                                                           {
+                                                                                                               "type":  "null"
+                                                                                                           }
+                                                                                                       ],
+                                                                                             "description":  "SzÅ±rÃ©s nÃ©v alapjÃ¡n (tartalmazÃ³ keresÃ©s)",
+                                                                                             "title":  "Name"
+                                                                                         },
+                                                                              "description":  "SzÅ±rÃ©s nÃ©v alapjÃ¡n (tartalmazÃ³ keresÃ©s)"
+                                                                          },
+                                                                          {
+                                                                              "name":  "tax_number",
+                                                                              "in":  "query",
+                                                                              "required":  false,
+                                                                              "schema":  {
+                                                                                             "anyOf":  [
+                                                                                                           {
+                                                                                                               "type":  "string"
+                                                                                                           },
+                                                                                                           {
+                                                                                                               "type":  "null"
+                                                                                                           }
+                                                                                                       ],
+                                                                                             "description":  "SzÅ±rÃ©s adÃ³szÃ¡m alapjÃ¡n (tartalmazÃ³ keresÃ©s)",
+                                                                                             "title":  "Tax Number"
+                                                                                         },
+                                                                              "description":  "SzÅ±rÃ©s adÃ³szÃ¡m alapjÃ¡n (tartalmazÃ³ keresÃ©s)"
+                                                                          }
+                                                                      ],
+                                                       "responses":  {
+                                                                         "200":  {
+                                                                                     "description":  "Successful Response",
+                                                                                     "content":  {
+                                                                                                     "application/json":  {
+                                                                                                                              "schema":  {
+                                                                                                                                             "type":  "array",
+                                                                                                                                             "items":  {
+                                                                                                                                                           "$ref":  "#/components/schemas/MarketOut"
+                                                                                                                                                       },
+                                                                                                                                             "title":  "Response Get Markets Receipt Markets Get"
+                                                                                                                                         }
+                                                                                                                          }
+                                                                                                 }
+                                                                                 },
+                                                                         "422":  {
+                                                                                     "description":  "Validation Error",
+                                                                                     "content":  {
+                                                                                                     "application/json":  {
+                                                                                                                              "schema":  {
+                                                                                                                                             "$ref":  "#/components/schemas/HTTPValidationError"
+                                                                                                                                         }
+                                                                                                                          }
+                                                                                                 }
+                                                                                 }
+                                                                     }
+                                                   }
+                                       },
+                  "/receipt/market":  {
+                                          "post":  {
+                                                       "tags":  [
+                                                                    "receipt"
+                                                                ],
+                                                       "summary":  "Create Market",
+                                                       "description":  "Create a new market",
+                                                       "operationId":  "create_market_receipt_market_post",
+                                                       "requestBody":  {
+                                                                           "content":  {
+                                                                                           "application/json":  {
+                                                                                                                    "schema":  {
+                                                                                                                                   "$ref":  "#/components/schemas/MarketUpdateRequest"
+                                                                                                                               }
+                                                                                                                }
+                                                                                       },
+                                                                           "required":  true
+                                                                       },
+                                                       "responses":  {
+                                                                         "200":  {
+                                                                                     "description":  "Successful Response",
+                                                                                     "content":  {
+                                                                                                     "application/json":  {
+                                                                                                                              "schema":  {
+                                                                                                                                             "$ref":  "#/components/schemas/MarketOut"
+                                                                                                                                         }
+                                                                                                                          }
+                                                                                                 }
+                                                                                 },
+                                                                         "422":  {
+                                                                                     "description":  "Validation Error",
+                                                                                     "content":  {
+                                                                                                     "application/json":  {
+                                                                                                                              "schema":  {
+                                                                                                                                             "$ref":  "#/components/schemas/HTTPValidationError"
+                                                                                                                                         }
+                                                                                                                          }
+                                                                                                 }
+                                                                                 }
+                                                                     },
+                                                       "security":  [
+                                                                        {
+                                                                            "HTTPBearer":  [
+
+                                                                                           ]
+                                                                        }
+                                                                    ]
+                                                   }
+                                      },
+                  "/receipt/receipt":  {
+                                           "post":  {
+                                                        "tags":  [
+                                                                     "receipt"
+                                                                 ],
+                                                        "summary":  "Create Receipt Manual",
+                                                        "description":  "ManuÃ¡lis receipt lÃ©trehozÃ¡s (admin bÃ¡rmely userhez, mezei user csak magÃ¡hoz)",
+                                                        "operationId":  "create_receipt_manual_receipt_receipt_post",
+                                                        "requestBody":  {
+                                                                            "content":  {
+                                                                                            "application/json":  {
+                                                                                                                     "schema":  {
+                                                                                                                                    "$ref":  "#/components/schemas/ReceiptCreateRequest"
+                                                                                                                                }
+                                                                                                                 }
+                                                                                        },
+                                                                            "required":  true
+                                                                        },
+                                                        "responses":  {
+                                                                          "200":  {
+                                                                                      "description":  "Successful Response",
+                                                                                      "content":  {
+                                                                                                      "application/json":  {
+                                                                                                                               "schema":  {
+                                                                                                                                              "$ref":  "#/components/schemas/ReceiptOut"
+                                                                                                                                          }
+                                                                                                                           }
+                                                                                                  }
+                                                                                  },
+                                                                          "422":  {
+                                                                                      "description":  "Validation Error",
+                                                                                      "content":  {
+                                                                                                      "application/json":  {
+                                                                                                                               "schema":  {
+                                                                                                                                              "$ref":  "#/components/schemas/HTTPValidationError"
+                                                                                                                                          }
+                                                                                                                           }
+                                                                                                  }
+                                                                                  }
+                                                                      },
+                                                        "security":  [
+                                                                         {
+                                                                             "HTTPBearer":  [
+
+                                                                                            ]
+                                                                         }
+                                                                     ]
+                                                    }
+                                       },
+                  "/receipt/receipt/{receipt_id}":  {
+                                                        "delete":  {
+                                                                       "tags":  [
+                                                                                    "receipt"
+                                                                                ],
+                                                                       "summary":  "Delete Receipt",
+                                                                       "description":  "Receipt tÃ¶rlÃ©se (mezei user csak a sajÃ¡tjÃ¡t, admin mindent)",
+                                                                       "operationId":  "delete_receipt_receipt_receipt__receipt_id__delete",
+                                                                       "security":  [
+                                                                                        {
+                                                                                            "HTTPBearer":  [
+
+                                                                                                           ]
+                                                                                        }
+                                                                                    ],
+                                                                       "parameters":  [
+                                                                                          {
+                                                                                              "name":  "receipt_id",
+                                                                                              "in":  "path",
+                                                                                              "required":  true,
+                                                                                              "schema":  {
+                                                                                                             "type":  "integer",
+                                                                                                             "title":  "Receipt Id"
+                                                                                                         }
+                                                                                          }
+                                                                                      ],
+                                                                       "responses":  {
+                                                                                         "200":  {
+                                                                                                     "description":  "Successful Response",
+                                                                                                     "content":  {
+                                                                                                                     "application/json":  {
+                                                                                                                                              "schema":  {
+
+                                                                                                                                                         }
+                                                                                                                                          }
+                                                                                                                 }
+                                                                                                 },
+                                                                                         "422":  {
+                                                                                                     "description":  "Validation Error",
+                                                                                                     "content":  {
+                                                                                                                     "application/json":  {
+                                                                                                                                              "schema":  {
+                                                                                                                                                             "$ref":  "#/components/schemas/HTTPValidationError"
+                                                                                                                                                         }
+                                                                                                                                          }
+                                                                                                                 }
+                                                                                                 }
+                                                                                     }
+                                                                   }
+                                                    }
+              },
+    "components":  {
+                       "schemas":  {
+                                       "Body_create_receipt_receipt_recognize_post":  {
+                                                                                          "properties":  {
+                                                                                                             "file":  {
+                                                                                                                          "type":  "string",
+                                                                                                                          "format":  "binary",
+                                                                                                                          "title":  "File"
+                                                                                                                      }
+                                                                                                         },
+                                                                                          "type":  "object",
+                                                                                          "required":  [
+                                                                                                           "file"
+                                                                                                       ],
+                                                                                          "title":  "Body_create_receipt_receipt_recognize_post"
+                                                                                      },
+                                       "Body_login_auth_login_post":  {
+                                                                          "properties":  {
+                                                                                             "grant_type":  {
+                                                                                                                "anyOf":  [
+                                                                                                                              {
+                                                                                                                                  "type":  "string",
+                                                                                                                                  "pattern":  "^password$"
+                                                                                                                              },
+                                                                                                                              {
+                                                                                                                                  "type":  "null"
+                                                                                                                              }
+                                                                                                                          ],
+                                                                                                                "title":  "Grant Type"
+                                                                                                            },
+                                                                                             "username":  {
+                                                                                                              "type":  "string",
+                                                                                                              "title":  "Username"
+                                                                                                          },
+                                                                                             "password":  {
+                                                                                                              "type":  "string",
+                                                                                                              "format":  "password",
+                                                                                                              "title":  "Password"
+                                                                                                          },
+                                                                                             "scope":  {
+                                                                                                           "type":  "string",
+                                                                                                           "title":  "Scope",
+                                                                                                           "default":  ""
+                                                                                                       },
+                                                                                             "client_id":  {
+                                                                                                               "anyOf":  [
+                                                                                                                             {
+                                                                                                                                 "type":  "string"
+                                                                                                                             },
+                                                                                                                             {
+                                                                                                                                 "type":  "null"
+                                                                                                                             }
+                                                                                                                         ],
+                                                                                                               "title":  "Client Id"
+                                                                                                           },
+                                                                                             "client_secret":  {
+                                                                                                                   "anyOf":  [
+                                                                                                                                 {
+                                                                                                                                     "type":  "string"
+                                                                                                                                 },
+                                                                                                                                 {
+                                                                                                                                     "type":  "null"
+                                                                                                                                 }
+                                                                                                                             ],
+                                                                                                                   "format":  "password",
+                                                                                                                   "title":  "Client Secret"
+                                                                                                               }
+                                                                                         },
+                                                                          "type":  "object",
+                                                                          "required":  [
+                                                                                           "username",
+                                                                                           "password"
+                                                                                       ],
+                                                                          "title":  "Body_login_auth_login_post"
+                                                                      },
+                                       "Body_upload_profile_picture_auth_profile_picture_post":  {
+                                                                                                     "properties":  {
+                                                                                                                        "file":  {
+                                                                                                                                     "type":  "string",
+                                                                                                                                     "format":  "binary",
+                                                                                                                                     "title":  "File"
+                                                                                                                                 }
+                                                                                                                    },
+                                                                                                     "type":  "object",
+                                                                                                     "required":  [
+                                                                                                                      "file"
+                                                                                                                  ],
+                                                                                                     "title":  "Body_upload_profile_picture_auth_profile_picture_post"
+                                                                                                 },
+                                       "HTTPValidationError":  {
+                                                                   "properties":  {
+                                                                                      "detail":  {
+                                                                                                     "items":  {
+                                                                                                                   "$ref":  "#/components/schemas/ValidationError"
+                                                                                                               },
+                                                                                                     "type":  "array",
+                                                                                                     "title":  "Detail"
+                                                                                                 }
+                                                                                  },
+                                                                   "type":  "object",
+                                                                   "title":  "HTTPValidationError"
+                                                               },
+                                       "MarketOut":  {
+                                                         "properties":  {
+                                                                            "id":  {
+                                                                                       "type":  "integer",
+                                                                                       "title":  "Id"
+                                                                                   },
+                                                                            "name":  {
+                                                                                         "type":  "string",
+                                                                                         "title":  "Name"
+                                                                                     },
+                                                                            "tax_number":  {
+                                                                                               "type":  "string",
+                                                                                               "title":  "Tax Number"
+                                                                                           }
+                                                                        },
+                                                         "type":  "object",
+                                                         "required":  [
+                                                                          "id",
+                                                                          "name",
+                                                                          "tax_number"
+                                                                      ],
+                                                         "title":  "MarketOut"
+                                                     },
+                                       "MarketUpdateRequest":  {
+                                                                   "properties":  {
+                                                                                      "id":  {
+                                                                                                 "type":  "integer",
+                                                                                                 "title":  "Id"
+                                                                                             },
+                                                                                      "name":  {
+                                                                                                   "type":  "string",
+                                                                                                   "title":  "Name"
+                                                                                               },
+                                                                                      "tax_number":  {
+                                                                                                         "type":  "string",
+                                                                                                         "title":  "Tax Number"
+                                                                                                     }
+                                                                                  },
+                                                                   "type":  "object",
+                                                                   "required":  [
+                                                                                    "id",
+                                                                                    "name",
+                                                                                    "tax_number"
+                                                                                ],
+                                                                   "title":  "MarketUpdateRequest"
+                                                               },
+                                       "ProfilePictureOut":  {
+                                                                 "properties":  {
+                                                                                    "profile_picture":  {
+                                                                                                            "type":  "string",
+                                                                                                            "title":  "Profile Picture"
+                                                                                                        }
+                                                                                },
+                                                                 "type":  "object",
+                                                                 "required":  [
+                                                                                  "profile_picture"
+                                                                              ],
+                                                                 "title":  "ProfilePictureOut"
+                                                             },
+                                       "ReceiptCreateRequest":  {
+                                                                    "properties":  {
+                                                                                       "date":  {
+                                                                                                    "type":  "string",
+                                                                                                    "format":  "date-time",
+                                                                                                    "title":  "Date"
+                                                                                                },
+                                                                                       "receipt_number":  {
+                                                                                                              "type":  "string",
+                                                                                                              "title":  "Receipt Number"
+                                                                                                          },
+                                                                                       "market_id":  {
+                                                                                                         "type":  "integer",
+                                                                                                         "title":  "Market Id"
+                                                                                                     },
+                                                                                       "image_path":  {
+                                                                                                          "type":  "string",
+                                                                                                          "title":  "Image Path"
+                                                                                                      },
+                                                                                       "original_filename":  {
+                                                                                                                 "type":  "string",
+                                                                                                                 "title":  "Original Filename"
+                                                                                                             },
+                                                                                       "postal_code":  {
+                                                                                                           "type":  "string",
+                                                                                                           "title":  "Postal Code"
+                                                                                                       },
+                                                                                       "city":  {
+                                                                                                    "type":  "string",
+                                                                                                    "title":  "City"
+                                                                                                },
+                                                                                       "street_name":  {
+                                                                                                           "type":  "string",
+                                                                                                           "title":  "Street Name"
+                                                                                                       },
+                                                                                       "street_number":  {
+                                                                                                             "type":  "string",
+                                                                                                             "title":  "Street Number"
+                                                                                                         },
+                                                                                       "user_id":  {
+                                                                                                       "anyOf":  [
+                                                                                                                     {
+                                                                                                                         "type":  "integer"
+                                                                                                                     },
+                                                                                                                     {
+                                                                                                                         "type":  "null"
+                                                                                                                     }
+                                                                                                                 ],
+                                                                                                       "title":  "User Id"
+                                                                                                   },
+                                                                                       "items":  {
+                                                                                                     "anyOf":  [
+                                                                                                                   {
+                                                                                                                       "items":  {
+                                                                                                                                     "$ref":  "#/components/schemas/ReceiptItemCreateRequest"
+                                                                                                                                 },
+                                                                                                                       "type":  "array"
+                                                                                                                   },
+                                                                                                                   {
+                                                                                                                       "type":  "null"
+                                                                                                                   }
+                                                                                                               ],
+                                                                                                     "title":  "Items"
+                                                                                                 }
+                                                                                   },
+                                                                    "type":  "object",
+                                                                    "required":  [
+                                                                                     "date",
+                                                                                     "receipt_number",
+                                                                                     "market_id",
+                                                                                     "image_path",
+                                                                                     "original_filename",
+                                                                                     "postal_code",
+                                                                                     "city",
+                                                                                     "street_name",
+                                                                                     "street_number"
+                                                                                 ],
+                                                                    "title":  "ReceiptCreateRequest"
+                                                                },
+                                       "ReceiptItemCreateRequest":  {
+                                                                        "properties":  {
+                                                                                           "name":  {
+                                                                                                        "type":  "string",
+                                                                                                        "title":  "Name"
+                                                                                                    },
+                                                                                           "price":  {
+                                                                                                         "type":  "number",
+                                                                                                         "title":  "Price"
+                                                                                                     }
+                                                                                       },
+                                                                        "type":  "object",
+                                                                        "required":  [
+                                                                                         "name",
+                                                                                         "price"
+                                                                                     ],
+                                                                        "title":  "ReceiptItemCreateRequest"
+                                                                    },
+                                       "ReceiptItemOut":  {
+                                                              "properties":  {
+                                                                                 "id":  {
+                                                                                            "type":  "integer",
+                                                                                            "title":  "Id"
+                                                                                        },
+                                                                                 "name":  {
+                                                                                              "type":  "string",
+                                                                                              "title":  "Name"
+                                                                                          },
+                                                                                 "price":  {
+                                                                                               "type":  "number",
+                                                                                               "title":  "Price"
+                                                                                           }
+                                                                             },
+                                                              "type":  "object",
+                                                              "required":  [
+                                                                               "id",
+                                                                               "name",
+                                                                               "price"
+                                                                           ],
+                                                              "title":  "ReceiptItemOut"
+                                                          },
+                                       "ReceiptItemUpdateRequest":  {
+                                                                        "properties":  {
+                                                                                           "id":  {
+                                                                                                      "anyOf":  [
+                                                                                                                    {
+                                                                                                                        "type":  "integer"
+                                                                                                                    },
+                                                                                                                    {
+                                                                                                                        "type":  "null"
+                                                                                                                    }
+                                                                                                                ],
+                                                                                                      "title":  "Id"
+                                                                                                  },
+                                                                                           "name":  {
+                                                                                                        "type":  "string",
+                                                                                                        "title":  "Name"
+                                                                                                    },
+                                                                                           "price":  {
+                                                                                                         "type":  "number",
+                                                                                                         "title":  "Price"
+                                                                                                     }
+                                                                                       },
+                                                                        "type":  "object",
+                                                                        "required":  [
+                                                                                         "name",
+                                                                                         "price"
+                                                                                     ],
+                                                                        "title":  "ReceiptItemUpdateRequest"
+                                                                    },
+                                       "ReceiptListOut":  {
+                                                              "properties":  {
+                                                                                 "receipts":  {
+                                                                                                  "items":  {
+                                                                                                                "$ref":  "#/components/schemas/ReceiptOut"
+                                                                                                            },
+                                                                                                  "type":  "array",
+                                                                                                  "title":  "Receipts"
+                                                                                              },
+                                                                                 "skip":  {
+                                                                                              "type":  "integer",
+                                                                                              "title":  "Skip"
+                                                                                          },
+                                                                                 "limit":  {
+                                                                                               "type":  "integer",
+                                                                                               "title":  "Limit"
+                                                                                           },
+                                                                                 "total":  {
+                                                                                               "type":  "integer",
+                                                                                               "title":  "Total"
+                                                                                           },
+                                                                                 "has_next":  {
+                                                                                                  "type":  "boolean",
+                                                                                                  "title":  "Has Next"
+                                                                                              },
+                                                                                 "has_previous":  {
+                                                                                                      "type":  "boolean",
+                                                                                                      "title":  "Has Previous"
+                                                                                                  }
+                                                                             },
+                                                              "type":  "object",
+                                                              "required":  [
+                                                                               "receipts",
+                                                                               "skip",
+                                                                               "limit",
+                                                                               "total",
+                                                                               "has_next",
+                                                                               "has_previous"
+                                                                           ],
+                                                              "title":  "ReceiptListOut"
+                                                          },
+                                       "ReceiptOut":  {
+                                                          "properties":  {
+                                                                             "id":  {
+                                                                                        "type":  "integer",
+                                                                                        "title":  "Id"
+                                                                                    },
+                                                                             "date":  {
+                                                                                          "type":  "string",
+                                                                                          "format":  "date-time",
+                                                                                          "title":  "Date"
+                                                                                      },
+                                                                             "receipt_number":  {
+                                                                                                    "type":  "string",
+                                                                                                    "title":  "Receipt Number"
+                                                                                                },
+                                                                             "image_path":  {
+                                                                                                "type":  "string",
+                                                                                                "title":  "Image Path"
+                                                                                            },
+                                                                             "original_filename":  {
+                                                                                                       "type":  "string",
+                                                                                                       "title":  "Original Filename"
+                                                                                                   },
+                                                                             "user":  {
+                                                                                          "$ref":  "#/components/schemas/UserOut"
+                                                                                      },
+                                                                             "market":  {
+                                                                                            "$ref":  "#/components/schemas/MarketOut"
+                                                                                        },
+                                                                             "postal_code":  {
+                                                                                                 "type":  "string",
+                                                                                                 "title":  "Postal Code"
+                                                                                             },
+                                                                             "city":  {
+                                                                                          "type":  "string",
+                                                                                          "title":  "City"
+                                                                                      },
+                                                                             "street_name":  {
+                                                                                                 "type":  "string",
+                                                                                                 "title":  "Street Name"
+                                                                                             },
+                                                                             "street_number":  {
+                                                                                                   "type":  "string",
+                                                                                                   "title":  "Street Number"
+                                                                                               },
+                                                                             "items":  {
+                                                                                           "items":  {
+                                                                                                         "$ref":  "#/components/schemas/ReceiptItemOut"
+                                                                                                     },
+                                                                                           "type":  "array",
+                                                                                           "title":  "Items"
+                                                                                       },
+                                                                             "total":  {
+                                                                                           "type":  "number",
+                                                                                           "title":  "Total"
+                                                                                       }
+                                                                         },
+                                                          "type":  "object",
+                                                          "required":  [
+                                                                           "id",
+                                                                           "date",
+                                                                           "receipt_number",
+                                                                           "image_path",
+                                                                           "original_filename",
+                                                                           "user",
+                                                                           "market",
+                                                                           "postal_code",
+                                                                           "city",
+                                                                           "street_name",
+                                                                           "street_number",
+                                                                           "items",
+                                                                           "total"
+                                                                       ],
+                                                          "title":  "ReceiptOut"
+                                                      },
+                                       "ReceiptUpdateRequest":  {
+                                                                    "properties":  {
+                                                                                       "date":  {
+                                                                                                    "anyOf":  [
+                                                                                                                  {
+                                                                                                                      "type":  "string",
+                                                                                                                      "format":  "date-time"
+                                                                                                                  },
+                                                                                                                  {
+                                                                                                                      "type":  "null"
+                                                                                                                  }
+                                                                                                              ],
+                                                                                                    "title":  "Date"
+                                                                                                },
+                                                                                       "receipt_number":  {
+                                                                                                              "anyOf":  [
+                                                                                                                            {
+                                                                                                                                "type":  "string"
+                                                                                                                            },
+                                                                                                                            {
+                                                                                                                                "type":  "null"
+                                                                                                                            }
+                                                                                                                        ],
+                                                                                                              "title":  "Receipt Number"
+                                                                                                          },
+                                                                                       "market_id":  {
+                                                                                                         "anyOf":  [
+                                                                                                                       {
+                                                                                                                           "type":  "integer"
+                                                                                                                       },
+                                                                                                                       {
+                                                                                                                           "type":  "null"
+                                                                                                                       }
+                                                                                                                   ],
+                                                                                                         "title":  "Market Id"
+                                                                                                     },
+                                                                                       "postal_code":  {
+                                                                                                           "anyOf":  [
+                                                                                                                         {
+                                                                                                                             "type":  "string"
+                                                                                                                         },
+                                                                                                                         {
+                                                                                                                             "type":  "null"
+                                                                                                                         }
+                                                                                                                     ],
+                                                                                                           "title":  "Postal Code"
+                                                                                                       },
+                                                                                       "city":  {
+                                                                                                    "anyOf":  [
+                                                                                                                  {
+                                                                                                                      "type":  "string"
+                                                                                                                  },
+                                                                                                                  {
+                                                                                                                      "type":  "null"
+                                                                                                                  }
+                                                                                                              ],
+                                                                                                    "title":  "City"
+                                                                                                },
+                                                                                       "street_name":  {
+                                                                                                           "anyOf":  [
+                                                                                                                         {
+                                                                                                                             "type":  "string"
+                                                                                                                         },
+                                                                                                                         {
+                                                                                                                             "type":  "null"
+                                                                                                                         }
+                                                                                                                     ],
+                                                                                                           "title":  "Street Name"
+                                                                                                       },
+                                                                                       "street_number":  {
+                                                                                                             "anyOf":  [
+                                                                                                                           {
+                                                                                                                               "type":  "string"
+                                                                                                                           },
+                                                                                                                           {
+                                                                                                                               "type":  "null"
+                                                                                                                           }
+                                                                                                                       ],
+                                                                                                             "title":  "Street Number"
+                                                                                                         },
+                                                                                       "items":  {
+                                                                                                     "anyOf":  [
+                                                                                                                   {
+                                                                                                                       "items":  {
+                                                                                                                                     "$ref":  "#/components/schemas/ReceiptItemUpdateRequest"
+                                                                                                                                 },
+                                                                                                                       "type":  "array"
+                                                                                                                   },
+                                                                                                                   {
+                                                                                                                       "type":  "null"
+                                                                                                                   }
+                                                                                                               ],
+                                                                                                     "title":  "Items"
+                                                                                                 }
+                                                                                   },
+                                                                    "type":  "object",
+                                                                    "title":  "ReceiptUpdateRequest"
+                                                                },
+                                       "Role":  {
+                                                    "type":  "string",
+                                                    "enum":  [
+                                                                 "admin",
+                                                                 "user"
+                                                             ],
+                                                    "title":  "Role"
+                                                },
+                                       "TokenOut":  {
+                                                        "properties":  {
+                                                                           "access_token":  {
+                                                                                                "type":  "string",
+                                                                                                "title":  "Access Token"
+                                                                                            },
+                                                                           "refresh_token":  {
+                                                                                                 "type":  "string",
+                                                                                                 "title":  "Refresh Token"
+                                                                                             },
+                                                                           "token_type":  {
+                                                                                              "type":  "string",
+                                                                                              "title":  "Token Type",
+                                                                                              "default":  "bearer"
+                                                                                          }
+                                                                       },
+                                                        "type":  "object",
+                                                        "required":  [
+                                                                         "access_token",
+                                                                         "refresh_token"
+                                                                     ],
+                                                        "title":  "TokenOut"
+                                                    },
+                                       "UserInDB":  {
+                                                        "properties":  {
+                                                                           "username":  {
+                                                                                            "type":  "string",
+                                                                                            "title":  "Username"
+                                                                                        },
+                                                                           "email":  {
+                                                                                         "anyOf":  [
+                                                                                                       {
+                                                                                                           "type":  "string"
+                                                                                                       },
+                                                                                                       {
+                                                                                                           "type":  "null"
+                                                                                                       }
+                                                                                                   ],
+                                                                                         "title":  "Email"
+                                                                                     },
+                                                                           "fullname":  {
+                                                                                            "anyOf":  [
+                                                                                                          {
+                                                                                                              "type":  "string"
+                                                                                                          },
+                                                                                                          {
+                                                                                                              "type":  "null"
+                                                                                                          }
+                                                                                                      ],
+                                                                                            "title":  "Fullname"
+                                                                                        },
+                                                                           "profile_picture":  {
+                                                                                                   "anyOf":  [
+                                                                                                                 {
+                                                                                                                     "type":  "string"
+                                                                                                                 },
+                                                                                                                 {
+                                                                                                                     "type":  "null"
+                                                                                                                 }
+                                                                                                             ],
+                                                                                                   "title":  "Profile Picture"
+                                                                                               },
+                                                                           "disabled":  {
+                                                                                            "anyOf":  [
+                                                                                                          {
+                                                                                                              "type":  "boolean"
+                                                                                                          },
+                                                                                                          {
+                                                                                                              "type":  "null"
+                                                                                                          }
+                                                                                                      ],
+                                                                                            "title":  "Disabled"
+                                                                                        },
+                                                                           "roles":  {
+                                                                                         "items":  {
+                                                                                                       "$ref":  "#/components/schemas/Role"
+                                                                                                   },
+                                                                                         "type":  "array",
+                                                                                         "title":  "Roles",
+                                                                                         "default":  [
+
+                                                                                                     ]
+                                                                                     },
+                                                                           "hashed_password":  {
+                                                                                                   "type":  "string",
+                                                                                                   "title":  "Hashed Password"
+                                                                                               }
+                                                                       },
+                                                        "type":  "object",
+                                                        "required":  [
+                                                                         "username",
+                                                                         "hashed_password"
+                                                                     ],
+                                                        "title":  "UserInDB"
+                                                    },
+                                       "UserListOut":  {
+                                                           "properties":  {
+                                                                              "users":  {
+                                                                                            "items":  {
+                                                                                                          "$ref":  "#/components/schemas/UserOut"
+                                                                                                      },
+                                                                                            "type":  "array",
+                                                                                            "title":  "Users"
+                                                                                        },
+                                                                              "skip":  {
+                                                                                           "type":  "integer",
+                                                                                           "title":  "Skip"
+                                                                                       },
+                                                                              "page_size":  {
+                                                                                                "type":  "integer",
+                                                                                                "title":  "Page Size"
+                                                                                            },
+                                                                              "total":  {
+                                                                                            "type":  "integer",
+                                                                                            "title":  "Total"
+                                                                                        }
+                                                                          },
+                                                           "type":  "object",
+                                                           "required":  [
+                                                                            "users",
+                                                                            "skip",
+                                                                            "page_size",
+                                                                            "total"
+                                                                        ],
+                                                           "title":  "UserListOut"
+                                                       },
+                                       "UserOut":  {
+                                                       "properties":  {
+                                                                          "id":  {
+                                                                                     "type":  "integer",
+                                                                                     "title":  "Id"
+                                                                                 },
+                                                                          "username":  {
+                                                                                           "type":  "string",
+                                                                                           "title":  "Username"
+                                                                                       },
+                                                                          "email":  {
+                                                                                        "anyOf":  [
+                                                                                                      {
+                                                                                                          "type":  "string"
+                                                                                                      },
+                                                                                                      {
+                                                                                                          "type":  "null"
+                                                                                                      }
+                                                                                                  ],
+                                                                                        "title":  "Email"
+                                                                                    },
+                                                                          "fullname":  {
+                                                                                           "anyOf":  [
+                                                                                                         {
+                                                                                                             "type":  "string"
+                                                                                                         },
+                                                                                                         {
+                                                                                                             "type":  "null"
+                                                                                                         }
+                                                                                                     ],
+                                                                                           "title":  "Fullname"
+                                                                                       },
+                                                                          "profile_picture":  {
+                                                                                                  "anyOf":  [
+                                                                                                                {
+                                                                                                                    "type":  "string"
+                                                                                                                },
+                                                                                                                {
+                                                                                                                    "type":  "null"
+                                                                                                                }
+                                                                                                            ],
+                                                                                                  "title":  "Profile Picture"
+                                                                                              },
+                                                                          "disabled":  {
+                                                                                           "anyOf":  [
+                                                                                                         {
+                                                                                                             "type":  "boolean"
+                                                                                                         },
+                                                                                                         {
+                                                                                                             "type":  "null"
+                                                                                                         }
+                                                                                                     ],
+                                                                                           "title":  "Disabled",
+                                                                                           "default":  false
+                                                                                       },
+                                                                          "roles":  {
+                                                                                        "items":  {
+                                                                                                      "type":  "string"
+                                                                                                  },
+                                                                                        "type":  "array",
+                                                                                        "title":  "Roles",
+                                                                                        "default":  [
+
+                                                                                                    ]
+                                                                                    }
+                                                                      },
+                                                       "type":  "object",
+                                                       "required":  [
+                                                                        "id",
+                                                                        "username"
+                                                                    ],
+                                                       "title":  "UserOut"
+                                                   },
+                                       "ValidationError":  {
+                                                               "properties":  {
+                                                                                  "loc":  {
+                                                                                              "items":  {
+                                                                                                            "anyOf":  [
+                                                                                                                          {
+                                                                                                                              "type":  "string"
+                                                                                                                          },
+                                                                                                                          {
+                                                                                                                              "type":  "integer"
+                                                                                                                          }
+                                                                                                                      ]
+                                                                                                        },
+                                                                                              "type":  "array",
+                                                                                              "title":  "Location"
+                                                                                          },
+                                                                                  "msg":  {
+                                                                                              "type":  "string",
+                                                                                              "title":  "Message"
+                                                                                          },
+                                                                                  "type":  {
+                                                                                               "type":  "string",
+                                                                                               "title":  "Error Type"
+                                                                                           }
+                                                                              },
+                                                               "type":  "object",
+                                                               "required":  [
+                                                                                "loc",
+                                                                                "msg",
+                                                                                "type"
+                                                                            ],
+                                                               "title":  "ValidationError"
+                                                           }
+                                   },
+                       "securitySchemes":  {
+                                               "HTTPBearer":  {
+                                                                  "type":  "http",
+                                                                  "scheme":  "bearer"
+                                                              }
+                                           }
+                   }
+}

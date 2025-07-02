@@ -111,6 +111,7 @@ def register_user(user: schemas.UserInDB, session: Session = Depends(get_session
     session.refresh(db_user)
     
     return UserOut(
+        id=db_user.id or 0,
         username=db_user.username,
         email=db_user.email,
         fullname=db_user.fullname,
@@ -159,4 +160,16 @@ def upload_profile_picture(
     session.add(current_user)
     session.commit()
     session.refresh(current_user)
-    return ProfilePictureOut(profile_picture=file_path) 
+    return ProfilePictureOut(profile_picture=file_path)
+
+@router.get("/me", response_model=UserOut)
+def get_me(current_user: DBUser = Depends(get_current_user)):
+    return UserOut(
+        id=int(current_user.id or 0),
+        username=current_user.username,
+        email=current_user.email,
+        fullname=current_user.fullname,
+        profile_picture=current_user.profile_picture,
+        disabled=current_user.disabled,
+        roles=[role.name for role in current_user.roles]
+    ) 

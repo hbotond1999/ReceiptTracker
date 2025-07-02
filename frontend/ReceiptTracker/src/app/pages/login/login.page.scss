@@ -1,0 +1,132 @@
+.login-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  padding: 20px;
+  background: linear-gradient(135deg, var(--ion-color-primary) 0%, var(--ion-color-primary-shade) 100%);
+}
+
+.logo-section {
+  text-align: center;
+  margin-bottom: 40px;
+  color: white;
+
+  h1 {
+    font-size: 2.5rem;
+    font-weight: bold;
+    margin: 20px 0 10px 0;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  }
+
+  p {
+    font-size: 1.1rem;
+    opacity: 0.9;
+    margin: 0;
+  }
+
+  ion-icon {
+    font-size: 4rem;
+    margin-bottom: 10px;
+  }
+}
+
+.login-form {
+  width: 100%;
+  max-width: 400px;
+  background: white;
+  border-radius: 15px;
+  padding: 30px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+
+  ion-item {
+    --border-radius: 10px;
+    --background: var(--ion-color-light);
+    margin-bottom: 20px;
+    border-radius: 10px;
+
+    ion-label {
+      font-weight: 500;
+      color: var(--ion-color-dark);
+    }
+
+    ion-input {
+      --padding-start: 15px;
+      --padding-end: 15px;
+      font-size: 16px;
+    }
+  }
+}
+
+.validation-error {
+  margin: -15px 0 15px 0;
+  padding-left: 15px;
+  font-size: 0.9rem;
+}
+
+.error-message {
+  background: var(--ion-color-danger-tint);
+  border-radius: 8px;
+  padding: 12px;
+  margin: 15px 0;
+  text-align: center;
+  font-size: 0.9rem;
+}
+
+.login-button {
+  margin-top: 20px;
+  --border-radius: 10px;
+  --padding-top: 15px;
+  --padding-bottom: 15px;
+  font-size: 16px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+
+  ion-spinner {
+    margin-right: 10px;
+  }
+}
+
+.register-link {
+  text-align: center;
+  margin-top: 30px;
+  color: white;
+
+  p {
+    margin: 0;
+    font-size: 1rem;
+  }
+
+  a {
+    color: var(--ion-color-light);
+    text-decoration: none;
+    font-weight: 600;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+}
+
+// Responsive design
+@media (max-width: 480px) {
+  .login-container {
+    padding: 10px;
+  }
+
+  .logo-section {
+    h1 {
+      font-size: 2rem;
+    }
+
+    p {
+      font-size: 1rem;
+    }
+  }
+
+  .login-form {
+    padding: 20px;
+  }
+} 
