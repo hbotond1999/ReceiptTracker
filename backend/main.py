@@ -1,9 +1,11 @@
 from fastapi import FastAPI
-from auth.routes import router as auth_router
+from backend.auth.routes import router as auth_router
+from backend.auth.models import Role
+
+from backend.receipt.routes import router as receipt_router
 from sqlmodel import SQLModel, Session, select
-from auth.routes import engine
-from auth.models import Role
-import os
+from backend.auth.routes import engine
+
 from dotenv import load_dotenv
 import uvicorn
 
@@ -35,6 +37,7 @@ def on_startup():
         print("Default roles initialized")
 
 app.include_router(auth_router)
+app.include_router(receipt_router)
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000) 
