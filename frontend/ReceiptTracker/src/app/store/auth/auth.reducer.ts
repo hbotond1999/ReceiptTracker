@@ -12,6 +12,14 @@ export const authReducer = createReducer(
     error: null,
   })),
   
+  on(AuthActions.loginTokenReceived, (state, { token }) => ({
+    ...state,
+    token,
+    isAuthenticated: true,
+    isLoading: true, // Keep loading while fetching user profile
+    error: null,
+  })),
+  
   on(AuthActions.loginSuccess, (state, { token, user }) => ({
     ...state,
     user,
@@ -47,15 +55,6 @@ export const authReducer = createReducer(
   on(AuthActions.autoLogin, (state) => ({
     ...state,
     isLoading: true,
-  })),
-  
-  on(AuthActions.autoLoginSuccess, (state, { token, user }) => ({
-    ...state,
-    user,
-    token,
-    isAuthenticated: true,
-    isLoading: false,
-    error: null,
   })),
   
   on(AuthActions.autoLoginFailure, (state) => ({

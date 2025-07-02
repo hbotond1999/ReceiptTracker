@@ -7,6 +7,11 @@ export const login = createAction(
   props<{ username: string; password: string }>()
 );
 
+export const loginTokenReceived = createAction(
+  '[Auth] Login Token Received',
+  props<{ token: TokenOut }>()
+);
+
 export const loginSuccess = createAction(
   '[Auth] Login Success',
   props<{ token: TokenOut; user: UserOut }>()
@@ -24,11 +29,6 @@ export const logoutSuccess = createAction('[Auth] Logout Success');
 
 // Auto Login Actions
 export const autoLogin = createAction('[Auth] Auto Login');
-
-export const autoLoginSuccess = createAction(
-  '[Auth] Auto Login Success',
-  props<{ token: TokenOut; user: UserOut }>()
-);
 
 export const autoLoginFailure = createAction('[Auth] Auto Login Failure');
 

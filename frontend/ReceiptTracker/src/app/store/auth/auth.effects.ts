@@ -30,10 +30,28 @@ export class AuthEffects {
             this.storage.set('access_token', token.access_token);
             this.storage.set('refresh_token', token.refresh_token);
             
-            // Get user profile using /auth/me endpoint
-            return AuthActions.getCurrentUserProfile();
+            // Immediately dispatch token received action to store tokens in store
+            return AuthActions.loginTokenReceived({ token });
           }),
           catchError(error => of(AuthActions.loginFailure({ error: error.message || 'Login failed' })))
+        )
+      )
+    )
+  );
+
+  // Handle token received and fetch user profile
+  loginTokenReceived$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(AuthActions.loginTokenReceived),
+      mergeMap(({ token }) =>
+        this.authService.getCurrentUserProfile().pipe(
+          map((user: UserOut) => {
+            return AuthActions.loginSuccess({ 
+              token,
+              user 
+            });
+          }),
+          catchError(error => of(AuthActions.getCurrentUserFailure({ error: error.message || 'Failed to get user info' })))
         )
       )
     )
@@ -103,7 +121,7 @@ export class AuthEffects {
                 map((token: TokenOut) => {
                   this.storage.set('access_token', token.access_token);
                   this.storage.set('refresh_token', token.refresh_token);
-                  return AuthActions.getCurrentUserProfile();
+                  return AuthActions.loginTokenReceived({ token });
                 }),
                 catchError(() => of(AuthActions.autoLoginFailure()))
               );
