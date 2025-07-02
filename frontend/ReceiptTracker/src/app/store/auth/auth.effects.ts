@@ -56,7 +56,7 @@ export class AuthEffects {
       )
     )
   );
-  
+
   getCurrentUserProfile$ = createEffect(() =>
     this.actions$.pipe(
       ofType(AuthActions.getCurrentUserProfile),
@@ -143,6 +143,4 @@ export class AuthEffects {
       map(() => AuthActions.logoutSuccess())
     )
   );
-
-
 }
