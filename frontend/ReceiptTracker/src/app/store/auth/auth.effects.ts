@@ -29,7 +29,7 @@ export class AuthEffects {
             // Store token in local storage
             this.storage.set('access_token', token.access_token);
             this.storage.set('refresh_token', token.refresh_token);
-            
+
             // Immediately dispatch token received action to store tokens in store
             return AuthActions.loginTokenReceived({ token });
           }),
@@ -46,9 +46,9 @@ export class AuthEffects {
       mergeMap(({ token }) =>
         this.authService.getCurrentUserProfile().pipe(
           map((user: UserOut) => {
-            return AuthActions.loginSuccess({ 
+            return AuthActions.loginSuccess({
               token,
-              user 
+              user
             });
           }),
           catchError(error => of(AuthActions.getCurrentUserFailure({ error: error.message || 'Failed to get user info' })))
@@ -56,35 +56,7 @@ export class AuthEffects {
       )
     )
   );
-
-  // Get Current User Effect (legacy - uses users list)
-  getCurrentUser$ = createEffect(() =>
-    this.actions$.pipe(
-      ofType(AuthActions.getCurrentUser),
-      mergeMap(() =>
-        from(Promise.all([
-          this.storage.get('access_token'),
-          this.storage.get('refresh_token')
-        ])).pipe(
-          switchMap(([accessToken, refreshToken]) =>
-            this.authService.getCurrentUser().pipe(
-              map((users: UserListOut) => {
-                // Assuming the first user is the current user (you might need to adjust this based on your API)
-                const user = users.users[0];
-                return AuthActions.loginSuccess({ 
-                  token: { access_token: accessToken, refresh_token: refreshToken },
-                  user 
-                });
-              }),
-              catchError(error => of(AuthActions.getCurrentUserFailure({ error: error.message || 'Failed to get user info' })))
-            )
-          )
-        )
-      )
-    )
-  );
-
-  // Get Current User Profile Effect (new - uses /auth/me endpoint)
+  
   getCurrentUserProfile$ = createEffect(() =>
     this.actions$.pipe(
       ofType(AuthActions.getCurrentUserProfile),
@@ -96,9 +68,9 @@ export class AuthEffects {
           switchMap(([accessToken, refreshToken]) =>
             this.authService.getCurrentUserProfile().pipe(
               map((user: UserOut) => {
-                return AuthActions.loginSuccess({ 
+                return AuthActions.loginSuccess({
                   token: { access_token: accessToken, refresh_token: refreshToken },
-                  user 
+                  user
                 });
               }),
               catchError(error => of(AuthActions.getCurrentUserFailure({ error: error.message || 'Failed to get user info' })))
@@ -173,4 +145,4 @@ export class AuthEffects {
   );
 
 
-} 
+}
