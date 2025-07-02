@@ -19,41 +19,37 @@ export class AuthInterceptor implements HttpInterceptor {
 
   constructor(private store: Store) {}
 
-  intercept(request: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
+   intercept(request: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
     // Skip token for auth endpoints
     if (request.url.includes('/auth/login') || request.url.includes('/auth/register')) {
       return next.handle(request);
     }
 
-    // Add token to request
-    const token = this.getTokenFromStore();
-    if (token) {
-      request = this.addToken(request, token);
-    }
-
-    return next.handle(request).pipe(
-      catchError((error: HttpErrorResponse) => {
-        if (error.status === 401 && !request.url.includes('/auth/refresh')) {
-          return this.handle401Error(request, next);
+    return this.store.select(selectAccessToken).pipe(
+      take(1),
+      switchMap(token => {
+        if (token) {
+          request = this.addToken(request, token);
         }
-        return throwError(() => error);
+        return next.handle(request).pipe(
+          catchError((error: HttpErrorResponse) => {
+            if (error.status === 401 && !request.url.includes('/auth/refresh')) {
+              return this.handle401Error(request, next);
+            }
+            return throwError(() => error);
+          })
+        );
       })
     );
   }
 
   private addToken(request: HttpRequest<any>, token: string): HttpRequest<any> {
-    return request.clone({
-      setHeaders: {
-        Authorization: `Bearer ${token}`
-      }
-    });
-  }
-
-  private getTokenFromStore(): string | null {
-    let token: string | null = null;
-    this.store.select(selectAccessToken).pipe(take(1)).subscribe(t => token = t || null);
-    return token;
-  }
+      return request.clone({
+        setHeaders: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+    }
 
   private handle401Error(request: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
     if (!this.isRefreshing) {
@@ -84,4 +80,4 @@ export class AuthInterceptor implements HttpInterceptor {
       );
     }
   }
-} 
+}
