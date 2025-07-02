@@ -1,33 +1,40 @@
 import uuid
-from fastapi import APIRouter, UploadFile, File, HTTPException, Depends
-from sqlmodel import Session, select
+from fastapi import APIRouter, UploadFile, File, HTTPException, Depends, Query
+from sqlmodel import Session, select, or_, and_, func
 import shutil
 import os
-from typing import List
+from typing import List, Optional
+from datetime import datetime
+from sqlalchemy import text
 
 from backend.auth.models import User, RoleEnum
 from backend.auth.routes import get_current_user, engine
+from backend.auth.schemas import Role
 from backend.receipt.ai.agent import recognize_receipt
-from backend.receipt.models import Market, Address, Receipt, ReceiptItem
-from backend.receipt.schemas import ReceiptResponse
+from backend.receipt.ai.structured_output import Receipt as AIReceipt
+from backend.receipt.models import Market, Receipt, ReceiptItem
+from backend.receipt.schemas import ReceiptOut, MarketOut, ReceiptItemOut, UserOut, ReceiptListOut, ReceiptUpdateRequest, ReceiptItemUpdateRequest, MarketUpdateRequest, ReceiptCreateRequest
+from backend.receipt.utils import is_admin_user, get_receipts_count, get_receipts_paginated
 
 # Központi konfiguráció
 UPLOADS_DIR = "receipt_images"
 os.makedirs(UPLOADS_DIR, exist_ok=True)
 router = APIRouter(prefix="/receipt", tags=["receipt"])
 
-def is_admin_user(user: User) -> bool:
-    """Check if the user has admin role"""
-    return any(role.name == RoleEnum.admin for role in user.roles)
 
-@router.post("/recognize", response_model=ReceiptResponse)
+
+@router.post("/recognize", response_model=ReceiptOut)
 async def create_receipt(
     file: UploadFile = File(...),
     current_user: User = Depends(get_current_user)
 ):
     # Validate file type
-    if not file.content_type.startswith('image/'):
+    if not file.content_type or not file.content_type.startswith('image/'):
         raise HTTPException(status_code=400, detail="Only image files are allowed")
+    
+    # Validate filename
+    if not file.filename:
+        raise HTTPException(status_code=400, detail="Filename is required")
     
     # Generate UUID filename with original extension
     file_extension = os.path.splitext(file.filename)[1]
@@ -48,151 +55,579 @@ async def create_receipt(
     # 3. Upsert Market and Address
     with Session(engine) as session:
         # Market
-        market_data = receipt_data['market'] if isinstance(receipt_data, dict) else receipt_data.market.dict()
-        market = session.exec(select(Market).where(Market.name == market_data['name'], Market.tax_number == market_data['tax_number'])).first()
+        market_data = receipt_data.market  # type: ignore
+        market = session.exec(select(Market).where(
+            Market.name == market_data.name, 
+            Market.tax_number == market_data.tax_number
+        )).first()
         if not market:
-            market = Market(**market_data)
+            market = Market(name=market_data.name, tax_number=market_data.tax_number)
             session.add(market)
             session.commit()
             session.refresh(market)
-        # Address
-        address_data = receipt_data['address'] if isinstance(receipt_data, dict) else receipt_data.address.dict()
-        address = session.exec(select(Address).where(
-            Address.postal_code == address_data['postal_code'],
-            Address.city == address_data['city'],
-            Address.street_name == address_data['street_name'],
-            Address.street_number == address_data['street_number']
-        )).first()
-        if not address:
-            address = Address(**address_data)
-            session.add(address)
-            session.commit()
-            session.refresh(address)
+        
         # 4. Save Receipt with user and file info
+        if not market.id or not current_user.id:
+            raise HTTPException(status_code=500, detail="Failed to create required entities")
+        
+        # Get address data from AI recognition
+        address_data = receipt_data.address  # type: ignore
+        
+        # User kiválasztás
+        if is_admin_user(current_user) and receipt_data.user_id is not None:
+            user_id = int(receipt_data.user_id) if receipt_data.user_id is not None else current_user.id
+            user = session.exec(select(User).where(User.id == user_id)).first()
+            if not user:
+                raise HTTPException(status_code=404, detail="User not found")
+        else:
+            user_id = current_user.id or 0
+            user = current_user
+        
         receipt = Receipt(
-            date=receipt_data['date'] if isinstance(receipt_data, dict) else receipt_data.date,
-            receipt_number=receipt_data['receipt_number'] if isinstance(receipt_data, dict) else receipt_data.receipt_number,
+            date=receipt_data.date,  # type: ignore
+            receipt_number=receipt_data.receipt_number,  # type: ignore
             market_id=market.id,
-            address_id=address.id,
-            user_id=current_user.id,
+            user_id=user_id,
             image_path=file_path,
-            original_filename=file.filename
+            original_filename=file.filename,
+            postal_code=address_data.postal_code,
+            city=address_data.city,
+            street_name=address_data.street_name,
+            street_number=address_data.street_number
         )
         session.add(receipt)
         session.commit()
         session.refresh(receipt)
+        
         # 5. Save ReceiptItems
-        items = receipt_data['items'] if isinstance(receipt_data, dict) else [item.dict() for item in receipt_data.items]
-        for item in items:
+        if not receipt.id:
+            raise HTTPException(status_code=500, detail="Failed to create receipt")
+            
+        for item in receipt_data.items:  # type: ignore
             receipt_item = ReceiptItem(
-                name=item['name'],
-                price=item['price'],
+                name=item.name,
+                price=item.price,
                 receipt_id=receipt.id
             )
             session.add(receipt_item)
         session.commit()
+        
         # 6. Return the created receipt (with items, market, and address)
-        receipt.items = session.exec(select(ReceiptItem).where(ReceiptItem.receipt_id == receipt.id)).all()
+        items = session.exec(select(ReceiptItem).where(ReceiptItem.receipt_id == receipt.id)).all()
+        
+        # Calculate total
+        total = sum(item.price for item in items)
         
         # Create a complete response using the schema
-        response = ReceiptResponse(
+        response = ReceiptOut(
             id=receipt.id,
             date=receipt.date,
             receipt_number=receipt.receipt_number,
             image_path=receipt.image_path,
             original_filename=receipt.original_filename,
-            user={
-                "id": current_user.id,
-                "username": current_user.username,
-                "email": current_user.email,
-                "fullname": current_user.fullname,
-                "profile_picture": current_user.profile_picture,
-                "disabled": current_user.disabled,
-                "roles": [role.name for role in current_user.roles]
-            },
-            market={
-                "id": market.id,
-                "name": market.name,
-                "tax_number": market.tax_number
-            },
-            address={
-                "id": address.id,
-                "postal_code": address.postal_code,
-                "city": address.city,
-                "street_name": address.street_name,
-                "street_number": address.street_number
-            },
+            user=UserOut(
+                id=current_user.id or 0,
+                username=current_user.username,
+                email=current_user.email,
+                fullname=current_user.fullname,
+                profile_picture=current_user.profile_picture,
+                disabled=current_user.disabled,
+                roles=[Role(role.name.value) for role in current_user.roles]
+            ),
+            market=MarketOut(
+                id=market.id or 0,
+                name=market.name,
+                tax_number=market.tax_number
+            ),
+            postal_code=receipt.postal_code,
+            city=receipt.city,
+            street_name=receipt.street_name,
+            street_number=receipt.street_number,
             items=[
-                {
-                    "id": item.id,
-                    "name": item.name,
-                    "price": item.price
-                }
-                for item in receipt.items
-            ]
+                ReceiptItemOut(
+                    id=item.id or 0,
+                    name=item.name,
+                    price=item.price
+                )
+                for item in items
+            ],
+            total=total
         )
         return response
 
-@router.get("/", response_model=List[ReceiptResponse])
+@router.get("/", response_model=ReceiptListOut)
 async def get_receipts(
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user),
+    skip: int = Query(0, ge=0, description="Kihagyandó rekordok száma"),
+    limit: int = Query(10, ge=1, le=100, description="Visszaadandó rekordok száma (max 100)"),
+    user_id: Optional[int] = Query(None, description="Szűrés felhasználó ID alapján (csak adminoknak)"),
+    market_id: Optional[int] = Query(None, description="Szűrés market ID alapján"),
+    market_name: Optional[str] = Query(None, description="Szűrés market név alapján (tartalmazó keresés)"),
+    item_name: Optional[str] = Query(None, description="Szűrés tétel neve alapján (tartalmazó keresés)"),
+    date_from: Optional[datetime] = Query(None, description="Szűrés kezdő dátum alapján"),
+    date_to: Optional[datetime] = Query(None, description="Szűrés vég dátum alapján")
 ):
-    """Get receipts - admin users see all, regular users see only their own"""
+    """Get receipts with optional filtering - admin users see all, regular users see only their own"""
     with Session(engine) as session:
-        # Build query based on user permissions
-        if is_admin_user(current_user):
-            # Admin can see all receipts
-            receipts = session.exec(select(Receipt)).all()
-        else:
-            # Regular users can only see their own receipts
-            receipts = session.exec(select(Receipt).where(Receipt.user_id == current_user.id)).all()
+        # Get total count for pagination
+        total_count = get_receipts_count(
+            session=session,
+            current_user=current_user,
+            user_id=user_id,
+            market_id=market_id,
+            market_name=market_name,
+            item_name=item_name,
+            date_from=date_from,
+            date_to=date_to
+        )
+        
+        # Get paginated receipts
+        receipts = get_receipts_paginated(
+            session=session,
+            current_user=current_user,
+            user_id=user_id,
+            market_id=market_id,
+            market_name=market_name,
+            item_name=item_name,
+            date_from=date_from,
+            date_to=date_to,
+            skip=skip,
+            limit=limit
+        )
         
         # Build complete response for each receipt
         response_receipts = []
         for receipt in receipts:
-            # Get market, address, and user
+            # Get market and user
             market = session.exec(select(Market).where(Market.id == receipt.market_id)).first()
-            address = session.exec(select(Address).where(Address.id == receipt.address_id)).first()
             user = session.exec(select(User).where(User.id == receipt.user_id)).first()
             items = session.exec(select(ReceiptItem).where(ReceiptItem.receipt_id == receipt.id)).all()
             
+            # Skip if market or user not found
+            if not market or not user:
+                continue
+            
+            # Calculate total for this receipt
+            total = sum(item.price for item in items)
+            
             # Create response object
-            response = ReceiptResponse(
-                id=receipt.id,
+            response = ReceiptOut(
+                id=receipt.id or 0,
                 date=receipt.date,
                 receipt_number=receipt.receipt_number,
                 image_path=receipt.image_path,
                 original_filename=receipt.original_filename,
-                user={
-                    "id": user.id,
-                    "username": user.username,
-                    "email": user.email,
-                    "fullname": user.fullname,
-                    "profile_picture": user.profile_picture,
-                    "disabled": user.disabled,
-                    "roles": [role.name for role in user.roles]
-                },
-                market={
-                    "id": market.id,
-                    "name": market.name,
-                    "tax_number": market.tax_number
-                },
-                address={
-                    "id": address.id,
-                    "postal_code": address.postal_code,
-                    "city": address.city,
-                    "street_name": address.street_name,
-                    "street_number": address.street_number
-                },
+                user=UserOut(
+                    id=user.id or 0,
+                    username=user.username,
+                    email=user.email,
+                    fullname=user.fullname,
+                    profile_picture=user.profile_picture,
+                    disabled=user.disabled,
+                    roles=[]  # Note: roles are not loaded here for performance
+                ),
+                market=MarketOut(
+                    id=market.id or 0,
+                    name=market.name,
+                    tax_number=market.tax_number
+                ),
+                postal_code=receipt.postal_code,
+                city=receipt.city,
+                street_name=receipt.street_name,
+                street_number=receipt.street_number,
                 items=[
-                    {
-                        "id": item.id,
-                        "name": item.name,
-                        "price": item.price
-                    }
+                    ReceiptItemOut(
+                        id=item.id or 0,
+                        name=item.name,
+                        price=item.price
+                    )
                     for item in items
-                ]
+                ],
+                total=total
             )
             response_receipts.append(response)
         
-        return response_receipts
+        # Create paginated response
+        return ReceiptListOut(
+            receipts=response_receipts,
+            skip=skip,
+            limit=limit,
+            total=total_count,
+            has_next=skip + limit < total_count,
+            has_previous=skip > 0
+        )
+
+
+@router.put("/{receipt_id}", response_model=ReceiptOut)
+async def update_receipt(
+    receipt_id: int,
+    update_data: ReceiptUpdateRequest,
+    current_user: User = Depends(get_current_user)
+):
+    """Update receipt data, items, and market"""
+    with Session(engine) as session:
+        # Get the receipt and verify ownership
+        receipt = session.exec(select(Receipt).where(Receipt.id == receipt_id)).first()
+        if not receipt:
+            raise HTTPException(status_code=404, detail="Receipt not found")
+        
+        # Check if user owns the receipt or is admin
+        if receipt.user_id != current_user.id and not is_admin_user(current_user):
+            raise HTTPException(status_code=403, detail="Not authorized to update this receipt")
+        
+        # Update market if market_id is provided
+        if update_data.market_id is not None:
+            market = session.exec(select(Market).where(Market.id == update_data.market_id)).first()
+            if not market:
+                raise HTTPException(status_code=404, detail="Market not found")
+            receipt.market_id = update_data.market_id
+        
+        # Update receipt fields if provided
+        if update_data.date is not None:
+            receipt.date = update_data.date
+        if update_data.receipt_number is not None:
+            receipt.receipt_number = update_data.receipt_number
+        if update_data.postal_code is not None:
+            receipt.postal_code = update_data.postal_code
+        if update_data.city is not None:
+            receipt.city = update_data.city
+        if update_data.street_name is not None:
+            receipt.street_name = update_data.street_name
+        if update_data.street_number is not None:
+            receipt.street_number = update_data.street_number
+        
+        # Handle items update if provided
+        if update_data.items is not None:
+            # Get existing items
+            existing_items = session.exec(select(ReceiptItem).where(ReceiptItem.receipt_id == receipt_id)).all()
+            existing_item_ids = {item.id for item in existing_items if item.id}
+            
+            # Track items to keep
+            items_to_keep = set()
+            
+            # Process each item in the update request
+            for item_data in update_data.items:
+                if item_data.id is not None:
+                    # Update existing item
+                    existing_item = session.exec(select(ReceiptItem).where(ReceiptItem.id == item_data.id)).first()
+                    if existing_item and existing_item.receipt_id == receipt_id:
+                        existing_item.name = item_data.name
+                        existing_item.price = item_data.price
+                        items_to_keep.add(item_data.id)
+                    else:
+                        raise HTTPException(status_code=400, detail=f"Item with id {item_data.id} not found or doesn't belong to this receipt")
+                else:
+                    # Add new item
+                    new_item = ReceiptItem(
+                        name=item_data.name,
+                        price=item_data.price,
+                        receipt_id=receipt_id
+                    )
+                    session.add(new_item)
+            
+            # Delete items that are not in the update request
+            items_to_delete = existing_item_ids - items_to_keep
+            for item_id in items_to_delete:
+                item_to_delete = session.exec(select(ReceiptItem).where(ReceiptItem.id == item_id)).first()
+                if item_to_delete:
+                    session.delete(item_to_delete)
+        
+        session.commit()
+        session.refresh(receipt)
+        
+        # Get updated data for response
+        market = session.exec(select(Market).where(Market.id == receipt.market_id)).first()
+        user = session.exec(select(User).where(User.id == receipt.user_id)).first()
+        items = session.exec(select(ReceiptItem).where(ReceiptItem.receipt_id == receipt_id)).all()
+        
+        if not market or not user:
+            raise HTTPException(status_code=500, detail="Failed to retrieve related data")
+        
+        # Calculate total
+        total = sum(item.price for item in items)
+        
+        # Create response
+        return ReceiptOut(
+            id=receipt.id or 0,
+            date=receipt.date,
+            receipt_number=receipt.receipt_number,
+            image_path=receipt.image_path,
+            original_filename=receipt.original_filename,
+            user=UserOut(
+                id=user.id or 0,
+                username=user.username,
+                email=user.email,
+                fullname=user.fullname,
+                profile_picture=user.profile_picture,
+                disabled=user.disabled,
+                roles=[Role(role.name.value) for role in user.roles]
+            ),
+            market=MarketOut(
+                id=market.id or 0,
+                name=market.name,
+                tax_number=market.tax_number
+            ),
+            postal_code=receipt.postal_code,
+            city=receipt.city,
+            street_name=receipt.street_name,
+            street_number=receipt.street_number,
+            items=[
+                ReceiptItemOut(
+                    id=item.id or 0,
+                    name=item.name,
+                    price=item.price
+                )
+                for item in items
+            ],
+            total=total
+        )
+
+
+@router.put("/market/{market_id}", response_model=MarketOut)
+async def update_market(
+    market_id: int,
+    market_data: MarketUpdateRequest,
+    current_user: User = Depends(get_current_user)
+):
+    """Update market information"""
+    with Session(engine) as session:
+        # Get the market
+        market = session.exec(select(Market).where(Market.id == market_id)).first()
+        if not market:
+            raise HTTPException(status_code=404, detail="Market not found")
+        
+        # Update market fields
+        market.name = market_data.name
+        market.tax_number = market_data.tax_number
+        
+        session.commit()
+        session.refresh(market)
+        
+        return MarketOut(
+            id=market.id or 0,
+            name=market.name,
+            tax_number=market.tax_number
+        )
+
+
+@router.get("/market/{market_id}", response_model=MarketOut)
+async def get_market(
+    market_id: int,
+    current_user: User = Depends(get_current_user)
+):
+    """Get market by ID"""
+    with Session(engine) as session:
+        market = session.exec(select(Market).where(Market.id == market_id)).first()
+        if not market:
+            raise HTTPException(status_code=404, detail="Market not found")
+        
+        return MarketOut(
+            id=market.id or 0,
+            name=market.name,
+            tax_number=market.tax_number
+        )
+
+
+@router.get("/markets", response_model=List[MarketOut])
+async def get_markets(
+    current_user: User = Depends(get_current_user),
+    skip: int = Query(0, ge=0, description="Kihagyandó rekordok száma"),
+    limit: int = Query(100, ge=1, le=1000, description="Visszaadandó rekordok száma (max 1000)"),
+    name: Optional[str] = Query(None, description="Szűrés név alapján (tartalmazó keresés)"),
+    tax_number: Optional[str] = Query(None, description="Szűrés adószám alapján (tartalmazó keresés)")
+):
+    """Get all markets with optional filtering"""
+    with Session(engine) as session:
+        query = select(Market)
+        
+        # Apply filters
+        if name:
+            query = query.where(text(f"markets.name LIKE '%{name}%'"))
+        if tax_number:
+            query = query.where(text(f"markets.tax_number LIKE '%{tax_number}%'"))
+        
+        # Apply pagination
+        query = query.offset(skip).limit(limit)
+        
+        markets = session.exec(query).all()
+        
+        return [
+            MarketOut(
+                id=market.id or 0,
+                name=market.name,
+                tax_number=market.tax_number
+            )
+            for market in markets
+        ]
+
+
+@router.post("/market", response_model=MarketOut)
+async def create_market(
+    market_data: MarketUpdateRequest,
+    current_user: User = Depends(get_current_user)
+):
+    """Create a new market"""
+    with Session(engine) as session:
+        # Check if market with same name and tax number already exists
+        existing_market = session.exec(select(Market).where(
+            Market.name == market_data.name,
+            Market.tax_number == market_data.tax_number
+        )).first()
+        
+        if existing_market:
+            raise HTTPException(status_code=400, detail="Market with this name and tax number already exists")
+        
+        # Create new market
+        new_market = Market(
+            name=market_data.name,
+            tax_number=market_data.tax_number
+        )
+        
+        session.add(new_market)
+        session.commit()
+        session.refresh(new_market)
+        
+        return MarketOut(
+            id=new_market.id or 0,
+            name=new_market.name,
+            tax_number=new_market.tax_number
+        )
+
+
+@router.delete("/market/{market_id}")
+async def delete_market(
+    market_id: int,
+    current_user: User = Depends(get_current_user)
+):
+    """Delete a market (only if no receipts are associated with it)"""
+    with Session(engine) as session:
+        # Get the market
+        market = session.exec(select(Market).where(Market.id == market_id)).first()
+        if not market:
+            raise HTTPException(status_code=404, detail="Market not found")
+        
+        # Check if there are any receipts associated with this market
+        receipts_count = session.exec(select(func.count()).where(Receipt.market_id == market_id)).one()
+        if receipts_count and receipts_count > 0:
+            raise HTTPException(
+                status_code=400, 
+                detail=f"Cannot delete market. There are {receipts_count} receipts associated with this market."
+            )
+        
+        # Delete the market
+        session.delete(market)
+        session.commit()
+        
+        return {"message": "Market deleted successfully"}
+
+
+@router.post("/receipt", response_model=ReceiptOut)
+async def create_receipt_manual(
+    receipt_data: ReceiptCreateRequest,
+    current_user: User = Depends(get_current_user)
+):
+    """Manuális receipt létrehozás (admin bármely userhez, mezei user csak magához)"""
+    with Session(engine) as session:
+        # Market ellenőrzés
+        market = session.exec(select(Market).where(Market.id == receipt_data.market_id)).first()
+        if not market:
+            raise HTTPException(status_code=404, detail="Market not found")
+        # User kiválasztás
+        user_id: int
+        if is_admin_user(current_user) and receipt_data.user_id is not None:
+            user_id = int(receipt_data.user_id)
+            user = session.exec(select(User).where(User.id == user_id)).first()
+            if not user:
+                raise HTTPException(status_code=404, detail="User not found")
+        else:
+            user_id = int(current_user.id or 0)
+            user = current_user
+        # Receipt létrehozás
+        receipt = Receipt(
+            date=receipt_data.date,
+            receipt_number=receipt_data.receipt_number,
+            market_id=receipt_data.market_id,
+            user_id=user_id,
+            image_path=receipt_data.image_path,
+            original_filename=receipt_data.original_filename,
+            postal_code=receipt_data.postal_code,
+            city=receipt_data.city,
+            street_name=receipt_data.street_name,
+            street_number=receipt_data.street_number
+        )
+        session.add(receipt)
+        session.commit()
+        session.refresh(receipt)
+        # Items kezelése
+        items = []
+        total = 0.0
+        
+        if receipt_data.items and receipt.id:
+            for item_data in receipt_data.items:
+                receipt_item = ReceiptItem(
+                    name=item_data.name,
+                    price=item_data.price,
+                    receipt_id=receipt.id
+                )
+                session.add(receipt_item)
+                items.append(receipt_item)
+            session.commit()
+            
+            # Calculate total
+            total = sum(item.price for item in items)
+        
+        return ReceiptOut(
+            id=receipt.id or 0,
+            date=receipt.date,
+            receipt_number=receipt.receipt_number,
+            image_path=receipt.image_path,
+            original_filename=receipt.original_filename,
+            user=UserOut(
+                id=user.id or 0,
+                username=user.username,
+                email=user.email,
+                fullname=user.fullname,
+                profile_picture=user.profile_picture,
+                disabled=user.disabled,
+                roles=[Role(role.name.value) for role in user.roles]
+            ),
+            market=MarketOut(
+                id=market.id or 0,
+                name=market.name,
+                tax_number=market.tax_number
+            ),
+            postal_code=receipt.postal_code,
+            city=receipt.city,
+            street_name=receipt.street_name,
+            street_number=receipt.street_number,
+            items=[
+                ReceiptItemOut(
+                    id=item.id or 0,
+                    name=item.name,
+                    price=item.price
+                )
+                for item in items
+            ],
+            total=total
+        )
+
+
+@router.delete("/receipt/{receipt_id}")
+async def delete_receipt(
+    receipt_id: int,
+    current_user: User = Depends(get_current_user)
+):
+    """Receipt törlése (mezei user csak a sajátját, admin mindent)"""
+    with Session(engine) as session:
+        receipt = session.exec(select(Receipt).where(Receipt.id == receipt_id)).first()
+        if not receipt:
+            raise HTTPException(status_code=404, detail="Receipt not found")
+        if not (is_admin_user(current_user) or receipt.user_id == current_user.id):
+            raise HTTPException(status_code=403, detail="Not authorized to delete this receipt")
+        # Törlés előtt töröljük a hozzá tartozó tételeket is
+        items = session.exec(select(ReceiptItem).where(ReceiptItem.receipt_id == receipt_id)).all()
+        for item in items:
+            session.delete(item)
+        session.delete(receipt)
+        session.commit()
+        return {"message": "Receipt deleted successfully"}

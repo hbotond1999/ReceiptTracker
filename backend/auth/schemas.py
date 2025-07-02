@@ -30,12 +30,13 @@ class LoginRequest(BaseModel):
     password: str
 
 class UserOut(BaseModel):
+    id: int
     username: str
     email: Optional[str] = None
     fullname: Optional[str] = None
     profile_picture: Optional[str] = None
-    disabled: Optional[bool] = None
-    roles: List[Role] = []
+    disabled: Optional[bool] = False
+    roles: List[str] = []
 
 class UserListOut(BaseModel):
     users: List[UserOut]

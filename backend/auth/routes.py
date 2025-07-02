@@ -131,6 +131,7 @@ def list_users(
     users = session.exec(statement).all()
     return UserListOut(
         users=[UserOut(
+            id=u.id or 0,
             username=u.username,
             email=u.email,
             fullname=u.fullname,
