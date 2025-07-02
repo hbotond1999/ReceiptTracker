@@ -5,13 +5,13 @@
   align-items: center;
   min-height: 100vh;
   padding: 20px;
-  background: linear-gradient(135deg, var(--ion-color-primary) 0%, var(--ion-color-primary-shade) 100%);
+  //background: linear-gradient(135deg, var(--ion-color-primary) 0%, var(--ion-color-primary-shade) 100%);
 }
 
 .logo-section {
   text-align: center;
   margin-bottom: 40px;
-  color: white;
+ // color: white;
 
   h1 {
     font-size: 2.5rem;
@@ -35,10 +35,8 @@
 .login-form {
   width: 100%;
   max-width: 400px;
-  background: white;
   border-radius: 15px;
   padding: 30px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
 
   ion-item {
     --border-radius: 10px;
@@ -66,7 +64,6 @@
 }
 
 .error-message {
-  background: var(--ion-color-danger-tint);
   border-radius: 8px;
   padding: 12px;
   margin: 15px 0;
@@ -92,7 +89,6 @@
 .register-link {
   text-align: center;
   margin-top: 30px;
-  color: white;
 
   p {
     margin: 0;
@@ -129,4 +125,4 @@
   .login-form {
     padding: 20px;
   }
-} 
+}
