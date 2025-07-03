@@ -1,0 +1,26 @@
+<ion-content class="ion-padding">
+  <form [formGroup]="form" (ngSubmit)="submit()">
+    <ion-header>
+      <ion-toolbar color="primary">
+        <ion-title>Bejelentkezés</ion-title>
+      </ion-toolbar>
+    </ion-header>
+    <div class="form-content">
+      <ion-item>
+        <ion-label position="floating">Felhasználónév</ion-label>
+        <ion-input formControlName="username" type="text" required></ion-input>
+      </ion-item>
+      <ion-item>
+        <ion-label position="floating">Jelszó</ion-label>
+        <ion-input formControlName="password" type="password" required></ion-input>
+      </ion-item>
+      <div *ngIf="error$ | async as error" class="error">{{ error }}</div>
+      <ion-button expand="block" type="submit" [disabled]="form.invalid || (loading$ | async)">
+        <ng-container *ngIf="loading$ | async; else loginText">
+          <ion-spinner name="crescent"></ion-spinner>
+        </ng-container>
+        <ng-template #loginText>Bejelentkezés</ng-template>
+      </ion-button>
+    </div>
+  </form>
+</ion-content> 

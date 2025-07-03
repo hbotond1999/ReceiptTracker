@@ -1,5 +1,13 @@
 ---
-description:
-globs:
-alwaysApply: false
+description: 
+globs: 
+alwaysApply: true
 ---
+Ez egy fastapi + angualr projekt. A boltban történő blokkok feldolgozását teszi lehetővé.
+
+Az angular részen ionic frameworköt használunk. Minden UI komponens ionic legyen. A komponensek stand alone-k!
+
+Mindig nézd meg a backend implementációját a frontend fejlesztés .
+
+
+Ne feledd powershellt használsz!

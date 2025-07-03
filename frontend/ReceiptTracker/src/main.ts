@@ -1,14 +1,34 @@
 import { bootstrapApplication } from '@angular/platform-browser';
 import { RouteReuseStrategy, provideRouter, withPreloading, PreloadAllModules } from '@angular/router';
 import { IonicRouteStrategy, provideIonicAngular } from '@ionic/angular/standalone';
-
+import { provideHttpClient, HTTP_INTERCEPTORS } from '@angular/common/http';
+import { provideApi } from './app/api/provide-api';
+import { environment } from './environments/environment';
 import { routes } from './app/app.routes';
 import { AppComponent } from './app/app.component';
+import { defineCustomElements } from '@ionic/pwa-elements/loader';
+import { provideStore } from '@ngrx/store';
+import { provideEffects } from '@ngrx/effects';
+import { authReducer } from './app/store/auth/auth.reducer';
+import { AuthEffects } from './app/store/auth/auth.effects';
+import { AuthInterceptor } from './app/auth.interceptor';
+import { Storage } from '@ionic/storage-angular';
 
+// Ionic Storage init
+const storage = new Storage();
+storage.create();
+
+defineCustomElements(window);
 bootstrapApplication(AppComponent, {
   providers: [
     { provide: RouteReuseStrategy, useClass: IonicRouteStrategy },
     provideIonicAngular(),
     provideRouter(routes, withPreloading(PreloadAllModules)),
+    provideHttpClient(),
+    provideApi(environment.apiUrl),
+    provideStore({ auth: authReducer }),
+    provideEffects([AuthEffects]),
+    { provide: Storage, useValue: storage },
+    { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true },
   ],
 });
