@@ -14,6 +14,7 @@ import { AuthEffects } from './app/store/auth/auth.effects';
 import { AuthInterceptor } from './app/auth.interceptor';
 import { Storage } from '@ionic/storage-angular';
 import { provideStoreDevtools } from '@ngrx/store-devtools';
+import {ModalController} from "@ionic/angular";
 
 // Ionic Storage init
 const storage = new Storage();
@@ -22,6 +23,7 @@ storage.create();
 defineCustomElements(window);
 bootstrapApplication(AppComponent, {
   providers: [
+    ModalController,
     { provide: RouteReuseStrategy, useClass: IonicRouteStrategy },
     provideIonicAngular(),
     provideRouter(routes, withPreloading(PreloadAllModules)),

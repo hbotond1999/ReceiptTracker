@@ -2,6 +2,8 @@ import { Component, OnInit } from '@angular/core';
 import { IonApp, IonRouterOutlet } from '@ionic/angular/standalone';
 import { Store } from '@ngrx/store';
 import { autoLogin } from './store/auth/auth.actions';
+import {addIcons} from "ionicons";
+import {chevronDownOutline, chevronUpOutline, logoIonic, closeOutline, addOutline, trashOutline, createOutline} from "ionicons/icons";
 
 @Component({
   selector: 'app-root',
@@ -14,5 +16,7 @@ export class AppComponent implements OnInit {
   ngOnInit() {
     // Auto-login próbálkozás az alkalmazás indításkor
     this.store.dispatch(autoLogin());
+    addIcons({ logoIonic,  chevronUpOutline, chevronDownOutline, trashOutline, createOutline, closeOutline, addOutline });
+
   }
 }

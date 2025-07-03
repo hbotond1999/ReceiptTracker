@@ -47,6 +47,8 @@
             <div><b>{{receipt.market.name}}</b> - {{receipt.date | date:'yyyy.MM.dd'}} - #{{receipt.receipt_number}}</div>
             <div>Összesen: <b>{{receipt.total | number:'1.2-2'}} Ft</b></div>
           </ion-label>
+          <ion-button fill="clear" size="small" color="light" (click)="$event.stopPropagation(); editReceipt(receipt)"><ion-icon name="create-outline" color="dark"></ion-icon></ion-button>
+          <ion-button fill="clear" size="small" color="light" (click)="$event.stopPropagation(); confirmDelete(receipt)"><ion-icon name="trash-outline" color="danger"></ion-icon></ion-button>
           <ion-icon [name]="openReceiptId() === receipt.id ? icons.chevronUpOutline : icons.chevronDownOutline"></ion-icon>
         </ion-item>
         <div class="ion-padding" slot="content">
@@ -68,4 +70,4 @@
     <span>{{skip() + 1}} - {{Math.min(skip() + limit(), total())}} / {{total()}}</span>
     <ion-button (click)="pageChange('next')" [disabled]="!hasNext()">Következő</ion-button>
   </div>
-</ion-content> 
+</ion-content>

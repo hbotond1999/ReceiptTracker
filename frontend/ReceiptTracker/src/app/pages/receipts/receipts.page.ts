@@ -25,8 +25,10 @@ import { MarketOut } from '../../api/model/marketOut';
 import { ReceiptOut } from '../../api/model/receiptOut';
 import { ReceiptListOut } from '../../api/model/receiptListOut';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
-import { chevronDownOutline, chevronUpOutline, searchOutline } from 'ionicons/icons';
 import { CommonModule } from '@angular/common';
+import { AlertController, ModalController, ToastController } from '@ionic/angular';
+import { ReceiptEditModalComponent } from './receipt-edit.modal';
+import {chevronDownOutline, chevronUpOutline, searchOutline} from "ionicons/icons";
 
 const MIN_DATE = new Date(2000, 0, 1).getTime();
 const now = new Date();
@@ -38,7 +40,8 @@ const MAX_DATE = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 
   templateUrl: './receipts.page.html',
   styleUrls: ['./receipts.page.scss'],
   imports: [
-    IonHeader, IonToolbar, IonTitle, IonContent, IonList, IonItem, IonLabel, IonInput, IonDatetime, IonSelect, IonSelectOption, IonButton, IonIcon, IonAccordionGroup, IonAccordion, IonSearchbar, IonSpinner, IonNote, ReactiveFormsModule, CommonModule, IonRange
+    IonHeader, IonToolbar, IonTitle, IonContent, IonList, IonItem, IonLabel, IonInput, IonDatetime, IonSelect, IonSelectOption, IonAccordionGroup, IonAccordion, IonSearchbar, IonSpinner, IonNote, ReactiveFormsModule, CommonModule, IonRange,
+    ReceiptEditModalComponent, IonButton, IonIcon
   ],
   providers: [ReceiptService]
 })
@@ -67,7 +70,12 @@ export class ReceiptsPage {
 
   icons = { chevronDownOutline, chevronUpOutline, searchOutline };
 
-  constructor(private receiptService: ReceiptService) {
+  constructor(
+    private receiptService: ReceiptService,
+    private alertController: AlertController,
+    private modalController: ModalController,
+    private toastController: ToastController
+  ) {
     this.loadMarkets();
     this.loadReceipts();
     // Szűrők változására újratölt
@@ -151,6 +159,76 @@ export class ReceiptsPage {
     this.marketId.setValue(null);
     this.orderBy.setValue('date');
     this.orderDir.setValue('desc');
+  }
+
+  async confirmDelete(receipt: ReceiptOut) {
+    const alert = await this.alertController.create({
+      header: 'Biztosan törlöd?',
+      message: `A(z) <b>${receipt.market.name}</b> #${receipt.receipt_number} blokk véglegesen törlődik!`,
+      buttons: [
+        {
+          text: 'Mégse',
+          role: 'cancel'
+        },
+        {
+          text: 'Törlés',
+          role: 'destructive',
+          handler: () => this.deleteReceipt(receipt.id)
+        }
+      ]
+    });
+    await alert.present();
+  }
+
+  deleteReceipt(receiptId: number) {
+    this.receiptService.deleteReceiptReceiptReceiptReceiptIdDelete(receiptId, 'body').subscribe({
+      next: () => this.loadReceipts(),
+      error: (err) => {
+        this.alertController.create({
+          header: 'Hiba',
+          message: 'A törlés nem sikerült!',
+          buttons: ['OK']
+        }).then(a => a.present());
+      }
+    });
+  }
+
+  async editReceipt(receipt: ReceiptOut) {
+    const modal = await this.modalController.create({
+      component: ReceiptEditModalComponent,
+      componentProps: {
+        receipt,
+        markets: this.markets()
+      },
+      breakpoints: [0, 0.9],
+      initialBreakpoint: 0.9
+    });
+    modal.onWillDismiss().then((result) => {
+      if (result.data && result.data.save) {
+        this.updateReceipt(receipt.id, result.data.save);
+      }
+    });
+    await modal.present();
+  }
+
+  updateReceipt(receiptId: number, data: any) {
+    this.receiptService.updateReceiptReceiptReceiptIdPut(receiptId, data, 'body').subscribe({
+      next: () => {
+        this.loadReceipts();
+        this.toastController.create({
+          message: 'Blokk sikeresen frissítve!',
+          duration: 2000,
+          color: 'success'
+        }).then(t => t.present());
+      },
+      error: () => {
+        this.toastController.create({
+          message: 'A frissítés nem sikerült!',
+          duration: 2000,
+          color: 'danger'
+        }).then(t => t.present());
+      }
+    });
   }
 
   protected readonly Math = Math;

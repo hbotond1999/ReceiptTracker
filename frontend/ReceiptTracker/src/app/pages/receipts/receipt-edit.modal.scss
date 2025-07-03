@@ -1,0 +1,16 @@
+ion-modal {
+  --width: 100%;
+  --max-width: 500px;
+}
+
+ion-content {
+  background: var(--ion-background-color, #fff);
+}
+
+form {
+  width: 100%;
+}
+
+ion-list {
+  margin-bottom: 1.5rem;
+} 
