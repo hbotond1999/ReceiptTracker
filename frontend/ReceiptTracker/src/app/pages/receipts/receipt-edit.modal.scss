@@ -3,11 +3,6 @@ ion-modal {
   --max-width: 500px;
 }
 
-ion-content {
-  background: var(--ion-background-color, #fff);
-  padding-bottom: 80px;
-}
-
 form {
   width: 100%;
 }
@@ -15,8 +10,3 @@ form {
 ion-list {
   margin-bottom: 1.5rem;
 }
-
-ion-footer {
-  background: var(--ion-background-color, #222);
-  box-shadow: 0 -2px 8px rgba(0,0,0,0.2);
-} 
