@@ -4,4 +4,20 @@ ion-content {
   align-items: center;
   justify-content: center;
   height: 100%;
+}
+
+.card-list {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  max-width: 500px;
+  margin: 40px auto;
+}
+
+ion-card {
+  cursor: pointer;
+  transition: box-shadow 0.2s;
+}
+ion-card:hover {
+  box-shadow: 0 4px 24px 0 rgba(0,0,0,0.12);
 } 

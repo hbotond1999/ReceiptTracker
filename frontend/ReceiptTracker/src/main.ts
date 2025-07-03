@@ -13,6 +13,7 @@ import { authReducer } from './app/store/auth/auth.reducer';
 import { AuthEffects } from './app/store/auth/auth.effects';
 import { AuthInterceptor } from './app/auth.interceptor';
 import { Storage } from '@ionic/storage-angular';
+import { provideStoreDevtools } from '@ngrx/store-devtools';
 
 // Ionic Storage init
 const storage = new Storage();
@@ -28,6 +29,7 @@ bootstrapApplication(AppComponent, {
     provideApi(environment.apiUrl),
     provideStore({ auth: authReducer }),
     provideEffects([AuthEffects]),
+    provideStoreDevtools({ maxAge: 25, logOnly: !environment.production }),
     { provide: Storage, useValue: storage },
     { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true },
   ],

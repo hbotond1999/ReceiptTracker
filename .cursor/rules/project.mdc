@@ -5,7 +5,7 @@ alwaysApply: true
 ---
 Ez egy fastapi + angualr projekt. A boltban történő blokkok feldolgozását teszi lehetővé.
 
-Az angular részen ionic frameworköt használunk. Minden UI komponens ionic legyen. A komponensek stand alone-k!
+Az angular részen ionic frameworköt használunk. Minden UI komponens ionic legyen. A komponensek stand alone-k! Modern szép UI legyen.
 
 Mindig nézd meg a backend implementációját a frontend fejlesztés .
 

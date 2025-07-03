@@ -5,5 +5,32 @@
   </ion-toolbar>
 </ion-header>
 <ion-content class="ion-padding">
-  <h2>Üdvözöllek a Receipt Trackerben!</h2>
+  <div class="card-list">
+    <ion-card (click)="goTo('receipts')">
+      <ion-card-header>
+        <ion-card-title>Blokkok kezelése</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        Feltöltés, lista, szerkesztés, törlés.
+      </ion-card-content>
+    </ion-card>
+    <ion-card (click)="goTo('stats')">
+      <ion-card-header>
+        <ion-card-title>Statisztikák</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        Kimutatások, grafikonok, összesítések.
+      </ion-card-content>
+    </ion-card>
+    <ng-container *ngIf="userProfile$ | async as user">
+      <ion-card *ngIf="user.roles && user.roles.includes('admin')" (click)="goTo('admin')">
+        <ion-card-header>
+          <ion-card-title>Admin felület</ion-card-title>
+        </ion-card-header>
+        <ion-card-content>
+          Felhasználók, jogosultságok, admin funkciók.
+        </ion-card-content>
+      </ion-card>
+    </ng-container>
+  </div>
 </ion-content> 
