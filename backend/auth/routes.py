@@ -124,10 +124,10 @@ def register_user(user: schemas.UserInDB, session: Session = Depends(get_session
 def list_users(
     session: Session = Depends(get_session),
     skip: int = Query(0, ge=0),
-    limit: int = Query(10, ge=1, le=100),
+    limit: int = Query(10, ge=1, le=1000),
     current_user: DBUser = Depends(require_roles(["admin"]))
 ):
-    total = session.exec(select(func.count(DBUser.id))).one()
+    total = session.exec(select(func.count()).select_from(DBUser)).one()
     statement = select(DBUser).offset(skip).limit(limit)
     users = session.exec(statement).all()
     return UserListOut(
