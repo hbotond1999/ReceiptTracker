@@ -1,8 +1,10 @@
 import uuid
 from fastapi import APIRouter, UploadFile, File, HTTPException, Depends, Query
+from fastapi.responses import FileResponse
 from sqlmodel import Session, select, func
 import shutil
 import os
+import mimetypes
 from typing import List, Optional
 from datetime import datetime
 from sqlalchemy import text
@@ -12,7 +14,7 @@ from backend.auth.routes import get_current_user, engine
 from backend.auth.schemas import Role
 from backend.receipt.ai.agent import recognize_receipt
 from backend.receipt.models import Market, Receipt, ReceiptItem
-from backend.receipt.schemas import ReceiptOut, MarketOut, ReceiptItemOut, UserOut, ReceiptListOut, ReceiptUpdateRequest, ReceiptItemUpdateRequest, MarketUpdateRequest, ReceiptCreateRequest
+from backend.receipt.schemas import ReceiptOut, MarketOut, ReceiptItemOut, UserOut, ReceiptListOut, ReceiptUpdateRequest, ReceiptItemUpdateRequest, MarketUpdateRequest, ReceiptCreateRequest, TimeSeriesData, TotalSpentKPI, TotalReceiptsKPI, AverageReceiptValueKPI, TopItemsKPI, TopItem, WordCloudItem
 from backend.receipt.utils import is_admin_user, get_receipts_count, get_receipts_paginated
 
 # Központi konfiguráció
@@ -92,7 +94,7 @@ async def create_receipt(
         if not receipt.id:
             raise HTTPException(status_code=500, detail="Failed to create receipt")
             
-        for item in receipt_data.items:  # type: ignore
+        for item in receipt_data.items:
             receipt_item = ReceiptItem(
                 name=item.name,
                 price=item.price,
@@ -624,3 +626,337 @@ async def delete_receipt(
         session.delete(receipt)
         session.commit()
         return {"message": "Receipt deleted successfully"}
+
+
+@router.get("/receipt/{receipt_id}/image")
+async def download_receipt_image(
+    receipt_id: int,
+    current_user: User = Depends(get_current_user)
+):
+    """Receipt képének letöltése (mezei user csak a sajátját, admin mindent)"""
+    with Session(engine) as session:
+        receipt = session.exec(select(Receipt).where(Receipt.id == receipt_id)).first()
+        if not receipt:
+            raise HTTPException(status_code=404, detail="Receipt not found")
+        
+        # Ellenőrizzük, hogy a felhasználó jogosult-e a receipt képének letöltésére
+        if not (is_admin_user(current_user) or receipt.user_id == current_user.id):
+            raise HTTPException(status_code=403, detail="Not authorized to download this receipt image")
+        
+        # Ellenőrizzük, hogy a képfájl létezik-e
+        if not receipt.image_path or not os.path.exists(receipt.image_path):
+            raise HTTPException(status_code=404, detail="Receipt image file not found")
+        
+        # Fájl kiterjesztés meghatározása
+        file_extension = os.path.splitext(receipt.image_path)[1] if receipt.image_path else '.jpg'
+        default_filename = f"receipt_{receipt_id}{file_extension}"
+        
+        # Content-Type meghatározása a mimetypes modullal
+        media_type, _ = mimetypes.guess_type(receipt.image_path)
+        if not media_type:
+            media_type = 'image/*'  # fallback
+        
+        # Visszaadjuk a fájlt a megfelelő Content-Type-dal
+        return FileResponse(
+            path=receipt.image_path,
+            filename=receipt.original_filename or default_filename,
+            media_type=media_type
+        )
+
+
+@router.get("/statistics/kpi/total-spent", response_model=TotalSpentKPI)
+async def get_total_spent_kpi(
+    current_user: User = Depends(get_current_user),
+    date_from: Optional[datetime] = Query(None, description="Szűrés kezdő dátum alapján"),
+    date_to: Optional[datetime] = Query(None, description="Szűrés vég dátum alapján"),
+    user_id: Optional[int] = Query(None, description="Szűrés felhasználó ID alapján (csak adminoknak)")
+):
+    """Get total spent KPI - calculated in database"""
+    with Session(engine) as session:
+        # Build query with JOIN to get total spent directly from database
+        query = select(func.sum(ReceiptItem.price)).select_from(
+            ReceiptItem.__table__.join(Receipt.__table__, ReceiptItem.receipt_id == Receipt.id)
+        )
+        
+        # Apply user filter
+        if is_admin_user(current_user) and user_id is not None:
+            query = query.where(Receipt.user_id == user_id)
+        else:
+            query = query.where(Receipt.user_id == current_user.id)
+        
+        # Apply date filters
+        if date_from:
+            query = query.where(Receipt.date >= date_from)
+        if date_to:
+            query = query.where(Receipt.date <= date_to)
+        
+        # Execute query
+        total_spent = session.exec(query).first()
+        
+        return TotalSpentKPI(total_spent=total_spent or 0.0)
+
+
+@router.get("/statistics/kpi/total-receipts", response_model=TotalReceiptsKPI)
+async def get_total_receipts_kpi(
+    current_user: User = Depends(get_current_user),
+    date_from: Optional[datetime] = Query(None, description="Szűrés kezdő dátum alapján"),
+    date_to: Optional[datetime] = Query(None, description="Szűrés vég dátum alapján"),
+    user_id: Optional[int] = Query(None, description="Szűrés felhasználó ID alapján (csak adminoknak)")
+):
+    """Get total receipts count KPI - calculated in database"""
+    with Session(engine) as session:
+        # Build query to count receipts
+        query = select(func.count())
+        
+        # Apply user filter
+        if is_admin_user(current_user) and user_id is not None:
+            query = query.where(Receipt.user_id == user_id)
+        else:
+            query = query.where(Receipt.user_id == current_user.id)
+        
+        # Apply date filters
+        if date_from:
+            query = query.where(Receipt.date >= date_from)
+        if date_to:
+            query = query.where(Receipt.date <= date_to)
+        
+        # Execute query
+        total_receipts = session.exec(query).first()
+        
+        return TotalReceiptsKPI(total_receipts=total_receipts or 0)
+
+
+@router.get("/statistics/kpi/average-receipt-value", response_model=AverageReceiptValueKPI)
+async def get_average_receipt_value_kpi(
+    current_user: User = Depends(get_current_user),
+    date_from: Optional[datetime] = Query(None, description="Szűrés kezdő dátum alapján"),
+    date_to: Optional[datetime] = Query(None, description="Szűrés vég dátum alapján"),
+    user_id: Optional[int] = Query(None, description="Szűrés felhasználó ID alapján (csak adminoknak)")
+):
+    """Get average receipt value KPI - calculated in database"""
+    with Session(engine) as session:
+        # Build query to calculate average receipt value
+        # First get total spent
+        total_query = select(func.sum(ReceiptItem.price)).select_from(
+            ReceiptItem.__table__.join(Receipt.__table__, ReceiptItem.receipt_id == Receipt.id)
+        )
+        
+        # Apply user filter
+        if is_admin_user(current_user) and user_id is not None:
+            total_query = total_query.where(Receipt.user_id == user_id)
+        else:
+            total_query = total_query.where(Receipt.user_id == current_user.id)
+        
+        # Apply date filters
+        if date_from:
+            total_query = total_query.where(Receipt.date >= date_from)
+        if date_to:
+            total_query = total_query.where(Receipt.date <= date_to)
+        
+        # Get total spent
+        total_spent = session.exec(total_query).first() or 0.0
+        
+        # Get receipt count
+        count_query = select(func.count())
+        if is_admin_user(current_user) and user_id is not None:
+            count_query = count_query.where(Receipt.user_id == user_id)
+        else:
+            count_query = count_query.where(Receipt.user_id == current_user.id)
+        
+        if date_from:
+            count_query = count_query.where(Receipt.date >= date_from)
+        if date_to:
+            count_query = count_query.where(Receipt.date <= date_to)
+        
+        total_receipts = session.exec(count_query).first() or 0
+        
+        # Calculate average
+        average_value = total_spent / total_receipts if total_receipts > 0 else 0.0
+        
+        return AverageReceiptValueKPI(average_receipt_value=average_value)
+
+
+@router.get("/statistics/kpi/top-items", response_model=TopItemsKPI)
+async def get_top_items_kpi(
+    current_user: User = Depends(get_current_user),
+    date_from: Optional[datetime] = Query(None, description="Szűrés kezdő dátum alapján"),
+    date_to: Optional[datetime] = Query(None, description="Szűrés vég dátum alapján"),
+    user_id: Optional[int] = Query(None, description="Szűrés felhasználó ID alapján (csak adminoknak)"),
+    limit: int = Query(10, ge=1, le=50, description="Top N items to return")
+):
+    """Get top items KPI - calculated in database"""
+    with Session(engine) as session:
+        # Build query to get top items with aggregation
+        query = select(
+            ReceiptItem.name,
+            func.count().label("count"),
+            func.sum(ReceiptItem.price).label("total_spent")
+        ).select_from(
+            ReceiptItem.__table__.join(Receipt.__table__, ReceiptItem.receipt_id == Receipt.id)
+        ).group_by(ReceiptItem.name)
+        
+        # Apply user filter
+        if is_admin_user(current_user) and user_id is not None:
+            query = query.where(Receipt.user_id == user_id)
+        else:
+            query = query.where(Receipt.user_id == current_user.id)
+        
+        # Apply date filters
+        if date_from:
+            query = query.where(Receipt.date >= date_from)
+        if date_to:
+            query = query.where(Receipt.date <= date_to)
+        
+        # Order by count descending and limit
+        query = query.order_by(text("count DESC")).limit(limit)
+        
+        # Execute query
+        results = session.exec(query).all()
+        
+        # Convert to TopItem objects
+        items = [
+            TopItem(
+                name=result.name,
+                count=result.count,
+                total_spent=float(result.total_spent)
+            )
+            for result in results
+        ]
+        
+        return TopItemsKPI(items=items)
+
+
+@router.get("/statistics/timeseries/receipts", response_model=List[TimeSeriesData])
+async def get_receipts_timeseries(
+    current_user: User = Depends(get_current_user),
+    date_from: Optional[datetime] = Query(None, description="Szűrés kezdő dátum alapján"),
+    date_to: Optional[datetime] = Query(None, description="Szűrés vég dátum alapján"),
+    user_id: Optional[int] = Query(None, description="Szűrés felhasználó ID alapján (csak adminoknak)")
+):
+    """Get time series data for receipts count by date - calculated in database"""
+    with Session(engine) as session:
+        # Build query to count receipts by date
+        query = select(
+            func.date(Receipt.date).label("date"),
+            func.count().label("count")
+        ).group_by(func.date(Receipt.date))
+        
+        # Apply user filter
+        if is_admin_user(current_user) and user_id is not None:
+            query = query.where(Receipt.user_id == user_id)
+        else:
+            query = query.where(Receipt.user_id == current_user.id)
+        
+        # Apply date filters
+        if date_from:
+            query = query.where(Receipt.date >= date_from)
+        if date_to:
+            query = query.where(Receipt.date <= date_to)
+        
+        # Order by date
+        query = query.order_by(text("date"))
+        
+        # Execute query
+        results = session.exec(query).all()
+        
+        # Convert to TimeSeriesData format
+        time_series_data = [
+            TimeSeriesData(date=result.date, value=float(result.count))
+            for result in results
+        ]
+        
+        return time_series_data
+
+
+@router.get("/statistics/timeseries/amounts", response_model=List[TimeSeriesData])
+async def get_amounts_timeseries(
+    current_user: User = Depends(get_current_user),
+    date_from: Optional[datetime] = Query(None, description="Szűrés kezdő dátum alapján"),
+    date_to: Optional[datetime] = Query(None, description="Szűrés vég dátum alapján"),
+    user_id: Optional[int] = Query(None, description="Szűrés felhasználó ID alapján (csak adminoknak)")
+):
+    """Get time series data for amounts spent by date - calculated in database"""
+    with Session(engine) as session:
+        # Build query to sum amounts by date
+        query = select(
+            func.date(Receipt.date).label("date"),
+            func.sum(ReceiptItem.price).label("total_amount")
+        ).select_from(
+            ReceiptItem.__table__.join(Receipt.__table__, ReceiptItem.receipt_id == Receipt.id)
+        ).group_by(func.date(Receipt.date))
+        
+        # Apply user filter
+        if is_admin_user(current_user) and user_id is not None:
+            query = query.where(Receipt.user_id == user_id)
+        else:
+            query = query.where(Receipt.user_id == current_user.id)
+        
+        # Apply date filters
+        if date_from:
+            query = query.where(Receipt.date >= date_from)
+        if date_to:
+            query = query.where(Receipt.date <= date_to)
+        
+        # Order by date
+        query = query.order_by(text("date"))
+        
+        # Execute query
+        results = session.exec(query).all()
+        
+        # Convert to TimeSeriesData format
+        time_series_data = [
+            TimeSeriesData(date=result.date, value=float(result.total_amount))
+            for result in results
+        ]
+        
+        return time_series_data
+
+
+@router.get("/statistics/wordcloud", response_model=List[WordCloudItem])
+async def get_wordcloud_data(
+    current_user: User = Depends(get_current_user),
+    date_from: Optional[datetime] = Query(None, description="Szűrés kezdő dátum alapján"),
+    date_to: Optional[datetime] = Query(None, description="Szűrés vég dátum alapján"),
+    user_id: Optional[int] = Query(None, description="Szűrés felhasználó ID alapján (csak adminoknak)"),
+    limit: int = Query(30, ge=1, le=100, description="Number of items to return")
+):
+    """Get word cloud data for most frequently purchased items - calculated in database"""
+    with Session(engine) as session:
+        # Build query to get item statistics
+        query = select(
+            ReceiptItem.name,
+            func.count().label("count"),
+            func.sum(ReceiptItem.price).label("total_spent")
+        ).select_from(
+            ReceiptItem.__table__.join(Receipt.__table__, ReceiptItem.receipt_id == Receipt.id)
+        ).group_by(ReceiptItem.name)
+        
+        # Apply user filter
+        if is_admin_user(current_user) and user_id is not None:
+            query = query.where(Receipt.user_id == user_id)
+        else:
+            query = query.where(Receipt.user_id == current_user.id)
+        
+        # Apply date filters
+        if date_from:
+            query = query.where(Receipt.date >= date_from)
+        if date_to:
+            query = query.where(Receipt.date <= date_to)
+        
+        # Order by count descending and limit
+        query = query.order_by(text("count DESC")).limit(limit)
+        
+        # Execute query
+        results = session.exec(query).all()
+        
+        # Convert to WordCloudItem objects
+        wordcloud_data = [
+            WordCloudItem(
+                text=result.name,
+                value=result.count,
+                total_spent=float(result.total_spent)
+            )
+            for result in results
+        ]
+        
+        return wordcloud_data

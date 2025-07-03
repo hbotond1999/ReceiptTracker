@@ -17,6 +17,8 @@ import { CustomHttpParameterCodec }                          from '../encoder';
 import { Observable }                                        from 'rxjs';
 
 // @ts-ignore
+import { AverageReceiptValueKPI } from '../model/averageReceiptValueKPI';
+// @ts-ignore
 import { HTTPValidationError } from '../model/hTTPValidationError';
 // @ts-ignore
 import { MarketOut } from '../model/marketOut';
@@ -30,6 +32,16 @@ import { ReceiptListOut } from '../model/receiptListOut';
 import { ReceiptOut } from '../model/receiptOut';
 // @ts-ignore
 import { ReceiptUpdateRequest } from '../model/receiptUpdateRequest';
+// @ts-ignore
+import { TimeSeriesData } from '../model/timeSeriesData';
+// @ts-ignore
+import { TopItemsKPI } from '../model/topItemsKPI';
+// @ts-ignore
+import { TotalReceiptsKPI } from '../model/totalReceiptsKPI';
+// @ts-ignore
+import { TotalSpentKPI } from '../model/totalSpentKPI';
+// @ts-ignore
+import { WordCloudItem } from '../model/wordCloudItem';
 
 // @ts-ignore
 import { BASE_PATH, COLLECTION_FORMATS }                     from '../variables';
@@ -380,6 +392,196 @@ export class ReceiptService extends BaseService {
     }
 
     /**
+     * Download Receipt Image
+     * Receipt képének letöltése (mezei user csak a sajátját, admin mindent)
+     * @param receiptId 
+     * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
+     * @param reportProgress flag to report request and response progress.
+     */
+    public downloadReceiptImageReceiptReceiptReceiptIdImageGet(receiptId: number, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any>;
+    public downloadReceiptImageReceiptReceiptReceiptIdImageGet(receiptId: number, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<any>>;
+    public downloadReceiptImageReceiptReceiptReceiptIdImageGet(receiptId: number, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<any>>;
+    public downloadReceiptImageReceiptReceiptReceiptIdImageGet(receiptId: number, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+        if (receiptId === null || receiptId === undefined) {
+            throw new Error('Required parameter receiptId was null or undefined when calling downloadReceiptImageReceiptReceiptReceiptIdImageGet.');
+        }
+
+        let localVarHeaders = this.defaultHeaders;
+
+        // authentication (HTTPBearer) required
+        localVarHeaders = this.configuration.addCredentialToHeaders('HTTPBearer', 'Authorization', localVarHeaders, 'Bearer ');
+
+        const localVarHttpHeaderAcceptSelected: string | undefined = options?.httpHeaderAccept ?? this.configuration.selectHeaderAccept([
+            'application/json'
+        ]);
+        if (localVarHttpHeaderAcceptSelected !== undefined) {
+            localVarHeaders = localVarHeaders.set('Accept', localVarHttpHeaderAcceptSelected);
+        }
+
+        const localVarHttpContext: HttpContext = options?.context ?? new HttpContext();
+
+        const localVarTransferCache: boolean = options?.transferCache ?? true;
+
+
+        let responseType_: 'text' | 'json' | 'blob' = 'json';
+        if (localVarHttpHeaderAcceptSelected) {
+            if (localVarHttpHeaderAcceptSelected.startsWith('text')) {
+                responseType_ = 'text';
+            } else if (this.configuration.isJsonMime(localVarHttpHeaderAcceptSelected)) {
+                responseType_ = 'json';
+            } else {
+                responseType_ = 'blob';
+            }
+        }
+
+        let localVarPath = `/receipt/receipt/${this.configuration.encodeParam({name: "receiptId", value: receiptId, in: "path", style: "simple", explode: false, dataType: "number", dataFormat: undefined})}/image`;
+        const { basePath, withCredentials } = this.configuration;
+        return this.httpClient.request<any>('get', `${basePath}${localVarPath}`,
+            {
+                context: localVarHttpContext,
+                responseType: <any>responseType_,
+                ...(withCredentials ? { withCredentials } : {}),
+                headers: localVarHeaders,
+                observe: observe,
+                transferCache: localVarTransferCache,
+                reportProgress: reportProgress
+            }
+        );
+    }
+
+    /**
+     * Get Amounts Timeseries
+     * Get time series data for amounts spent by date - calculated in database
+     * @param dateFrom Szűrés kezdő dátum alapján
+     * @param dateTo Szűrés vég dátum alapján
+     * @param userId Szűrés felhasználó ID alapján (csak adminoknak)
+     * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
+     * @param reportProgress flag to report request and response progress.
+     */
+    public getAmountsTimeseriesReceiptStatisticsTimeseriesAmountsGet(dateFrom?: string, dateTo?: string, userId?: number, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<Array<TimeSeriesData>>;
+    public getAmountsTimeseriesReceiptStatisticsTimeseriesAmountsGet(dateFrom?: string, dateTo?: string, userId?: number, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<Array<TimeSeriesData>>>;
+    public getAmountsTimeseriesReceiptStatisticsTimeseriesAmountsGet(dateFrom?: string, dateTo?: string, userId?: number, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<Array<TimeSeriesData>>>;
+    public getAmountsTimeseriesReceiptStatisticsTimeseriesAmountsGet(dateFrom?: string, dateTo?: string, userId?: number, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+
+        let localVarQueryParameters = new HttpParams({encoder: this.encoder});
+        localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
+          <any>dateFrom, 'date_from');
+        localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
+          <any>dateTo, 'date_to');
+        localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
+          <any>userId, 'user_id');
+
+        let localVarHeaders = this.defaultHeaders;
+
+        // authentication (HTTPBearer) required
+        localVarHeaders = this.configuration.addCredentialToHeaders('HTTPBearer', 'Authorization', localVarHeaders, 'Bearer ');
+
+        const localVarHttpHeaderAcceptSelected: string | undefined = options?.httpHeaderAccept ?? this.configuration.selectHeaderAccept([
+            'application/json'
+        ]);
+        if (localVarHttpHeaderAcceptSelected !== undefined) {
+            localVarHeaders = localVarHeaders.set('Accept', localVarHttpHeaderAcceptSelected);
+        }
+
+        const localVarHttpContext: HttpContext = options?.context ?? new HttpContext();
+
+        const localVarTransferCache: boolean = options?.transferCache ?? true;
+
+
+        let responseType_: 'text' | 'json' | 'blob' = 'json';
+        if (localVarHttpHeaderAcceptSelected) {
+            if (localVarHttpHeaderAcceptSelected.startsWith('text')) {
+                responseType_ = 'text';
+            } else if (this.configuration.isJsonMime(localVarHttpHeaderAcceptSelected)) {
+                responseType_ = 'json';
+            } else {
+                responseType_ = 'blob';
+            }
+        }
+
+        let localVarPath = `/receipt/statistics/timeseries/amounts`;
+        const { basePath, withCredentials } = this.configuration;
+        return this.httpClient.request<Array<TimeSeriesData>>('get', `${basePath}${localVarPath}`,
+            {
+                context: localVarHttpContext,
+                params: localVarQueryParameters,
+                responseType: <any>responseType_,
+                ...(withCredentials ? { withCredentials } : {}),
+                headers: localVarHeaders,
+                observe: observe,
+                transferCache: localVarTransferCache,
+                reportProgress: reportProgress
+            }
+        );
+    }
+
+    /**
+     * Get Average Receipt Value Kpi
+     * Get average receipt value KPI - calculated in database
+     * @param dateFrom Szűrés kezdő dátum alapján
+     * @param dateTo Szűrés vég dátum alapján
+     * @param userId Szűrés felhasználó ID alapján (csak adminoknak)
+     * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
+     * @param reportProgress flag to report request and response progress.
+     */
+    public getAverageReceiptValueKpiReceiptStatisticsKpiAverageReceiptValueGet(dateFrom?: string, dateTo?: string, userId?: number, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<AverageReceiptValueKPI>;
+    public getAverageReceiptValueKpiReceiptStatisticsKpiAverageReceiptValueGet(dateFrom?: string, dateTo?: string, userId?: number, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<AverageReceiptValueKPI>>;
+    public getAverageReceiptValueKpiReceiptStatisticsKpiAverageReceiptValueGet(dateFrom?: string, dateTo?: string, userId?: number, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<AverageReceiptValueKPI>>;
+    public getAverageReceiptValueKpiReceiptStatisticsKpiAverageReceiptValueGet(dateFrom?: string, dateTo?: string, userId?: number, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+
+        let localVarQueryParameters = new HttpParams({encoder: this.encoder});
+        localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
+          <any>dateFrom, 'date_from');
+        localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
+          <any>dateTo, 'date_to');
+        localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
+          <any>userId, 'user_id');
+
+        let localVarHeaders = this.defaultHeaders;
+
+        // authentication (HTTPBearer) required
+        localVarHeaders = this.configuration.addCredentialToHeaders('HTTPBearer', 'Authorization', localVarHeaders, 'Bearer ');
+
+        const localVarHttpHeaderAcceptSelected: string | undefined = options?.httpHeaderAccept ?? this.configuration.selectHeaderAccept([
+            'application/json'
+        ]);
+        if (localVarHttpHeaderAcceptSelected !== undefined) {
+            localVarHeaders = localVarHeaders.set('Accept', localVarHttpHeaderAcceptSelected);
+        }
+
+        const localVarHttpContext: HttpContext = options?.context ?? new HttpContext();
+
+        const localVarTransferCache: boolean = options?.transferCache ?? true;
+
+
+        let responseType_: 'text' | 'json' | 'blob' = 'json';
+        if (localVarHttpHeaderAcceptSelected) {
+            if (localVarHttpHeaderAcceptSelected.startsWith('text')) {
+                responseType_ = 'text';
+            } else if (this.configuration.isJsonMime(localVarHttpHeaderAcceptSelected)) {
+                responseType_ = 'json';
+            } else {
+                responseType_ = 'blob';
+            }
+        }
+
+        let localVarPath = `/receipt/statistics/kpi/average-receipt-value`;
+        const { basePath, withCredentials } = this.configuration;
+        return this.httpClient.request<AverageReceiptValueKPI>('get', `${basePath}${localVarPath}`,
+            {
+                context: localVarHttpContext,
+                params: localVarQueryParameters,
+                responseType: <any>responseType_,
+                ...(withCredentials ? { withCredentials } : {}),
+                headers: localVarHeaders,
+                observe: observe,
+                transferCache: localVarTransferCache,
+                reportProgress: reportProgress
+            }
+        );
+    }
+
+    /**
      * Get Market
      * Get market by ID
      * @param marketId 
@@ -580,6 +782,342 @@ export class ReceiptService extends BaseService {
         let localVarPath = `/receipt/`;
         const { basePath, withCredentials } = this.configuration;
         return this.httpClient.request<ReceiptListOut>('get', `${basePath}${localVarPath}`,
+            {
+                context: localVarHttpContext,
+                params: localVarQueryParameters,
+                responseType: <any>responseType_,
+                ...(withCredentials ? { withCredentials } : {}),
+                headers: localVarHeaders,
+                observe: observe,
+                transferCache: localVarTransferCache,
+                reportProgress: reportProgress
+            }
+        );
+    }
+
+    /**
+     * Get Receipts Timeseries
+     * Get time series data for receipts count by date - calculated in database
+     * @param dateFrom Szűrés kezdő dátum alapján
+     * @param dateTo Szűrés vég dátum alapján
+     * @param userId Szűrés felhasználó ID alapján (csak adminoknak)
+     * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
+     * @param reportProgress flag to report request and response progress.
+     */
+    public getReceiptsTimeseriesReceiptStatisticsTimeseriesReceiptsGet(dateFrom?: string, dateTo?: string, userId?: number, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<Array<TimeSeriesData>>;
+    public getReceiptsTimeseriesReceiptStatisticsTimeseriesReceiptsGet(dateFrom?: string, dateTo?: string, userId?: number, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<Array<TimeSeriesData>>>;
+    public getReceiptsTimeseriesReceiptStatisticsTimeseriesReceiptsGet(dateFrom?: string, dateTo?: string, userId?: number, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<Array<TimeSeriesData>>>;
+    public getReceiptsTimeseriesReceiptStatisticsTimeseriesReceiptsGet(dateFrom?: string, dateTo?: string, userId?: number, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+
+        let localVarQueryParameters = new HttpParams({encoder: this.encoder});
+        localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
+          <any>dateFrom, 'date_from');
+        localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
+          <any>dateTo, 'date_to');
+        localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
+          <any>userId, 'user_id');
+
+        let localVarHeaders = this.defaultHeaders;
+
+        // authentication (HTTPBearer) required
+        localVarHeaders = this.configuration.addCredentialToHeaders('HTTPBearer', 'Authorization', localVarHeaders, 'Bearer ');
+
+        const localVarHttpHeaderAcceptSelected: string | undefined = options?.httpHeaderAccept ?? this.configuration.selectHeaderAccept([
+            'application/json'
+        ]);
+        if (localVarHttpHeaderAcceptSelected !== undefined) {
+            localVarHeaders = localVarHeaders.set('Accept', localVarHttpHeaderAcceptSelected);
+        }
+
+        const localVarHttpContext: HttpContext = options?.context ?? new HttpContext();
+
+        const localVarTransferCache: boolean = options?.transferCache ?? true;
+
+
+        let responseType_: 'text' | 'json' | 'blob' = 'json';
+        if (localVarHttpHeaderAcceptSelected) {
+            if (localVarHttpHeaderAcceptSelected.startsWith('text')) {
+                responseType_ = 'text';
+            } else if (this.configuration.isJsonMime(localVarHttpHeaderAcceptSelected)) {
+                responseType_ = 'json';
+            } else {
+                responseType_ = 'blob';
+            }
+        }
+
+        let localVarPath = `/receipt/statistics/timeseries/receipts`;
+        const { basePath, withCredentials } = this.configuration;
+        return this.httpClient.request<Array<TimeSeriesData>>('get', `${basePath}${localVarPath}`,
+            {
+                context: localVarHttpContext,
+                params: localVarQueryParameters,
+                responseType: <any>responseType_,
+                ...(withCredentials ? { withCredentials } : {}),
+                headers: localVarHeaders,
+                observe: observe,
+                transferCache: localVarTransferCache,
+                reportProgress: reportProgress
+            }
+        );
+    }
+
+    /**
+     * Get Top Items Kpi
+     * Get top items KPI - calculated in database
+     * @param dateFrom Szűrés kezdő dátum alapján
+     * @param dateTo Szűrés vég dátum alapján
+     * @param userId Szűrés felhasználó ID alapján (csak adminoknak)
+     * @param limit Top N items to return
+     * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
+     * @param reportProgress flag to report request and response progress.
+     */
+    public getTopItemsKpiReceiptStatisticsKpiTopItemsGet(dateFrom?: string, dateTo?: string, userId?: number, limit?: number, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<TopItemsKPI>;
+    public getTopItemsKpiReceiptStatisticsKpiTopItemsGet(dateFrom?: string, dateTo?: string, userId?: number, limit?: number, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<TopItemsKPI>>;
+    public getTopItemsKpiReceiptStatisticsKpiTopItemsGet(dateFrom?: string, dateTo?: string, userId?: number, limit?: number, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<TopItemsKPI>>;
+    public getTopItemsKpiReceiptStatisticsKpiTopItemsGet(dateFrom?: string, dateTo?: string, userId?: number, limit?: number, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+
+        let localVarQueryParameters = new HttpParams({encoder: this.encoder});
+        localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
+          <any>dateFrom, 'date_from');
+        localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
+          <any>dateTo, 'date_to');
+        localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
+          <any>userId, 'user_id');
+        localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
+          <any>limit, 'limit');
+
+        let localVarHeaders = this.defaultHeaders;
+
+        // authentication (HTTPBearer) required
+        localVarHeaders = this.configuration.addCredentialToHeaders('HTTPBearer', 'Authorization', localVarHeaders, 'Bearer ');
+
+        const localVarHttpHeaderAcceptSelected: string | undefined = options?.httpHeaderAccept ?? this.configuration.selectHeaderAccept([
+            'application/json'
+        ]);
+        if (localVarHttpHeaderAcceptSelected !== undefined) {
+            localVarHeaders = localVarHeaders.set('Accept', localVarHttpHeaderAcceptSelected);
+        }
+
+        const localVarHttpContext: HttpContext = options?.context ?? new HttpContext();
+
+        const localVarTransferCache: boolean = options?.transferCache ?? true;
+
+
+        let responseType_: 'text' | 'json' | 'blob' = 'json';
+        if (localVarHttpHeaderAcceptSelected) {
+            if (localVarHttpHeaderAcceptSelected.startsWith('text')) {
+                responseType_ = 'text';
+            } else if (this.configuration.isJsonMime(localVarHttpHeaderAcceptSelected)) {
+                responseType_ = 'json';
+            } else {
+                responseType_ = 'blob';
+            }
+        }
+
+        let localVarPath = `/receipt/statistics/kpi/top-items`;
+        const { basePath, withCredentials } = this.configuration;
+        return this.httpClient.request<TopItemsKPI>('get', `${basePath}${localVarPath}`,
+            {
+                context: localVarHttpContext,
+                params: localVarQueryParameters,
+                responseType: <any>responseType_,
+                ...(withCredentials ? { withCredentials } : {}),
+                headers: localVarHeaders,
+                observe: observe,
+                transferCache: localVarTransferCache,
+                reportProgress: reportProgress
+            }
+        );
+    }
+
+    /**
+     * Get Total Receipts Kpi
+     * Get total receipts count KPI - calculated in database
+     * @param dateFrom Szűrés kezdő dátum alapján
+     * @param dateTo Szűrés vég dátum alapján
+     * @param userId Szűrés felhasználó ID alapján (csak adminoknak)
+     * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
+     * @param reportProgress flag to report request and response progress.
+     */
+    public getTotalReceiptsKpiReceiptStatisticsKpiTotalReceiptsGet(dateFrom?: string, dateTo?: string, userId?: number, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<TotalReceiptsKPI>;
+    public getTotalReceiptsKpiReceiptStatisticsKpiTotalReceiptsGet(dateFrom?: string, dateTo?: string, userId?: number, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<TotalReceiptsKPI>>;
+    public getTotalReceiptsKpiReceiptStatisticsKpiTotalReceiptsGet(dateFrom?: string, dateTo?: string, userId?: number, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<TotalReceiptsKPI>>;
+    public getTotalReceiptsKpiReceiptStatisticsKpiTotalReceiptsGet(dateFrom?: string, dateTo?: string, userId?: number, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+
+        let localVarQueryParameters = new HttpParams({encoder: this.encoder});
+        localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
+          <any>dateFrom, 'date_from');
+        localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
+          <any>dateTo, 'date_to');
+        localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
+          <any>userId, 'user_id');
+
+        let localVarHeaders = this.defaultHeaders;
+
+        // authentication (HTTPBearer) required
+        localVarHeaders = this.configuration.addCredentialToHeaders('HTTPBearer', 'Authorization', localVarHeaders, 'Bearer ');
+
+        const localVarHttpHeaderAcceptSelected: string | undefined = options?.httpHeaderAccept ?? this.configuration.selectHeaderAccept([
+            'application/json'
+        ]);
+        if (localVarHttpHeaderAcceptSelected !== undefined) {
+            localVarHeaders = localVarHeaders.set('Accept', localVarHttpHeaderAcceptSelected);
+        }
+
+        const localVarHttpContext: HttpContext = options?.context ?? new HttpContext();
+
+        const localVarTransferCache: boolean = options?.transferCache ?? true;
+
+
+        let responseType_: 'text' | 'json' | 'blob' = 'json';
+        if (localVarHttpHeaderAcceptSelected) {
+            if (localVarHttpHeaderAcceptSelected.startsWith('text')) {
+                responseType_ = 'text';
+            } else if (this.configuration.isJsonMime(localVarHttpHeaderAcceptSelected)) {
+                responseType_ = 'json';
+            } else {
+                responseType_ = 'blob';
+            }
+        }
+
+        let localVarPath = `/receipt/statistics/kpi/total-receipts`;
+        const { basePath, withCredentials } = this.configuration;
+        return this.httpClient.request<TotalReceiptsKPI>('get', `${basePath}${localVarPath}`,
+            {
+                context: localVarHttpContext,
+                params: localVarQueryParameters,
+                responseType: <any>responseType_,
+                ...(withCredentials ? { withCredentials } : {}),
+                headers: localVarHeaders,
+                observe: observe,
+                transferCache: localVarTransferCache,
+                reportProgress: reportProgress
+            }
+        );
+    }
+
+    /**
+     * Get Total Spent Kpi
+     * Get total spent KPI - calculated in database
+     * @param dateFrom Szűrés kezdő dátum alapján
+     * @param dateTo Szűrés vég dátum alapján
+     * @param userId Szűrés felhasználó ID alapján (csak adminoknak)
+     * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
+     * @param reportProgress flag to report request and response progress.
+     */
+    public getTotalSpentKpiReceiptStatisticsKpiTotalSpentGet(dateFrom?: string, dateTo?: string, userId?: number, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<TotalSpentKPI>;
+    public getTotalSpentKpiReceiptStatisticsKpiTotalSpentGet(dateFrom?: string, dateTo?: string, userId?: number, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<TotalSpentKPI>>;
+    public getTotalSpentKpiReceiptStatisticsKpiTotalSpentGet(dateFrom?: string, dateTo?: string, userId?: number, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<TotalSpentKPI>>;
+    public getTotalSpentKpiReceiptStatisticsKpiTotalSpentGet(dateFrom?: string, dateTo?: string, userId?: number, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+
+        let localVarQueryParameters = new HttpParams({encoder: this.encoder});
+        localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
+          <any>dateFrom, 'date_from');
+        localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
+          <any>dateTo, 'date_to');
+        localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
+          <any>userId, 'user_id');
+
+        let localVarHeaders = this.defaultHeaders;
+
+        // authentication (HTTPBearer) required
+        localVarHeaders = this.configuration.addCredentialToHeaders('HTTPBearer', 'Authorization', localVarHeaders, 'Bearer ');
+
+        const localVarHttpHeaderAcceptSelected: string | undefined = options?.httpHeaderAccept ?? this.configuration.selectHeaderAccept([
+            'application/json'
+        ]);
+        if (localVarHttpHeaderAcceptSelected !== undefined) {
+            localVarHeaders = localVarHeaders.set('Accept', localVarHttpHeaderAcceptSelected);
+        }
+
+        const localVarHttpContext: HttpContext = options?.context ?? new HttpContext();
+
+        const localVarTransferCache: boolean = options?.transferCache ?? true;
+
+
+        let responseType_: 'text' | 'json' | 'blob' = 'json';
+        if (localVarHttpHeaderAcceptSelected) {
+            if (localVarHttpHeaderAcceptSelected.startsWith('text')) {
+                responseType_ = 'text';
+            } else if (this.configuration.isJsonMime(localVarHttpHeaderAcceptSelected)) {
+                responseType_ = 'json';
+            } else {
+                responseType_ = 'blob';
+            }
+        }
+
+        let localVarPath = `/receipt/statistics/kpi/total-spent`;
+        const { basePath, withCredentials } = this.configuration;
+        return this.httpClient.request<TotalSpentKPI>('get', `${basePath}${localVarPath}`,
+            {
+                context: localVarHttpContext,
+                params: localVarQueryParameters,
+                responseType: <any>responseType_,
+                ...(withCredentials ? { withCredentials } : {}),
+                headers: localVarHeaders,
+                observe: observe,
+                transferCache: localVarTransferCache,
+                reportProgress: reportProgress
+            }
+        );
+    }
+
+    /**
+     * Get Wordcloud Data
+     * Get word cloud data for most frequently purchased items - calculated in database
+     * @param dateFrom Szűrés kezdő dátum alapján
+     * @param dateTo Szűrés vég dátum alapján
+     * @param userId Szűrés felhasználó ID alapján (csak adminoknak)
+     * @param limit Number of items to return
+     * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
+     * @param reportProgress flag to report request and response progress.
+     */
+    public getWordcloudDataReceiptStatisticsWordcloudGet(dateFrom?: string, dateTo?: string, userId?: number, limit?: number, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<Array<WordCloudItem>>;
+    public getWordcloudDataReceiptStatisticsWordcloudGet(dateFrom?: string, dateTo?: string, userId?: number, limit?: number, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<Array<WordCloudItem>>>;
+    public getWordcloudDataReceiptStatisticsWordcloudGet(dateFrom?: string, dateTo?: string, userId?: number, limit?: number, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<Array<WordCloudItem>>>;
+    public getWordcloudDataReceiptStatisticsWordcloudGet(dateFrom?: string, dateTo?: string, userId?: number, limit?: number, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+
+        let localVarQueryParameters = new HttpParams({encoder: this.encoder});
+        localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
+          <any>dateFrom, 'date_from');
+        localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
+          <any>dateTo, 'date_to');
+        localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
+          <any>userId, 'user_id');
+        localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
+          <any>limit, 'limit');
+
+        let localVarHeaders = this.defaultHeaders;
+
+        // authentication (HTTPBearer) required
+        localVarHeaders = this.configuration.addCredentialToHeaders('HTTPBearer', 'Authorization', localVarHeaders, 'Bearer ');
+
+        const localVarHttpHeaderAcceptSelected: string | undefined = options?.httpHeaderAccept ?? this.configuration.selectHeaderAccept([
+            'application/json'
+        ]);
+        if (localVarHttpHeaderAcceptSelected !== undefined) {
+            localVarHeaders = localVarHeaders.set('Accept', localVarHttpHeaderAcceptSelected);
+        }
+
+        const localVarHttpContext: HttpContext = options?.context ?? new HttpContext();
+
+        const localVarTransferCache: boolean = options?.transferCache ?? true;
+
+
+        let responseType_: 'text' | 'json' | 'blob' = 'json';
+        if (localVarHttpHeaderAcceptSelected) {
+            if (localVarHttpHeaderAcceptSelected.startsWith('text')) {
+                responseType_ = 'text';
+            } else if (this.configuration.isJsonMime(localVarHttpHeaderAcceptSelected)) {
+                responseType_ = 'json';
+            } else {
+                responseType_ = 'blob';
+            }
+        }
+
+        let localVarPath = `/receipt/statistics/wordcloud`;
+        const { basePath, withCredentials } = this.configuration;
+        return this.httpClient.request<Array<WordCloudItem>>('get', `${basePath}${localVarPath}`,
             {
                 context: localVarHttpContext,
                 params: localVarQueryParameters,

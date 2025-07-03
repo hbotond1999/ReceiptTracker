@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, date
 from typing import List, Optional
 from pydantic import BaseModel
 from backend.auth.models import RoleEnum
@@ -82,3 +82,31 @@ class ReceiptListOut(BaseModel):
     total: int
     has_next: bool
     has_previous: bool
+
+# Statisztika sémák
+class TimeSeriesData(BaseModel):
+    date: date
+    value: float
+
+class WordCloudItem(BaseModel):
+    text: str
+    value: int
+    total_spent: float
+
+class TopItem(BaseModel):
+    name: str
+    count: int
+    total_spent: float
+
+# Külön KPI sémák
+class TotalSpentKPI(BaseModel):
+    total_spent: float
+
+class TotalReceiptsKPI(BaseModel):
+    total_receipts: int
+
+class AverageReceiptValueKPI(BaseModel):
+    average_receipt_value: float
+
+class TopItemsKPI(BaseModel):
+    items: List[TopItem]

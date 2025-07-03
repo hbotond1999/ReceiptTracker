@@ -9,6 +9,7 @@ configuration.ts
 encoder.ts
 git_push.sh
 index.ts
+model/averageReceiptValueKPI.ts
 model/hTTPValidationError.ts
 model/marketOut.ts
 model/marketUpdateRequest.ts
@@ -22,12 +23,18 @@ model/receiptListOut.ts
 model/receiptOut.ts
 model/receiptUpdateRequest.ts
 model/role.ts
+model/timeSeriesData.ts
 model/tokenOut.ts
+model/topItem.ts
+model/topItemsKPI.ts
+model/totalReceiptsKPI.ts
+model/totalSpentKPI.ts
 model/userInDB.ts
 model/userListOut.ts
 model/userOut.ts
 model/validationError.ts
 model/validationErrorLocInner.ts
+model/wordCloudItem.ts
 param.ts
 provide-api.ts
 variables.ts
