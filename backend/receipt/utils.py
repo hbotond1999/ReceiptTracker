@@ -46,9 +46,9 @@ def get_receipts_count(
     if date_to is not None:
         query = query.where(Receipt.date <= date_to)
     
-    # For item name filtering, we need to join with ReceiptItem
+    # For item name filtering, we need to join with ReceiptItem and use DISTINCT to avoid duplicates
     if item_name is not None:
-        query = query.join(ReceiptItem).where(ReceiptItem.name.ilike(f"%{item_name}%"))
+        query = query.join(ReceiptItem).where(ReceiptItem.name.ilike(f"%{item_name}%")).distinct(Receipt.id)
     
     return session.exec(query).one()
 
@@ -86,9 +86,9 @@ def get_receipts_paginated(
         query = query.where(Receipt.date >= date_from)
     if date_to is not None:
         query = query.where(Receipt.date <= date_to)
-    # For item name filtering, we need to join with ReceiptItem
+    # For item name filtering, we need to join with ReceiptItem and use DISTINCT to avoid duplicates
     if item_name is not None:
-        query = query.join(ReceiptItem).where(ReceiptItem.name.like(f"%{item_name}%"))
+        query = query.join(ReceiptItem).where(ReceiptItem.name.like(f"%{item_name}%")).distinct(Receipt.id)
     # Sorting
     allowed_columns = {"date": Receipt.date, "receipt_number": Receipt.receipt_number, "id": Receipt.id}
     sort_col = allowed_columns.get(order_by, Receipt.date)
