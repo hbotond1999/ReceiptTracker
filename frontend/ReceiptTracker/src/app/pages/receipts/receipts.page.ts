@@ -183,7 +183,7 @@ export class ReceiptsPage {
   deleteReceipt(receiptId: number) {
     this.receiptService.deleteReceiptReceiptReceiptReceiptIdDelete(receiptId, 'body').subscribe({
       next: () => this.loadReceipts(),
-      error: (err) => {
+      error: (err: any) => {
         this.alertController.create({
           header: 'Hiba',
           message: 'A törlés nem sikerült!',
@@ -200,8 +200,8 @@ export class ReceiptsPage {
         receipt,
         markets: this.markets()
       },
-      breakpoints: [0, 0.9],
-      initialBreakpoint: 0.9
+      breakpoints: [0, 1],
+      initialBreakpoint: 1
     });
     modal.onWillDismiss().then((result) => {
       if (result.data && result.data.save) {

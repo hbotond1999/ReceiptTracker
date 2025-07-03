@@ -87,10 +87,12 @@
           </ng-container>
         </ion-text>
       </div>
-      <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 2rem;">
-        <ion-button type="button" color="medium" (click)="onCancel()">Mégse</ion-button>
-        <ion-button type="submit" color="primary">Mentés</ion-button>
-      </div>
     </ion-list>
   </form>
 </ion-content>
+<ion-footer>
+  <div style="display: flex; gap: 1rem; justify-content: flex-end; padding: 1rem;">
+    <ion-button type="button" color="medium" (click)="onCancel()">Mégse</ion-button>
+    <ion-button type="button" color="primary" [disabled]="form.invalid" (click)="onSave()">Mentés</ion-button>
+  </div>
+</ion-footer>

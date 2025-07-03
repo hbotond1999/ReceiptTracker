@@ -17,7 +17,7 @@ import {
   IonToolbar,
   IonTitle,
   IonContent,
-  IonButtons, IonText
+  IonButtons, IonText, IonFooter
 } from '@ionic/angular/standalone';
 import { ReceiptOut } from '../../api/model/receiptOut';
 import { MarketOut } from '../../api/model/marketOut';
@@ -30,7 +30,7 @@ import { ModalController } from '@ionic/angular';
   styleUrls: ['./receipt-edit.modal.scss'],
   imports: [
     CommonModule, ReactiveFormsModule,
-    IonModal, IonInput, IonButton, IonList, IonItem, IonLabel, IonIcon, IonSelect, IonSelectOption, IonDatetime, IonTextarea, IonHeader, IonToolbar, IonTitle, IonContent, IonButtons, IonText
+    IonModal, IonInput, IonButton, IonList, IonItem, IonLabel, IonIcon, IonSelect, IonSelectOption, IonDatetime, IonTextarea, IonHeader, IonToolbar, IonTitle, IonContent, IonButtons, IonText, IonFooter
   ]
 })
 export class ReceiptEditModalComponent implements OnInit {
