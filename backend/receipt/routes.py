@@ -154,9 +154,11 @@ async def get_receipts(
     market_name: Optional[str] = Query(None, description="Szűrés market név alapján (tartalmazó keresés)"),
     item_name: Optional[str] = Query(None, description="Szűrés tétel neve alapján (tartalmazó keresés)"),
     date_from: Optional[datetime] = Query(None, description="Szűrés kezdő dátum alapján"),
-    date_to: Optional[datetime] = Query(None, description="Szűrés vég dátum alapján")
+    date_to: Optional[datetime] = Query(None, description="Szűrés vég dátum alapján"),
+    order_by: str = Query("date", description="Rendezés oszlop szerint: 'date', 'receipt_number', 'id'"),
+    order_dir: str = Query("desc", description="Rendezés iránya: 'asc' vagy 'desc'")
 ):
-    """Get receipts with optional filtering - admin users see all, regular users see only their own"""
+    """Get receipts with optional filtering and sorting - admin users see all, regular users see only their own"""
     with Session(engine) as session:
         # Get total count for pagination
         total_count = get_receipts_count(
@@ -181,7 +183,9 @@ async def get_receipts(
             date_from=date_from,
             date_to=date_to,
             skip=skip,
-            limit=limit
+            limit=limit,
+            order_by=order_by,
+            order_dir=order_dir
         )
         
         # Build complete response for each receipt

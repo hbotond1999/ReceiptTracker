@@ -4,5 +4,68 @@
   </ion-toolbar>
 </ion-header>
 <ion-content class="ion-padding">
-  <h2>Itt tudod kezelni a blokkjaidat.</h2>
+  <form>
+    <ion-searchbar placeholder="Tételnév keresése" [formControl]="itemName"></ion-searchbar>
+    <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem; align-items: center;">
+      <ion-range
+        [min]="MIN_DATE"
+        [max]="MAX_DATE"
+        [value]="{ lower: dateRange()[0], upper: dateRange()[1] }"
+        [dualKnobs]="true"
+        (ionInput)="onDateRangeInput($event)"
+        (ionChange)="onDateRangeChange($event)"
+        style="flex: 1 1 300px; max-width: 400px;"
+        >
+      </ion-range>
+      <div style="min-width: 180px; text-align: center; font-size: 0.95em;">
+        <span>{{ dateRange() && (dateRange()[0] | date:'yyyy.MM.dd') }}</span>
+        &ndash;
+        <span>{{ dateRange() && (dateRange()[1] | date:'yyyy.MM.dd') }}</span>
+      </div>
+      <ion-select interface="popover" placeholder="Bolt" [formControl]="marketId" [disabled]="marketLoading()">
+        <ion-select-option *ngFor="let market of markets()" [value]="market.id">{{market.name}}</ion-select-option>
+      </ion-select>
+      <ion-select interface="popover" placeholder="Rendezés" [formControl]="orderBy">
+        <ion-select-option value="date">Dátum</ion-select-option>
+        <ion-select-option value="receipt_number">Sorszám</ion-select-option>
+        <ion-select-option value="total">Összeg</ion-select-option>
+      </ion-select>
+      <ion-select interface="popover" placeholder="Irány" [formControl]="orderDir">
+        <ion-select-option value="desc">Csökkenő</ion-select-option>
+        <ion-select-option value="asc">Növekvő</ion-select-option>
+      </ion-select>
+      <ion-button color="medium" fill="outline" (click)="clearFilters()" type="button">Szűrők törlése</ion-button>
+    </div>
+  </form>
+
+  <ion-spinner *ngIf="loading()"></ion-spinner>
+  <ion-list *ngIf="!loading() && receipts().length">
+    <ion-accordion-group [value]="openReceiptId() ? [openReceiptId()] : []">
+      <ion-accordion *ngFor="let receipt of receipts()" [value]="receipt.id">
+        <ion-item slot="header" (click)="toggleAccordion(receipt.id)">
+          <ion-label>
+            <div><b>{{receipt.market.name}}</b> - {{receipt.date | date:'yyyy.MM.dd'}} - #{{receipt.receipt_number}}</div>
+            <div>Összesen: <b>{{receipt.total | number:'1.2-2'}} Ft</b></div>
+          </ion-label>
+          <ion-icon [name]="openReceiptId() === receipt.id ? icons.chevronUpOutline : icons.chevronDownOutline"></ion-icon>
+        </ion-item>
+        <div class="ion-padding" slot="content">
+          <ion-list>
+            <ion-item *ngFor="let item of receipt.items">
+              <ion-label>{{item.name}}</ion-label>
+              <ion-note slot="end">{{item.price | number:'1.2-2'}} Ft</ion-note>
+            </ion-item>
+          </ion-list>
+        </div>
+      </ion-accordion>
+    </ion-accordion-group>
+  </ion-list>
+  <div *ngIf="!loading() && !receipts().length" class="ion-text-center ion-margin-top">
+    <ion-note>Nincs találat a szűrőkre.</ion-note>
+  </div>
+  <div style="display: flex; justify-content: center; align-items: center; gap: 1rem; margin-top: 2rem;">
+    <ion-button (click)="pageChange('prev')" [disabled]="!hasPrevious()">Előző</ion-button>
+    <span>{{skip() + 1}} - {{Math.min(skip() + limit(), total())}} / {{total()}}</span>
+    <ion-button (click)="pageChange('next')" [disabled]="!hasNext()">Következő</ion-button>
+  </div>
 </ion-content> 
