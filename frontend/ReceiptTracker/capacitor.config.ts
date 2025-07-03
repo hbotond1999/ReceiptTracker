@@ -8,6 +8,9 @@ const config: CapacitorConfig = {
     Camera: {
       permissions: ['camera']
     }
+  },
+  android: {
+    allowMixedContent: true
   }
 };
 
