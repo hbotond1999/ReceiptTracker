@@ -1,5 +1,7 @@
 {
-  "name": "ionic-app-base",
-  "integrations": {},
+  "name": "ReceiptTracker",
+  "integrations": {
+    "capacitor": {}
+  },
   "type": "angular-standalone"
 }
