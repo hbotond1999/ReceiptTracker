@@ -1,51 +1,20 @@
 <ion-header [translucent]="true">
   <ion-toolbar>
-    <ion-buttons slot="end">
-      <ion-button (click)="logout()" fill="clear">
-        <ion-icon name="log-out-outline"></ion-icon>
-        Kijelentkezés
-      </ion-button>
-    </ion-buttons>
     <ion-title>
-      Receipt Tracker
+      Blank
     </ion-title>
   </ion-toolbar>
 </ion-header>
 
-<ion-content [fullscreen]="true" class="ion-padding">
-  <div class="welcome-section">
-    <h1>Üdvözöljük!</h1>
-    <div *ngIf="user$ | async as user">
-      <p>Bejelentkezve mint: <strong>{{ user.username }}</strong></p>
-      <p>Email: {{ user.email }}</p>
-    </div>
-  </div>
+<ion-content [fullscreen]="true">
+  <ion-header collapse="condense">
+    <ion-toolbar>
+      <ion-title size="large">Blank</ion-title>
+    </ion-toolbar>
+  </ion-header>
 
-  <div class="content-section">
-    <ion-card>
-      <ion-card-header>
-        <ion-card-title>Receipt Kezelés</ion-card-title>
-      </ion-card-header>
-      <ion-card-content>
-        <p>Itt kezelheti a receipt-eket és megtekintheti a statisztikákat.</p>
-        <ion-button expand="block" fill="outline">
-          <ion-icon name="add-outline" slot="start"></ion-icon>
-          Új Receipt
-        </ion-button>
-      </ion-card-content>
-    </ion-card>
-
-    <ion-card>
-      <ion-card-header>
-        <ion-card-title>Statisztikák</ion-card-title>
-      </ion-card-header>
-      <ion-card-content>
-        <p>Tekintse meg a receipt-ek statisztikáit és elemzéseket.</p>
-        <ion-button expand="block" fill="outline">
-          <ion-icon name="analytics-outline" slot="start"></ion-icon>
-          Megtekintés
-        </ion-button>
-      </ion-card-content>
-    </ion-card>
+  <div id="container">
+    <strong>Ready to create an app?</strong>
+    <p>Start with Ionic <a target="_blank" rel="noopener noreferrer" href="https://ionicframework.com/docs/components">UI Components</a></p>
   </div>
 </ion-content>
