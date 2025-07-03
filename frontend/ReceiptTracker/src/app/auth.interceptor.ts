@@ -25,7 +25,7 @@ export class AuthInterceptor implements HttpInterceptor {
           });
           return next.handle(authReq).pipe(
             catchError((error: HttpErrorResponse) => {
-              if (error.status === 401) {
+              if (error.status === 401 || error.status === 403) {
                 // Automatikus logout 401-es hibánál
                 this.store.dispatch(AuthActions.logout());
               }
@@ -35,7 +35,7 @@ export class AuthInterceptor implements HttpInterceptor {
         }
         return next.handle(req).pipe(
           catchError((error: HttpErrorResponse) => {
-            if (error.status === 401) {
+            if (error.status === 401 || error.status === 403) {
               // Automatikus logout 401-es hibánál
               this.store.dispatch(AuthActions.logout());
             }

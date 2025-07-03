@@ -114,4 +114,6 @@ backend/profile_pics/
 .idea/shelf/
 
 # Cadence files
-.cadence/ 
+.cadence/
+
+backend/receipt_images
