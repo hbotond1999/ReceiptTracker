@@ -508,7 +508,7 @@ export class ReceiptService extends BaseService {
 
     /**
      * Get Receipts
-     * Get receipts with optional filtering - admin users see all, regular users see only their own
+     * Get receipts with optional filtering and sorting - admin users see all, regular users see only their own
      * @param skip Kihagyandó rekordok száma
      * @param limit Visszaadandó rekordok száma (max 100)
      * @param userId Szűrés felhasználó ID alapján (csak adminoknak)
@@ -517,13 +517,15 @@ export class ReceiptService extends BaseService {
      * @param itemName Szűrés tétel neve alapján (tartalmazó keresés)
      * @param dateFrom Szűrés kezdő dátum alapján
      * @param dateTo Szűrés vég dátum alapján
+     * @param orderBy Rendezés oszlop szerint: \&#39;date\&#39;, \&#39;receipt_number\&#39;, \&#39;id\&#39;
+     * @param orderDir Rendezés iránya: \&#39;asc\&#39; vagy \&#39;desc\&#39;
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public getReceiptsReceiptGet(skip?: number, limit?: number, userId?: number, marketId?: number, marketName?: string, itemName?: string, dateFrom?: string, dateTo?: string, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<ReceiptListOut>;
-    public getReceiptsReceiptGet(skip?: number, limit?: number, userId?: number, marketId?: number, marketName?: string, itemName?: string, dateFrom?: string, dateTo?: string, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<ReceiptListOut>>;
-    public getReceiptsReceiptGet(skip?: number, limit?: number, userId?: number, marketId?: number, marketName?: string, itemName?: string, dateFrom?: string, dateTo?: string, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<ReceiptListOut>>;
-    public getReceiptsReceiptGet(skip?: number, limit?: number, userId?: number, marketId?: number, marketName?: string, itemName?: string, dateFrom?: string, dateTo?: string, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+    public getReceiptsReceiptGet(skip?: number, limit?: number, userId?: number, marketId?: number, marketName?: string, itemName?: string, dateFrom?: string, dateTo?: string, orderBy?: string, orderDir?: string, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<ReceiptListOut>;
+    public getReceiptsReceiptGet(skip?: number, limit?: number, userId?: number, marketId?: number, marketName?: string, itemName?: string, dateFrom?: string, dateTo?: string, orderBy?: string, orderDir?: string, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<ReceiptListOut>>;
+    public getReceiptsReceiptGet(skip?: number, limit?: number, userId?: number, marketId?: number, marketName?: string, itemName?: string, dateFrom?: string, dateTo?: string, orderBy?: string, orderDir?: string, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<ReceiptListOut>>;
+    public getReceiptsReceiptGet(skip?: number, limit?: number, userId?: number, marketId?: number, marketName?: string, itemName?: string, dateFrom?: string, dateTo?: string, orderBy?: string, orderDir?: string, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
 
         let localVarQueryParameters = new HttpParams({encoder: this.encoder});
         localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
@@ -542,6 +544,10 @@ export class ReceiptService extends BaseService {
           <any>dateFrom, 'date_from');
         localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
           <any>dateTo, 'date_to');
+        localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
+          <any>orderBy, 'order_by');
+        localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
+          <any>orderDir, 'order_dir');
 
         let localVarHeaders = this.defaultHeaders;
 

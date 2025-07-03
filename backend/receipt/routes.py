@@ -70,23 +70,13 @@ async def create_receipt(
             raise HTTPException(status_code=500, detail="Failed to create required entities")
         
         # Get address data from AI recognition
-        address_data = receipt_data.address  # type: ignore
-        
-        # User kiválasztás
-        if is_admin_user(current_user) and receipt_data.user_id is not None:
-            user_id = int(receipt_data.user_id) if receipt_data.user_id is not None else current_user.id
-            user = session.exec(select(User).where(User.id == user_id)).first()
-            if not user:
-                raise HTTPException(status_code=404, detail="User not found")
-        else:
-            user_id = current_user.id or 0
-            user = current_user
-        
+        address_data = receipt_data.address
+
         receipt = Receipt(
             date=receipt_data.date,  # type: ignore
             receipt_number=receipt_data.receipt_number,  # type: ignore
             market_id=market.id,
-            user_id=user_id,
+            user_id=current_user.id,
             image_path=file_path,
             original_filename=file.filename,
             postal_code=address_data.postal_code,
@@ -164,9 +154,11 @@ async def get_receipts(
     market_name: Optional[str] = Query(None, description="Szűrés market név alapján (tartalmazó keresés)"),
     item_name: Optional[str] = Query(None, description="Szűrés tétel neve alapján (tartalmazó keresés)"),
     date_from: Optional[datetime] = Query(None, description="Szűrés kezdő dátum alapján"),
-    date_to: Optional[datetime] = Query(None, description="Szűrés vég dátum alapján")
+    date_to: Optional[datetime] = Query(None, description="Szűrés vég dátum alapján"),
+    order_by: str = Query("date", description="Rendezés oszlop szerint: 'date', 'receipt_number', 'id'"),
+    order_dir: str = Query("desc", description="Rendezés iránya: 'asc' vagy 'desc'")
 ):
-    """Get receipts with optional filtering - admin users see all, regular users see only their own"""
+    """Get receipts with optional filtering and sorting - admin users see all, regular users see only their own"""
     with Session(engine) as session:
         # Get total count for pagination
         total_count = get_receipts_count(
@@ -191,7 +183,9 @@ async def get_receipts(
             date_from=date_from,
             date_to=date_to,
             skip=skip,
-            limit=limit
+            limit=limit,
+            order_by=order_by,
+            order_dir=order_dir
         )
         
         # Build complete response for each receipt

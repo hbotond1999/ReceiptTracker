@@ -28,6 +28,7 @@ export const authReducer = createReducer(
     error: null,
   })),
   on(AuthActions.refreshTokenFailure, (state, { error }) => ({ ...state, loading: false, error, isAuthenticated: false })),
+  on(AuthActions.autoLogin, (state) => ({ ...state, loading: true, error: null })),
   on(AuthActions.autoLoginSuccess, (state, { accessToken, refreshToken, expiresAt }) => ({
     ...state,
     accessToken,
@@ -37,5 +38,5 @@ export const authReducer = createReducer(
     loading: false,
     error: null,
   })),
-  on(AuthActions.autoLoginFailure, () => initialAuthState)
+  on(AuthActions.autoLoginFailure, () => ({ ...initialAuthState, loading: false }))
 );

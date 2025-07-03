@@ -1,9 +1,10 @@
 import { Injectable } from '@angular/core';
-import { HttpEvent, HttpHandler, HttpInterceptor, HttpRequest } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { HttpEvent, HttpHandler, HttpInterceptor, HttpRequest, HttpErrorResponse } from '@angular/common/http';
+import { Observable, throwError } from 'rxjs';
 import { Store } from '@ngrx/store';
 import { selectAccessToken } from './store/auth/auth.selectors';
-import { take, switchMap } from 'rxjs/operators';
+import { take, switchMap, catchError } from 'rxjs/operators';
+import * as AuthActions from './store/auth/auth.actions';
 
 @Injectable()
 export class AuthInterceptor implements HttpInterceptor {
@@ -22,9 +23,25 @@ export class AuthInterceptor implements HttpInterceptor {
           const authReq = req.clone({
             setHeaders: { Authorization: `Bearer ${token}` }
           });
-          return next.handle(authReq);
+          return next.handle(authReq).pipe(
+            catchError((error: HttpErrorResponse) => {
+              if (error.status === 401 || error.status === 403) {
+                // Automatikus logout 401-es hibánál
+                this.store.dispatch(AuthActions.logout());
+              }
+              return throwError(() => error);
+            })
+          );
         }
-        return next.handle(req);
+        return next.handle(req).pipe(
+          catchError((error: HttpErrorResponse) => {
+            if (error.status === 401 || error.status === 403) {
+              // Automatikus logout 401-es hibánál
+              this.store.dispatch(AuthActions.logout());
+            }
+            return throwError(() => error);
+          })
+        );
       })
     );
   }

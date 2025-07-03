@@ -4,7 +4,7 @@
 
 export const environment = {
   production: false,
-  apiUrl: 'http://localhost:8000' // Itt add meg a fejlesztői API URL-t
+  apiUrl: 'http://192.168.88.20:8000'
 };
 
 /*

@@ -1,0 +1,98 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-title>Blokk szerkesztése</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="onCancel()">
+        <ion-icon name="close-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+<ion-content class="ion-padding">
+  <form [formGroup]="form" (ngSubmit)="onSave()">
+    <ion-list>
+      <ion-item>
+        <ion-label position="stacked">Dátum</ion-label>
+        <ion-datetime formControlName="date" presentation="date"></ion-datetime>
+      </ion-item>
+      <ion-text color="danger" *ngIf="form.get('date')?.touched && form.get('date')?.invalid">
+        <p>A dátum megadása kötelező.</p>
+      </ion-text>
+      <ion-item>
+        <ion-label position="stacked">Sorszám</ion-label>
+        <ion-input formControlName="receipt_number"></ion-input>
+      </ion-item>
+      <ion-text color="danger" *ngIf="form.get('receipt_number')?.touched && form.get('receipt_number')?.invalid">
+        <p>A sorszám megadása kötelező.</p>
+      </ion-text>
+      <ion-item>
+        <ion-label position="stacked">Bolt</ion-label>
+        <ion-select formControlName="market_id">
+          <ion-select-option *ngFor="let market of markets" [value]="market.id">{{market.name}}</ion-select-option>
+        </ion-select>
+      </ion-item>
+      <ion-text color="danger" *ngIf="form.get('market_id')?.touched && form.get('market_id')?.invalid">
+        <p>A bolt kiválasztása kötelező.</p>
+      </ion-text>
+      <ion-item>
+        <ion-label position="stacked">Irányítószám</ion-label>
+        <ion-input formControlName="postal_code"></ion-input>
+      </ion-item>
+      <ion-text color="danger" *ngIf="form.get('postal_code')?.touched && form.get('postal_code')?.invalid">
+        <p>Az irányítószám megadása kötelező.</p>
+      </ion-text>
+      <ion-item>
+        <ion-label position="stacked">Város</ion-label>
+        <ion-input formControlName="city"></ion-input>
+      </ion-item>
+      <ion-text color="danger" *ngIf="form.get('city')?.touched && form.get('city')?.invalid">
+        <p>A város megadása kötelező.</p>
+      </ion-text>
+      <ion-item>
+        <ion-label position="stacked">Utca</ion-label>
+        <ion-input formControlName="street_name"></ion-input>
+      </ion-item>
+      <ion-text color="danger" *ngIf="form.get('street_name')?.touched && form.get('street_name')?.invalid">
+        <p>Az utca megadása kötelező.</p>
+      </ion-text>
+      <ion-item>
+        <ion-label position="stacked">Házszám</ion-label>
+        <ion-input formControlName="street_number"></ion-input>
+      </ion-item>
+      <ion-text color="danger" *ngIf="form.get('street_number')?.touched && form.get('street_number')?.invalid">
+        <p>A házszám megadása kötelező.</p>
+      </ion-text>
+    </ion-list>
+    <ion-list>
+      <ion-item lines="full">
+        <ion-label><b>Tételek</b></ion-label>
+        <ion-button fill="clear" size="small" (click)="addItem()">
+          <ion-icon name="add-outline"></ion-icon> Új tétel
+        </ion-button>
+      </ion-item>
+      <div formArrayName="items">
+        <ion-item *ngFor="let item of items.controls; let i = index" [formGroupName]="i">
+          <ion-input formControlName="name" placeholder="Név"></ion-input>
+          <ion-input formControlName="price" type="number" placeholder="Ár"></ion-input>
+          <ion-button fill="clear" color="danger" size="small" (click)="removeItem(i)">
+            <ion-icon name="trash-outline"></ion-icon>
+          </ion-button>
+        </ion-item>
+        <ion-text color="danger" *ngFor="let item of items.controls; let i = index">
+          <ng-container *ngIf="item.get('name')?.touched && item.get('name')?.invalid">
+            <p style="margin-left: 1rem;">A tétel neve kötelező.</p>
+          </ng-container>
+          <ng-container *ngIf="item.get('price')?.touched && item.get('price')?.invalid">
+            <p style="margin-left: 1rem;">Az ár megadása kötelező és nagyobb kell legyen mint 0.</p>
+          </ng-container>
+        </ion-text>
+      </div>
+    </ion-list>
+  </form>
+</ion-content>
+<ion-footer>
+  <div style="display: flex; gap: 1rem; justify-content: flex-end; padding: 1rem;">
+    <ion-button type="button" color="medium" (click)="onCancel()">Mégse</ion-button>
+    <ion-button type="button" color="primary" [disabled]="form.invalid" (click)="onSave()">Mentés</ion-button>
+  </div>
+</ion-footer>
