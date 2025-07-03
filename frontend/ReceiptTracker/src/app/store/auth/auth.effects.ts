@@ -79,11 +79,21 @@ export class AuthEffects {
           this.storage.get('expiresAt')
         ])).pipe(
           mergeMap(([accessToken, refreshToken, expiresAt]) => {
-            if (accessToken && expiresAt && Date.now() < expiresAt) {
+            const now = Date.now();
+            const isTokenExpired = !expiresAt || now >= expiresAt;
+            
+            // Ha van érvényes access token és nem járt le
+            if (accessToken && !isTokenExpired) {
               return of(AuthActions.autoLoginSuccess({ accessToken, refreshToken, expiresAt }));
-            } else if (refreshToken) {
+            }
+            // Ha lejárt az access token, de van refresh token, akkor frissítjük
+            else if (isTokenExpired && refreshToken) {
+              console.log('Access token expired, attempting refresh...');
               return of(AuthActions.refreshToken());
-            } else {
+            }
+            // Ha nincs refresh token vagy access token, akkor auto-login sikertelen
+            else {
+              console.log('No valid tokens found for auto-login');
               return of(AuthActions.autoLoginFailure());
             }
           })
@@ -123,7 +133,10 @@ export class AuthEffects {
               }))
             );
           }),
-          catchError(error => of(AuthActions.refreshTokenFailure({ error: error?.error?.detail || 'Token refresh failed' })))
+          catchError(error => {
+            console.log('Token refresh failed:', error);
+            return of(AuthActions.refreshTokenFailure({ error: error?.error?.detail || 'Token refresh failed' }));
+          })
         );
       })
     )
@@ -135,6 +148,18 @@ export class AuthEffects {
       ofType(AuthActions.refreshTokenSuccess),
       map(() => AuthActions.loadUserProfile())
     )
+  );
+
+  // Token refresh failure kezelése - logout ha refresh sikertelen
+  refreshTokenFailure$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(AuthActions.refreshTokenFailure),
+      tap(() => {
+        console.log('Token refresh failed, logging out...');
+        this.store.dispatch(AuthActions.logout());
+      })
+    ),
+    { dispatch: false }
   );
 
   // Token expiry figyelése és időzített refresh

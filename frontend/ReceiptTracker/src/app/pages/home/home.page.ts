@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { IonHeader, IonToolbar, IonTitle, IonContent, IonButton, IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonToast } from '@ionic/angular/standalone';
+import { IonHeader, IonToolbar, IonTitle, IonContent, IonButton, IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonToast, IonFab, IonFabButton, IonIcon, IonSpinner, IonLabel, IonItem, IonInput } from '@ionic/angular/standalone';
 import { Store } from '@ngrx/store';
 import { logout } from '../../store/auth/auth.actions';
 import { Router } from '@angular/router';
@@ -14,11 +14,12 @@ import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
   standalone: true,
   templateUrl: './home.page.html',
   styleUrls: ['home.page.scss'],
-  imports: [CommonModule, IonHeader, IonToolbar, IonTitle, IonContent, IonButton, IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonToast],
+  imports: [CommonModule, IonHeader, IonToolbar, IonTitle, IonContent, IonButton, IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonToast, IonFab, IonFabButton, IonIcon, IonSpinner, IonLabel, IonItem, IonInput],
 })
 export class HomePage {
   userProfile$: Observable<any>;
   loading = false;
+  uploadProgress = 0;
   toastMessage = '';
   showToast = false;
 
@@ -41,50 +42,77 @@ export class HomePage {
 
   async quickPhotoUpload() {
     try {
-      this.loading = true;
       const image = await Camera.getPhoto({
         quality: 80,
         allowEditing: false,
         resultType: CameraResultType.Base64,
         source: CameraSource.Camera
       });
+      
       if (image && image.base64String) {
-        const byteString = atob(image.base64String);
-        const arrayBuffer = new ArrayBuffer(byteString.length);
-        const intArray = new Uint8Array(arrayBuffer);
-        for (let i = 0; i < byteString.length; i++) {
-          intArray[i] = byteString.charCodeAt(i);
-        }
-        const blob = new Blob([intArray], { type: 'image/jpeg' });
-        this.uploadReceiptImage(blob);
+        this.startUploadProcess(image.base64String);
       } else {
         this.showFeedback('Nem sikerült képet készíteni.');
-        this.loading = false;
       }
     } catch (err) {
-      this.showFeedback('A kamera használata megszakadt vagy nem engedélyezett.');
-      this.loading = false;
+      if (err && typeof err === 'object' && 'message' in err) {
+        console.log('Kamera megszakítva:', err);
+      }
     }
   }
 
   onFileSelected(event: any) {
     const file: File = event.target.files[0];
     if (file) {
-      this.loading = true;
-      this.uploadReceiptImage(file);
+      this.startFileUploadProcess(file);
     }
   }
 
+  private startUploadProcess(base64String: string) {
+    this.loading = true;
+    this.uploadProgress = 0;
+    
+    const byteString = atob(base64String);
+    const arrayBuffer = new ArrayBuffer(byteString.length);
+    const intArray = new Uint8Array(arrayBuffer);
+    for (let i = 0; i < byteString.length; i++) {
+      intArray[i] = byteString.charCodeAt(i);
+    }
+    const blob = new Blob([intArray], { type: 'image/jpeg' });
+    
+    this.uploadReceiptImage(blob);
+  }
+
+  private startFileUploadProcess(file: File) {
+    this.loading = true;
+    this.uploadProgress = 0;
+    this.uploadReceiptImage(file);
+  }
+
   uploadReceiptImage(file: Blob) {
+    const progressInterval = setInterval(() => {
+      if (this.uploadProgress < 90) {
+        this.uploadProgress += Math.random() * 10;
+      }
+    }, 200);
+
     this.receiptService.createReceiptReceiptRecognizePost(file).subscribe({
       next: (result) => {
-        this.showFeedback('Blokk sikeresen feldolgozva!');
-        this.loading = false;
-        this.router.navigate(['receipts']);
+        clearInterval(progressInterval);
+        this.uploadProgress = 100;
+        
+        setTimeout(() => {
+          this.showFeedback('Blokk sikeresen feldolgozva!');
+          this.loading = false;
+          this.uploadProgress = 0;
+          this.router.navigate(['receipts']);
+        }, 500);
       },
       error: (err) => {
+        clearInterval(progressInterval);
         this.showFeedback('Hiba a blokk feldolgozásakor!');
         this.loading = false;
+        this.uploadProgress = 0;
       }
     });
   }

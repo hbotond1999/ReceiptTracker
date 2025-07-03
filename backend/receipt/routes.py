@@ -70,23 +70,13 @@ async def create_receipt(
             raise HTTPException(status_code=500, detail="Failed to create required entities")
         
         # Get address data from AI recognition
-        address_data = receipt_data.address  # type: ignore
-        
-        # User kiválasztás
-        if is_admin_user(current_user) and receipt_data.user_id is not None:
-            user_id = int(receipt_data.user_id) if receipt_data.user_id is not None else current_user.id
-            user = session.exec(select(User).where(User.id == user_id)).first()
-            if not user:
-                raise HTTPException(status_code=404, detail="User not found")
-        else:
-            user_id = current_user.id or 0
-            user = current_user
-        
+        address_data = receipt_data.address
+
         receipt = Receipt(
             date=receipt_data.date,  # type: ignore
             receipt_number=receipt_data.receipt_number,  # type: ignore
             market_id=market.id,
-            user_id=user_id,
+            user_id=current_user.id,
             image_path=file_path,
             original_filename=file.filename,
             postal_code=address_data.postal_code,
