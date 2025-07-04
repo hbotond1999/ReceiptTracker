@@ -13,8 +13,8 @@
     <ion-card-content>
       <div style="display: flex; gap: 1rem; flex-wrap: wrap; align-items: center;">
         <ion-range
-          [min]="MIN_DATE"
-          [max]="MAX_DATE"
+          [min]="minDate"
+          [max]="maxDate"
           [value]="{ lower: dateRange()[0], upper: dateRange()[1] }"
           [dualKnobs]="true"
           (ionInput)="onDateRangeInput($event)"
@@ -62,9 +62,9 @@
   <!-- KPI Cards -->
   <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
     <app-kpi-card
-      [dateFrom]="chartDateFrom()"
-      [dateTo]="chartDateTo()"
-      [userId]="chartUserId()"
+      [dateFrom]="chartParams().dateFrom"
+      [dateTo]="chartParams().dateTo"
+      [userId]="chartParams().userId"
       kpiType="totalSpent"
       title="Összesen elköltött"
       color="primary"
@@ -72,18 +72,18 @@
     </app-kpi-card>
 
     <app-kpi-card
-      [dateFrom]="chartDateFrom()"
-      [dateTo]="chartDateTo()"
-      [userId]="chartUserId()"
+      [dateFrom]="chartParams().dateFrom"
+      [dateTo]="chartParams().dateTo"
+      [userId]="chartParams().userId"
       kpiType="totalReceipts"
       title="Vásárlások száma"
       color="secondary">
     </app-kpi-card>
 
     <app-kpi-card
-      [dateFrom]="chartDateFrom()"
-      [dateTo]="chartDateTo()"
-      [userId]="chartUserId()"
+      [dateFrom]="chartParams().dateFrom"
+      [dateTo]="chartParams().dateTo"
+      [userId]="chartParams().userId"
       kpiType="averageReceiptValue"
       title="Átlagos blokk érték"
       color="tertiary"
@@ -95,46 +95,46 @@
   <div style="display: grid; grid-template-columns: 1fr; gap: 2rem;">
     <!-- Vásárlások időbeli alakulása -->
     <app-receipts-chart
-      [dateFrom]="chartDateFrom()"
-      [dateTo]="chartDateTo()"
-      [userId]="chartUserId()"
-      [aggregationType]="chartAggregationType()">
+      [dateFrom]="chartParams().dateFrom"
+      [dateTo]="chartParams().dateTo"
+      [userId]="chartParams().userId"
+      [aggregationType]="chartParams().aggregationType">
     </app-receipts-chart>
 
     <!-- Összeg időbeli alakulása -->
     <app-amounts-chart
-      [dateFrom]="chartDateFrom()"
-      [dateTo]="chartDateTo()"
-      [userId]="chartUserId()"
-      [aggregationType]="chartAggregationType()">
+      [dateFrom]="chartParams().dateFrom"
+      [dateTo]="chartParams().dateTo"
+      [userId]="chartParams().userId"
+      [aggregationType]="chartParams().aggregationType">
     </app-amounts-chart>
 
     <!-- Összköltés boltonként -->
     <app-market-total-spent-chart
-      [dateFrom]="chartDateFrom()"
-      [dateTo]="chartDateTo()"
-      [userId]="chartUserId()">
+      [dateFrom]="chartParams().dateFrom"
+      [dateTo]="chartParams().dateTo"
+      [userId]="chartParams().userId">
     </app-market-total-spent-chart>
 
     <!-- vásárlások száma boltonként -->
     <app-market-total-receipts-chart
-      [dateFrom]="chartDateFrom()"
-      [dateTo]="chartDateTo()"
-      [userId]="chartUserId()">
+      [dateFrom]="chartParams().dateFrom"
+      [dateTo]="chartParams().dateTo"
+      [userId]="chartParams().userId">
     </app-market-total-receipts-chart>
 
     <!-- ÚJ: Átlagos költés boltonként -->
     <app-market-average-spent-chart
-      [dateFrom]="chartDateFrom()"
-      [dateTo]="chartDateTo()"
-      [userId]="chartUserId()">
+      [dateFrom]="chartParams().dateFrom"
+      [dateTo]="chartParams().dateTo"
+      [userId]="chartParams().userId">
     </app-market-average-spent-chart>
 
     <!-- Top termékek lista -->
     <app-top-items
-      [dateFrom]="chartDateFrom()"
-      [dateTo]="chartDateTo()"
-      [userId]="chartUserId()"
+      [dateFrom]="chartParams().dateFrom"
+      [dateTo]="chartParams().dateTo"
+      [userId]="chartParams().userId"
       [limit]="10">
     </app-top-items>
   </div>

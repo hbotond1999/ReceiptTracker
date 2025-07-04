@@ -20,13 +20,14 @@ import {
   IonNote,
   IonList
 } from '@ionic/angular/standalone';
+
 import { ReceiptService } from '../../api/api/receipt.service';
 import { AuthService } from '../../api/api/auth.service';
 import { UserOut } from '../../api/model/userOut';
 import { AggregationType } from '../../api/model/aggregationType';
 import { Observable, BehaviorSubject, switchMap, map, catchError, of, Subscription } from 'rxjs';
 
-// Import chart components
+// Chart components
 import { ReceiptsChartComponent } from './components/receipts-chart/receipts-chart.component';
 import { AmountsChartComponent } from './components/amounts-chart/amounts-chart.component';
 import { WordCloudComponent } from './components/wordcloud/wordcloud.component';
@@ -73,98 +74,101 @@ import { MarketAverageSpentChartComponent } from './components/market-average-sp
   ],
 })
 export class StatsPage implements OnInit, OnDestroy {
-  private receiptService = inject(ReceiptService);
-  private authService = inject(AuthService);
+  // Services
+  private readonly receiptService = inject(ReceiptService);
+  private readonly authService = inject(AuthService);
 
-  // Signals
-  currentUser = signal<UserOut | null>(null);
-  isAdmin = computed(() => {
-    const user = this.currentUser();
-    return user?.roles?.some(role => role === 'admin') || false;
-  });
+  // Constants
+  private readonly MIN_DATE = new Date('2023-01-01').getTime();
+  private readonly MAX_DATE = new Date().getTime();
+  private readonly DEFAULT_DATE_RANGE: [number, number] = [this.MIN_DATE, this.MAX_DATE];
 
-  // Date range
-  MIN_DATE = new Date('2023-01-01').getTime();
-  MAX_DATE = new Date().getTime();
-  dateRange = signal<[number, number]>([this.MIN_DATE, this.MAX_DATE]);
-
-  // User filter (admin only) - signal-alapú
-  selectedUserId = signal<number | null>(null);
-  userId = new FormControl<number | null>(null);
-
-  // Aggregation type - signal-alapú
-  selectedAggregationType = signal<AggregationType>(AggregationType.Day);
-  aggregationType = new FormControl<AggregationType>(AggregationType.Day);
+  // Public constants for template
+  readonly minDate = this.MIN_DATE;
+  readonly maxDate = this.MAX_DATE;
 
   // Aggregation type options
-  aggregationTypeOptions = [
+  readonly aggregationTypeOptions = [
     { value: AggregationType.Day, label: 'Napi' },
     { value: AggregationType.Month, label: 'Havi' },
     { value: AggregationType.Year, label: 'Éves' }
   ];
 
-  // Filter subjects (megtartva a kompatibilitás miatt)
-  private dateRangeSubject = new BehaviorSubject<[number, number]>([this.MIN_DATE, this.MAX_DATE]);
-  private userIdSubject = new BehaviorSubject<number | null>(null);
-  private aggregationTypeSubject = new BehaviorSubject<AggregationType>(AggregationType.Day);
+  // User state
+  currentUser = signal<UserOut | null>(null);
+  isAdmin = computed(() => 
+    this.currentUser()?.roles?.some(role => role === 'admin') || false
+  );
 
-  // Subscriptions
-  private subscriptions: Subscription[] = [];
+  // Filter state
+  dateRange = signal<[number, number]>(this.DEFAULT_DATE_RANGE);
+  selectedUserId = signal<number | null>(null);
+  selectedAggregationType = signal<AggregationType>(AggregationType.Month);
 
-  // Chart filter params - computed from current filters
-  chartDateFrom = computed(() => {
-    const [dateFrom] = this.dateRange();
-    return new Date(dateFrom).toISOString();
-  });
+  // Form controls
+  userId = new FormControl<number | null>(null);
+  aggregationType = new FormControl<AggregationType>(AggregationType.Month);
 
-  chartDateTo = computed(() => {
-    const [, dateTo] = this.dateRange();
-    return new Date(dateTo).toISOString();
-  });
+  // Chart computed properties
+  chartParams = computed(() => ({
+    dateFrom: new Date(this.dateRange()[0]).toISOString(),
+    dateTo: new Date(this.dateRange()[1]).toISOString(),
+    userId: this.isAdmin() ? this.selectedUserId() : null,
+    aggregationType: this.selectedAggregationType()
+  }));
 
-  chartUserId = computed(() => {
-    return this.isAdmin() ? this.selectedUserId() : null;
-  });
-
-  chartAggregationType = computed(() => {
-    return this.selectedAggregationType();
-  });
-
-  // Observable-k a felhasználókhoz
-  currentUser$: Observable<UserOut | null> = this.authService.getMeAuthMeGet().pipe(
-    catchError(error => {
-      console.error('Error loading current user:', error);
-      return of(null);
-    })
+  // Data observables
+  private currentUser$: Observable<UserOut | null> = this.authService.getMeAuthMeGet().pipe(
+    catchError(this.handleError('Error loading current user', null))
   );
 
   users$: Observable<UserOut[]> = this.currentUser$.pipe(
-    switchMap(user => {
-      if (user?.roles?.some(role => role === 'admin')) {
-        return this.authService.listUsersAuthUsersGet(0, 1000).pipe(
-          map(response => response?.users || []),
-          catchError(error => {
-            console.error('Error loading users:', error);
-            return of([]);
-          })
-        );
-      }
-      return of([]);
-    })
+    switchMap(user => this.isUserAdmin(user) ? this.loadUsers() : of([]))
   );
 
-  ngOnInit() {
-    this.loadCurrentUser();
-    this.setupUserFilter();
-    this.setupAggregationTypeFilter();
+  private subscriptions: Subscription[] = [];
+
+  ngOnInit(): void {
+    this.initializeComponent();
   }
 
-  ngOnDestroy() {
-    // Clean up subscriptions
+  ngOnDestroy(): void {
     this.subscriptions.forEach(sub => sub.unsubscribe());
   }
 
-  private async loadCurrentUser() {
+  // Event handlers
+  onDateRangeInput(event: any): void {
+    this.updateDateRange(event.detail.value);
+  }
+
+  onDateRangeChange(event: any): void {
+    this.updateDateRange(event.detail.value);
+  }
+
+  onUserChange(): void {
+    this.selectedUserId.set(this.userId.value);
+  }
+
+  onAggregationTypeChange(): void {
+    const type = this.aggregationType.value || AggregationType.Day;
+    this.selectedAggregationType.set(type);
+  }
+
+  clearFilters(): void {
+    this.dateRange.set(this.DEFAULT_DATE_RANGE);
+    this.userId.setValue(null);
+    this.selectedUserId.set(null);
+    this.aggregationType.setValue(AggregationType.Day);
+    this.selectedAggregationType.set(AggregationType.Day);
+  }
+
+  // Private methods
+  private async initializeComponent(): Promise<void> {
+    await this.loadCurrentUser();
+    this.setupFormSubscriptions();
+  }
+
+  private async loadCurrentUser(): Promise<void> {
     try {
       const user = await this.authService.getMeAuthMeGet().toPromise();
       this.currentUser.set(user || null);
@@ -173,54 +177,37 @@ export class StatsPage implements OnInit, OnDestroy {
     }
   }
 
-  private setupUserFilter() {
-    const subscription = this.userId.valueChanges.subscribe(userId => {
-      this.selectedUserId.set(userId);
-      this.userIdSubject.next(userId);
-    });
-    this.subscriptions.push(subscription);
+  private setupFormSubscriptions(): void {
+    this.subscriptions.push(
+      this.userId.valueChanges.subscribe(userId => 
+        this.selectedUserId.set(userId)
+      ),
+      this.aggregationType.valueChanges.subscribe(aggregationType => {
+        const type = aggregationType || AggregationType.Day;
+        this.selectedAggregationType.set(type);
+      })
+    );
   }
 
-  private setupAggregationTypeFilter() {
-    const subscription = this.aggregationType.valueChanges.subscribe(aggregationType => {
-      const type = aggregationType || AggregationType.Day;
-      this.selectedAggregationType.set(type);
-      this.aggregationTypeSubject.next(type);
-    });
-    this.subscriptions.push(subscription);
+  private updateDateRange(value: { lower: number; upper: number }): void {
+    this.dateRange.set([value.lower, value.upper]);
   }
 
-  onDateRangeInput(event: any) {
-    const { lower, upper } = event.detail.value;
-    this.dateRange.set([lower, upper]);
+  private isUserAdmin(user: UserOut | null): boolean {
+    return user?.roles?.some(role => role === 'admin') || false;
   }
 
-  onDateRangeChange(event: any) {
-    const { lower, upper } = event.detail.value;
-    this.dateRange.set([lower, upper]);
-    this.dateRangeSubject.next([lower, upper]);
+  private loadUsers(): Observable<UserOut[]> {
+    return this.authService.listUsersAuthUsersGet(0, 1000).pipe(
+      map(response => response?.users || []),
+      catchError(this.handleError('Error loading users', []))
+    );
   }
 
-  onUserChange() {
-    const userId = this.userId.value;
-    this.selectedUserId.set(userId);
-    this.userIdSubject.next(userId);
-  }
-
-  onAggregationTypeChange() {
-    const type = this.aggregationType.value || AggregationType.Day;
-    this.selectedAggregationType.set(type);
-    this.aggregationTypeSubject.next(type);
-  }
-
-  clearFilters() {
-    this.dateRange.set([this.MIN_DATE, this.MAX_DATE]);
-    this.dateRangeSubject.next([this.MIN_DATE, this.MAX_DATE]);
-    this.userId.setValue(null);
-    this.selectedUserId.set(null);
-    this.userIdSubject.next(null);
-    this.aggregationType.setValue(AggregationType.Day);
-    this.selectedAggregationType.set(AggregationType.Day);
-    this.aggregationTypeSubject.next(AggregationType.Day);
+  private handleError<T>(message: string, fallback: T) {
+    return (error: any): Observable<T> => {
+      console.error(message, error);
+      return of(fallback);
+    };
   }
 }
