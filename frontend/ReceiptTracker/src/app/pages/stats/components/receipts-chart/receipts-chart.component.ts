@@ -72,6 +72,7 @@ export class ReceiptsChartComponent implements OnInit, OnChanges, OnDestroy {
     if (changes['dateFrom'] || changes['dateTo'] || changes['userId'] || changes['aggregationType']) {
       // Only reload data if chart is already initialized
       if (this.chart) {
+        this.initializeChart();
         this.loadData();
       }
     }
@@ -88,7 +89,7 @@ export class ReceiptsChartComponent implements OnInit, OnChanges, OnDestroy {
       case AggregationType.Year:
         return { timeUnit: "year" as any, count: 1 };
       default:
-        return { timeUnit: "day" as any, count: 1 };
+        return { timeUnit: "day" as any, count: 31 };
     }
   }
 

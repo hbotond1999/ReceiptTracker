@@ -11,7 +11,7 @@ class AggregationType(str, Enum):
     YEAR = "year"
 
 class TimeSeriesData(BaseModel):
-    date: Union[date, int]
+    date: date
     value: float
 
 class WordCloudItem(BaseModel):

@@ -12,7 +12,7 @@ from statistic.models import TotalSpentKPI, TotalReceiptsKPI, AverageReceiptValu
     TopItemsKPI, WordCloudItem, TopItem, AggregationType, \
     MarketTotalSpent, MarketTotalSpentList, MarketTotalReceipts, MarketTotalReceiptsList, MarketAverageSpent, MarketAverageSpentList
 
-router = APIRouter(prefix="/statistic", tags=["receipt"])
+router = APIRouter(prefix="/statistic", tags=["statistic"])
 
 
 @router.get("/statistics/kpi/total-spent", response_model=TotalSpentKPI)
@@ -223,7 +223,6 @@ async def get_receipts_timeseries(
             TimeSeriesData(date=row.date, value=float(row.value))
             for row in results
         ]
-
 @router.get("/statistics/timeseries/amounts", response_model=List[TimeSeriesData])
 async def get_amounts_timeseries(
         current_user: User = Depends(get_current_user),
@@ -234,50 +233,44 @@ async def get_amounts_timeseries(
 ):
     """Get time series data for amounts spent by date - calculated in database"""
     with Session(engine) as session:
-        # Build SQL aggregation based on aggregation type
+        # Date grouping logic - ugyanaz mint a receipts endpointnál
         if aggregation == AggregationType.YEAR:
-            date_part = func.extract('year', Receipt.date).label('date_key')
+            date_expr = func.date_trunc("year", Receipt.date)
         elif aggregation == AggregationType.MONTH:
-            # Create YYYYMM format: year * 100 + month
-            date_part = (func.extract('year', Receipt.date) * 100 +
-                        func.extract('month', Receipt.date)).label('date_key')
-        else:  # DAY
-            date_part = func.date(Receipt.date).label('date_key')
+            date_expr = func.date_trunc("month", Receipt.date)
+        else:  # AggregationType.DAY
+            date_expr = func.date_trunc("day", Receipt.date)
 
         # Build query with SQL aggregation
-        query = (
-            select(
-                date_part,
-                func.sum(ReceiptItem.price).label('total_amount')
-            )
-            .select_from(Receipt)
-            .join(ReceiptItem)
-            .group_by(date_part)
-            .order_by(date_part)
-        )
+        stmt = select(
+            date_expr.label("date"),
+            func.sum(ReceiptItem.price).label("total_amount")
+        ).select_from(Receipt).join(ReceiptItem)
 
-        # Apply user filter
+        # Filtering
+        conditions = []
+
         if is_admin_user(current_user) and user_id is not None:
-            query = query.where(Receipt.user_id == user_id)
+            conditions.append(Receipt.user_id == user_id)
         else:
-            query = query.where(Receipt.user_id == current_user.id)
+            conditions.append(Receipt.user_id == current_user.id)
 
-        # Apply date filters
         if date_from:
-            query = query.where(Receipt.date >= date_from)
+            conditions.append(Receipt.date >= date_from)
         if date_to:
-            query = query.where(Receipt.date <= date_to)
+            conditions.append(Receipt.date <= date_to)
 
-        # Execute query and get aggregated results
-        results = session.exec(query).all()
+        if conditions:
+            stmt = stmt.where(*conditions)
 
-        # Convert to TimeSeriesData format
-        time_series_data = [
-            TimeSeriesData(date=row.date_key, value=float(row.total_amount))
+        stmt = stmt.group_by(date_expr).order_by(date_expr)
+
+        results = session.exec(stmt).all()
+
+        return [
+            TimeSeriesData(date=row.date, value=float(row.total_amount))
             for row in results
         ]
-
-        return time_series_data
 
 @router.get("/wordcloud", response_model=List[WordCloudItem])
 async def get_wordcloud_data(
