@@ -56,7 +56,6 @@ export class MarketAverageSpentChartComponent implements OnInit, OnChanges, OnDe
     this.darkModeSubscription = this.darkModeService.isDarkMode$.subscribe(() => {
       if (this.chart) {
         // Reinitialize chart with new theme
-        this.initializeChart();
         this.loadData();
       }
     });

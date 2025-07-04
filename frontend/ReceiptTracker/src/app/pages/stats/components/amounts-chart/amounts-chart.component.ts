@@ -66,7 +66,6 @@ export class AmountsChartComponent implements OnInit, OnChanges, OnDestroy {
     if (changes['dateFrom'] || changes['dateTo'] || changes['userId'] || changes['aggregationType']) {
       // Only reload data if chart is already initialized
       if (this.chart) {
-        this.initializeChart();
         this.loadData();
       }
     }
