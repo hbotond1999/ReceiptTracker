@@ -83,7 +83,6 @@ export class MarketTotalSpentChartComponent implements OnInit, OnChanges, OnDest
     }));
 
     // Category axis (markets)
-    // @ts-ignore
     const xAxis = this.chart.xAxes.push(am5xy.CategoryAxis.new(this.root, {
       categoryField: 'category',
       renderer: am5xy.AxisRendererX.new(this.root, {
