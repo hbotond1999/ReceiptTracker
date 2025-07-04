@@ -57,6 +57,8 @@ export class ReceiptsPage {
   // Szűrők
   itemName = new FormControl('');
   dateRange = signal<[number, number]>([MIN_DATE, MAX_DATE]);
+  dateFrom = new FormControl<string>('');
+  dateTo = new FormControl<string>('');
   marketId = new FormControl<number|null>(null);
   orderBy = new FormControl('date');
   orderDir = new FormControl('desc');
@@ -78,11 +80,31 @@ export class ReceiptsPage {
   ) {
     this.loadMarkets();
     this.loadReceipts();
+    // Initialize date inputs with current date range
+    this.dateFrom.setValue(new Date(this.dateRange()[0]).toISOString().split('T')[0]);
+    this.dateTo.setValue(new Date(this.dateRange()[1]).toISOString().split('T')[0]);
     // Szűrők változására újratölt
     this.itemName.valueChanges.subscribe(() => this.onFilterChange());
     this.marketId.valueChanges.subscribe(() => this.onFilterChange());
     this.orderBy.valueChanges.subscribe(() => this.onFilterChange());
     this.orderDir.valueChanges.subscribe(() => this.onFilterChange());
+    // Dátum inputok figyelése
+    this.dateFrom.valueChanges.subscribe(val => {
+      if (val) {
+        const dateFrom = new Date(val).getTime();
+        const [, dateTo] = this.dateRange();
+        this.dateRange.set([dateFrom, dateTo]);
+        this.onFilterChange();
+      }
+    });
+    this.dateTo.valueChanges.subscribe(val => {
+      if (val) {
+        const [dateFrom] = this.dateRange();
+        const dateTo = new Date(val).getTime();
+        this.dateRange.set([dateFrom, dateTo]);
+        this.onFilterChange();
+      }
+    });
   }
 
   onDateRangeChange(ev: CustomEvent) {
@@ -97,6 +119,24 @@ export class ReceiptsPage {
     const val = ev.detail.value;
     if (val && typeof val.lower === 'number' && typeof val.upper === 'number') {
       this.dateRange.set([val.lower, val.upper]);
+    }
+  }
+
+  onDateFromInput(event: any) {
+    if (event.target.value) {
+      const dateFrom = new Date(event.target.value).getTime();
+      const [, dateTo] = this.dateRange();
+      this.dateRange.set([dateFrom, dateTo]);
+      this.onFilterChange();
+    }
+  }
+
+  onDateToInput(event: any) {
+    if (event.target.value) {
+      const [dateFrom] = this.dateRange();
+      const dateTo = new Date(event.target.value).getTime();
+      this.dateRange.set([dateFrom, dateTo]);
+      this.onFilterChange();
     }
   }
 
@@ -156,6 +196,8 @@ export class ReceiptsPage {
   clearFilters() {
     this.itemName.setValue('');
     this.dateRange.set([MIN_DATE, MAX_DATE]);
+    this.dateFrom.setValue(new Date(MIN_DATE).toISOString().split('T')[0]);
+    this.dateTo.setValue(new Date(MAX_DATE).toISOString().split('T')[0]);
     this.marketId.setValue(null);
     this.orderBy.setValue('date');
     this.orderDir.setValue('desc');

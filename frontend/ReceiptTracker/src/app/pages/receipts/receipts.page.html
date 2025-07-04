@@ -7,21 +7,25 @@
   <form>
     <ion-searchbar placeholder="Tételnév keresése" [formControl]="itemName"></ion-searchbar>
     <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem; align-items: center;">
-      <ion-range
-        [min]="MIN_DATE"
-        [max]="MAX_DATE"
-        [value]="{ lower: dateRange()[0], upper: dateRange()[1] }"
-        [dualKnobs]="true"
-        (ionInput)="onDateRangeInput($event)"
-        (ionChange)="onDateRangeChange($event)"
-        style="flex: 1 1 300px; max-width: 400px;"
-        >
-      </ion-range>
-      <div style="min-width: 180px; text-align: center; font-size: 0.95em;">
-        <span>{{ dateRange() && (dateRange()[0] | date:'yyyy.MM.dd') }}</span>
-        &ndash;
-        <span>{{ dateRange() && (dateRange()[1] | date:'yyyy.MM.dd') }}</span>
-      </div>
+      <!-- Csak kézi dátum inputok -->
+      <ion-item style="min-width: 150px;">
+        <ion-label position="stacked">Kezdő dátum</ion-label>
+        <ion-input
+          type="date"
+          [formControl]="dateFrom"
+          placeholder="Kezdő dátum"
+          (ionInput)="onDateFromInput($event)">
+        </ion-input>
+      </ion-item>
+      <ion-item style="min-width: 150px;">
+        <ion-label position="stacked">Záró dátum</ion-label>
+        <ion-input
+          type="date"
+          [formControl]="dateTo"
+          placeholder="Záró dátum"
+          (ionInput)="onDateToInput($event)">
+        </ion-input>
+      </ion-item>
       <ion-select interface="popover" placeholder="Bolt" [formControl]="marketId" [disabled]="marketLoading()">
         <ion-select-option *ngFor="let market of markets()" [value]="market.id">{{market.name}}</ion-select-option>
       </ion-select>
