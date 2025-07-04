@@ -1,0 +1,9 @@
+<ion-card>
+  <ion-card-header>
+    <ion-card-title>Vásárlások száma boltonként</ion-card-title>
+  </ion-card-header>
+  <ion-card-content>
+    <div id="market-total-receipts-chart-{{ chartId }}" class="chart-container"></div>
+    <ion-spinner *ngIf="isLoading" class="loading-spinner"></ion-spinner>
+  </ion-card-content>
+</ion-card> 

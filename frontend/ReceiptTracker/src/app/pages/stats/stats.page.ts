@@ -23,6 +23,7 @@ import {
 import { ReceiptService } from '../../api/api/receipt.service';
 import { AuthService } from '../../api/api/auth.service';
 import { UserOut } from '../../api/model/userOut';
+import { AggregationType } from '../../api/model/aggregationType';
 import { Observable, BehaviorSubject, switchMap, map, catchError, of, Subscription } from 'rxjs';
 
 // Import chart components
@@ -31,6 +32,9 @@ import { AmountsChartComponent } from './components/amounts-chart/amounts-chart.
 import { WordCloudComponent } from './components/wordcloud/wordcloud.component';
 import { KpiCardComponent } from './components/kpi-card/kpi-card.component';
 import { TopItemsComponent } from './components/top-items/top-items.component';
+import { MarketTotalSpentChartComponent } from './components/market-total-spent-chart/market-total-spent-chart.component';
+import { MarketTotalReceiptsChartComponent } from './components/market-total-receipts-chart/market-total-receipts-chart.component';
+import { MarketAverageSpentChartComponent } from './components/market-average-spent-chart/market-average-spent-chart.component';
 
 @Component({
   selector: 'app-stats',
@@ -62,7 +66,10 @@ import { TopItemsComponent } from './components/top-items/top-items.component';
     AmountsChartComponent,
     WordCloudComponent,
     KpiCardComponent,
-    TopItemsComponent
+    TopItemsComponent,
+    MarketTotalSpentChartComponent,
+    MarketTotalReceiptsChartComponent,
+    MarketAverageSpentChartComponent
   ],
 })
 export class StatsPage implements OnInit, OnDestroy {
@@ -81,12 +88,25 @@ export class StatsPage implements OnInit, OnDestroy {
   MAX_DATE = new Date().getTime();
   dateRange = signal<[number, number]>([this.MIN_DATE, this.MAX_DATE]);
 
-  // User filter (admin only)
+  // User filter (admin only) - signal-alapú
+  selectedUserId = signal<number | null>(null);
   userId = new FormControl<number | null>(null);
 
-  // Filter subjects
+  // Aggregation type - signal-alapú
+  selectedAggregationType = signal<AggregationType>(AggregationType.Day);
+  aggregationType = new FormControl<AggregationType>(AggregationType.Day);
+  
+  // Aggregation type options
+  aggregationTypeOptions = [
+    { value: AggregationType.Day, label: 'Napi' },
+    { value: AggregationType.Month, label: 'Havi' },
+    { value: AggregationType.Year, label: 'Éves' }
+  ];
+
+  // Filter subjects (megtartva a kompatibilitás miatt)
   private dateRangeSubject = new BehaviorSubject<[number, number]>([this.MIN_DATE, this.MAX_DATE]);
   private userIdSubject = new BehaviorSubject<number | null>(null);
+  private aggregationTypeSubject = new BehaviorSubject<AggregationType>(AggregationType.Day);
 
   // Subscriptions
   private subscriptions: Subscription[] = [];
@@ -103,7 +123,11 @@ export class StatsPage implements OnInit, OnDestroy {
   });
 
   chartUserId = computed(() => {
-    return this.isAdmin() ? this.userId.value : null;
+    return this.isAdmin() ? this.selectedUserId() : null;
+  });
+
+  chartAggregationType = computed(() => {
+    return this.selectedAggregationType();
   });
 
   // Observable-k a felhasználókhoz
@@ -129,11 +153,10 @@ export class StatsPage implements OnInit, OnDestroy {
     })
   );
 
-
-
   ngOnInit() {
     this.loadCurrentUser();
     this.setupUserFilter();
+    this.setupAggregationTypeFilter();
   }
 
   ngOnDestroy() {
@@ -151,12 +174,21 @@ export class StatsPage implements OnInit, OnDestroy {
   }
 
   private setupUserFilter() {
-    this.userId.valueChanges.subscribe(userId => {
+    const subscription = this.userId.valueChanges.subscribe(userId => {
+      this.selectedUserId.set(userId);
       this.userIdSubject.next(userId);
     });
+    this.subscriptions.push(subscription);
   }
 
-
+  private setupAggregationTypeFilter() {
+    const subscription = this.aggregationType.valueChanges.subscribe(aggregationType => {
+      const type = aggregationType || AggregationType.Day;
+      this.selectedAggregationType.set(type);
+      this.aggregationTypeSubject.next(type);
+    });
+    this.subscriptions.push(subscription);
+  }
 
   onDateRangeInput(event: any) {
     const { lower, upper } = event.detail.value;
@@ -170,13 +202,25 @@ export class StatsPage implements OnInit, OnDestroy {
   }
 
   onUserChange() {
-    this.userIdSubject.next(this.userId.value);
+    const userId = this.userId.value;
+    this.selectedUserId.set(userId);
+    this.userIdSubject.next(userId);
+  }
+
+  onAggregationTypeChange() {
+    const type = this.aggregationType.value || AggregationType.Day;
+    this.selectedAggregationType.set(type);
+    this.aggregationTypeSubject.next(type);
   }
 
   clearFilters() {
     this.dateRange.set([this.MIN_DATE, this.MAX_DATE]);
     this.dateRangeSubject.next([this.MIN_DATE, this.MAX_DATE]);
     this.userId.setValue(null);
+    this.selectedUserId.set(null);
     this.userIdSubject.next(null);
+    this.aggregationType.setValue(AggregationType.Day);
+    this.selectedAggregationType.set(AggregationType.Day);
+    this.aggregationTypeSubject.next(AggregationType.Day);
   }
 }

@@ -9,6 +9,7 @@ import {
 } from '@ionic/angular/standalone';
 import { ReceiptService } from '../../../../api/api/receipt.service';
 import { TimeSeriesData } from '../../../../api/model/timeSeriesData';
+import { AggregationType } from '../../../../api/model/aggregationType';
 import { Subscription } from 'rxjs';
 
 // amCharts 5 imports
@@ -34,6 +35,7 @@ export class AmountsChartComponent implements OnInit, OnChanges, OnDestroy {
   @Input() dateFrom!: string;
   @Input() dateTo!: string;
   @Input() userId?: number | null;
+  @Input() aggregationType?: AggregationType;
   
   @ViewChild('chartContainer', { static: false }) chartContainer!: ElementRef;
 
@@ -54,7 +56,7 @@ export class AmountsChartComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   ngOnChanges(changes: SimpleChanges) {
-    if (changes['dateFrom'] || changes['dateTo'] || changes['userId']) {
+    if (changes['dateFrom'] || changes['dateTo'] || changes['userId'] || changes['aggregationType']) {
       // Only reload data if chart is already initialized
       if (this.chart) {
         this.loadData();
@@ -64,6 +66,37 @@ export class AmountsChartComponent implements OnInit, OnChanges, OnDestroy {
 
   ngOnDestroy() {
     this.cleanup();
+  }
+
+  private getBaseInterval() {
+    switch (this.aggregationType) {
+      case AggregationType.Month:
+        return { timeUnit: "month" as any, count: 1 };
+      case AggregationType.Year:
+        return { timeUnit: "year" as any, count: 1 };
+      default:
+        return { timeUnit: "day" as any, count: 1 };
+    }
+  }
+
+  private formatDateForChart(dateValue: any): number {
+    if (typeof dateValue === 'string') {
+      // For day aggregation, it's a date string
+      return new Date(dateValue).getTime();
+    } else if (typeof dateValue === 'number') {
+      // For month/year aggregation, it's a numeric value
+      if (this.aggregationType === AggregationType.Year) {
+        // Year format: YYYY -> create date for Jan 1st of that year
+        return new Date(dateValue, 0, 1).getTime();
+      } else if (this.aggregationType === AggregationType.Month) {
+        // Month format: YYYYMM -> create date for 1st of that month
+        const year = Math.floor(dateValue / 100);
+        const month = dateValue % 100;
+        return new Date(year, month - 1, 1).getTime();
+      }
+    }
+    // Fallback
+    return new Date(dateValue).getTime();
   }
 
   private initializeChart() {
@@ -101,10 +134,7 @@ export class AmountsChartComponent implements OnInit, OnChanges, OnDestroy {
 
     const xAxis = this.chart.xAxes.push(am5xy.DateAxis.new(this.root, {
       maxZoomCount: 1000,
-      baseInterval: {
-        timeUnit: "day",
-        count: 1
-      },
+      baseInterval: this.getBaseInterval(),
       renderer: xRenderer,
       tooltip: am5.Tooltip.new(this.root, {})
     }));
@@ -155,13 +185,14 @@ export class AmountsChartComponent implements OnInit, OnChanges, OnDestroy {
     this.subscription = this.receiptService.getAmountsTimeseriesStatisticStatisticsTimeseriesAmountsGet(
       this.dateFrom,
       this.dateTo,
-      this.userId || undefined
+      this.userId || undefined,
+      this.aggregationType || AggregationType.Day
     ).subscribe({
       next: (data: TimeSeriesData[]) => {
         this.isLoading = false;
         if (data && this.chart) {
           const formattedData = data.map(d => ({
-            date: new Date(d.date).getTime(),
+            date: this.formatDateForChart(d.date),
             value: d.value
           }));
           

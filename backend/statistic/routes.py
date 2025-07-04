@@ -1,15 +1,16 @@
 from fastapi import APIRouter, Depends, Query
 from sqlmodel import Session, select, func
 from typing import List, Optional
-from datetime import datetime
-from sqlalchemy import text
+from datetime import datetime, date
+from sqlalchemy import text, cast, Integer, Date, func as sa_func, distinct
 
 from backend.auth.models import User
 from backend.auth.routes import engine, get_current_user
-from backend.receipt.models import ReceiptItem, Receipt
+from backend.receipt.models import ReceiptItem, Receipt, Market
 from backend.receipt.utils import is_admin_user
 from backend.statistic.models import TotalSpentKPI, TotalReceiptsKPI, AverageReceiptValueKPI, TimeSeriesData, \
-    TopItemsKPI, WordCloudItem, TopItem
+    TopItemsKPI, WordCloudItem, TopItem, AggregationType, \
+    MarketTotalSpent, MarketTotalSpentList, MarketTotalReceipts, MarketTotalReceiptsList, MarketAverageSpent, MarketAverageSpentList
 
 router = APIRouter(prefix="/statistic", tags=["receipt"])
 
@@ -56,7 +57,7 @@ async def get_total_receipts_kpi(
     """Get total receipts count KPI - calculated in database"""
     with Session(engine) as session:
         # Build query to count receipts
-        query = select(func.count())
+        query = select(func.count()).select_from(Receipt)
 
         # Apply user filter
         if is_admin_user(current_user) and user_id is not None:
@@ -107,7 +108,7 @@ async def get_average_receipt_value_kpi(
         total_spent = session.exec(total_query).first() or 0.0
 
         # Get receipt count
-        count_query = select(func.count())
+        count_query = select(func.count()).select_from(Receipt)
         if is_admin_user(current_user) and user_id is not None:
             count_query = count_query.where(Receipt.user_id == user_id)
         else:
@@ -166,9 +167,9 @@ async def get_top_items_kpi(
         # Convert to TopItem objects
         items = [
             TopItem(
-                name=result.name,
-                count=result.count,
-                total_spent=float(result.total_spent)
+                name=result[0],
+                count=result[1],
+                total_spent=float(result[2])
             )
             for result in results
         ]
@@ -181,15 +182,13 @@ async def get_receipts_timeseries(
         current_user: User = Depends(get_current_user),
         date_from: Optional[datetime] = Query(None, description="Szűrés kezdő dátum alapján"),
         date_to: Optional[datetime] = Query(None, description="Szűrés vég dátum alapján"),
-        user_id: Optional[int] = Query(None, description="Szűrés felhasználó ID alapján (csak adminoknak)")
+        user_id: Optional[int] = Query(None, description="Szűrés felhasználó ID alapján (csak adminoknak)"),
+        aggregation: AggregationType = Query(AggregationType.DAY, description="Aggregálás szintje: day, month, year")
 ):
     """Get time series data for receipts count by date - calculated in database"""
     with Session(engine) as session:
-        # Build query to count receipts by date
-        query = select(
-            func.date(Receipt.date).label("date"),
-            func.count().label("count")
-        ).group_by(func.date(Receipt.date))
+        # Build base query
+        query = select(Receipt).where(True)
 
         # Apply user filter
         if is_admin_user(current_user) and user_id is not None:
@@ -203,16 +202,27 @@ async def get_receipts_timeseries(
         if date_to:
             query = query.where(Receipt.date <= date_to)
 
-        # Order by date
-        query = query.order_by(text("date"))
+        # Execute query and get all receipts
+        receipts = session.exec(query).all()
 
-        # Execute query
-        results = session.exec(query).all()
+        # Group receipts by date based on aggregation type
+        from collections import defaultdict
+        grouped_data = defaultdict(int)
+        
+        for receipt in receipts:
+            if aggregation == AggregationType.YEAR:
+                date_key = receipt.date.year
+            elif aggregation == AggregationType.MONTH:
+                date_key = receipt.date.year * 100 + receipt.date.month
+            else:  # DAY
+                date_key = receipt.date.date()
+            
+            grouped_data[date_key] += 1
 
         # Convert to TimeSeriesData format
         time_series_data = [
-            TimeSeriesData(date=result.date, value=float(result.count))
-            for result in results
+            TimeSeriesData(date=date_key, value=float(count))
+            for date_key, count in sorted(grouped_data.items())
         ]
 
         return time_series_data
@@ -223,17 +233,13 @@ async def get_amounts_timeseries(
         current_user: User = Depends(get_current_user),
         date_from: Optional[datetime] = Query(None, description="Szűrés kezdő dátum alapján"),
         date_to: Optional[datetime] = Query(None, description="Szűrés vég dátum alapján"),
-        user_id: Optional[int] = Query(None, description="Szűrés felhasználó ID alapján (csak adminoknak)")
+        user_id: Optional[int] = Query(None, description="Szűrés felhasználó ID alapján (csak adminoknak)"),
+        aggregation: AggregationType = Query(AggregationType.DAY, description="Aggregálás szintje: day, month, year")
 ):
     """Get time series data for amounts spent by date - calculated in database"""
     with Session(engine) as session:
-        # Build query to sum amounts by date
-        query = select(
-            func.date(Receipt.date).label("date"),
-            func.sum(ReceiptItem.price).label("total_amount")
-        ).select_from(
-            ReceiptItem.__table__.join(Receipt.__table__, ReceiptItem.receipt_id == Receipt.id)
-        ).group_by(func.date(Receipt.date))
+        # Build base query to get receipts with items
+        query = select(Receipt, ReceiptItem).join(ReceiptItem)
 
         # Apply user filter
         if is_admin_user(current_user) and user_id is not None:
@@ -247,16 +253,27 @@ async def get_amounts_timeseries(
         if date_to:
             query = query.where(Receipt.date <= date_to)
 
-        # Order by date
-        query = query.order_by(text("date"))
-
-        # Execute query
+        # Execute query and get all receipt-item pairs
         results = session.exec(query).all()
+
+        # Group amounts by date based on aggregation type
+        from collections import defaultdict
+        grouped_data = defaultdict(float)
+        
+        for receipt, item in results:
+            if aggregation == AggregationType.YEAR:
+                date_key = receipt.date.year
+            elif aggregation == AggregationType.MONTH:
+                date_key = receipt.date.year * 100 + receipt.date.month
+            else:  # DAY
+                date_key = receipt.date.date()
+            
+            grouped_data[date_key] += item.price
 
         # Convert to TimeSeriesData format
         time_series_data = [
-            TimeSeriesData(date=result.date, value=float(result.total_amount))
-            for result in results
+            TimeSeriesData(date=date_key, value=float(total_amount))
+            for date_key, total_amount in sorted(grouped_data.items())
         ]
 
         return time_series_data
@@ -302,11 +319,136 @@ async def get_wordcloud_data(
         # Convert to WordCloudItem objects
         wordcloud_data = [
             WordCloudItem(
-                text=result.name,
-                value=result.count,
-                total_spent=float(result.total_spent)
+                text=result[0],
+                value=result[1],
+                total_spent=float(result[2])
             )
             for result in results
         ]
 
         return wordcloud_data
+    
+@router.get("/statistics/market/total-spent", response_model=MarketTotalSpentList)
+async def get_market_total_spent(
+    current_user: User = Depends(get_current_user),
+    date_from: Optional[datetime] = Query(None, description="Szűrés kezdő dátum alapján"),
+    date_to: Optional[datetime] = Query(None, description="Szűrés vég dátum alapján"),
+    user_id: Optional[int] = Query(None, description="Szűrés felhasználó ID alapján (csak adminoknak)")
+):
+    """Összköltés marketenként - minden aggregáció az adatbázisban történik"""
+    with Session(engine) as session:
+        # Build base query: SUM(ReceiptItem.price) GROUP BY Market.name
+        query = select(
+            Market.name,
+            func.sum(ReceiptItem.price).label("total_spent")
+        ).select_from(
+            ReceiptItem.__table__
+            .join(Receipt.__table__, ReceiptItem.receipt_id == Receipt.id)
+            .join(Market.__table__, Receipt.market_id == Market.id)
+        )
+
+        # User filter
+        if is_admin_user(current_user) and user_id is not None:
+            query = query.where(Receipt.user_id == user_id)
+        else:
+            query = query.where(Receipt.user_id == current_user.id)
+
+        # Date filters
+        if date_from:
+            query = query.where(Receipt.date >= date_from)
+        if date_to:
+            query = query.where(Receipt.date <= date_to)
+
+        query = query.group_by(Market.name)
+
+        results = session.exec(query).all()
+
+        markets = [
+            MarketTotalSpent(market_name=row[0], total_spent=float(row[1] or 0.0))
+            for row in results
+        ]
+
+        return MarketTotalSpentList(markets=markets)
+
+@router.get("/statistics/market/total-receipts", response_model=MarketTotalReceiptsList)
+async def get_market_total_receipts(
+    current_user: User = Depends(get_current_user),
+    date_from: Optional[datetime] = Query(None, description="Szűrés kezdő dátum alapján"),
+    date_to: Optional[datetime] = Query(None, description="Szűrés vég dátum alapján"),
+    user_id: Optional[int] = Query(None, description="Szűrés felhasználó ID alapján (csak adminoknak)")
+):
+    """Vásárlások száma marketenként - aggregáció az adatbázisban"""
+    with Session(engine) as session:
+        query = select(
+            Market.name,
+            func.count().label("total_receipts")
+        ).select_from(
+            Receipt.__table__.join(Market.__table__, Receipt.market_id == Market.id)
+        )
+
+        # User filter
+        if is_admin_user(current_user) and user_id is not None:
+            query = query.where(Receipt.user_id == user_id)
+        else:
+            query = query.where(Receipt.user_id == current_user.id)
+
+        # Date filters
+        if date_from:
+            query = query.where(Receipt.date >= date_from)
+        if date_to:
+            query = query.where(Receipt.date <= date_to)
+
+        query = query.group_by(Market.name)
+
+        results = session.exec(query).all()
+
+        markets = [
+            MarketTotalReceipts(market_name=row[0], total_receipts=int(row[1] or 0))
+            for row in results
+        ]
+
+        return MarketTotalReceiptsList(markets=markets)
+
+@router.get("/statistics/market/average-spent", response_model=MarketAverageSpentList)
+async def get_market_average_spent(
+    current_user: User = Depends(get_current_user),
+    date_from: Optional[datetime] = Query(None, description="Szűrés kezdő dátum alapján"),
+    date_to: Optional[datetime] = Query(None, description="Szűrés vég dátum alapján"),
+    user_id: Optional[int] = Query(None, description="Szűrés felhasználó ID alapján (csak adminoknak)")
+):
+    """Átlagos költés marketenként - aggregáció az adatbázisban"""
+    with Session(engine) as session:
+        # SUM(price) / COUNT(DISTINCT receipt.id) per market
+        avg_expr = func.sum(ReceiptItem.price) / func.count(distinct(Receipt.id))
+
+        query = select(
+            Market.name,
+            avg_expr.label("average_spent")
+        ).select_from(
+            ReceiptItem.__table__
+            .join(Receipt.__table__, ReceiptItem.receipt_id == Receipt.id)
+            .join(Market.__table__, Receipt.market_id == Market.id)
+        )
+
+        # User filter
+        if is_admin_user(current_user) and user_id is not None:
+            query = query.where(Receipt.user_id == user_id)
+        else:
+            query = query.where(Receipt.user_id == current_user.id)
+
+        # Date filters
+        if date_from:
+            query = query.where(Receipt.date >= date_from)
+        if date_to:
+            query = query.where(Receipt.date <= date_to)
+
+        query = query.group_by(Market.name)
+
+        results = session.exec(query).all()
+
+        markets = [
+            MarketAverageSpent(market_name=row[0], average_spent=float(row[1] or 0.0))
+            for row in results
+        ]
+
+        return MarketAverageSpentList(markets=markets)

@@ -7,11 +7,10 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
-import { ModelDate } from './modelDate';
 
 
-export interface TimeSeriesData { 
-    date: ModelDate;
-    value: number;
+export interface MarketTotalSpent { 
+    market_name: string;
+    total_spent: number;
 }
 

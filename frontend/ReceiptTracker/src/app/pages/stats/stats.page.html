@@ -27,19 +27,31 @@
           &ndash;
           <span>{{ dateRange() && (dateRange()[1] | date:'yyyy.MM.dd') }}</span>
         </div>
-        
+
         <!-- User filter (admin only) -->
-        <ion-select 
-          *ngIf="isAdmin()" 
-          interface="popover" 
-          placeholder="Felhasználó" 
+        <ion-select
+          *ngIf="isAdmin()"
+          interface="popover"
+          placeholder="Felhasználó"
           [formControl]="userId"
           (ionChange)="onUserChange()"
         >
           <ion-select-option [value]="null">Összes felhasználó</ion-select-option>
           <ion-select-option *ngFor="let user of users$ | async" [value]="user.id">{{user.fullname || user.username}}</ion-select-option>
         </ion-select>
-        
+
+        <!-- Aggregation type filter -->
+        <ion-select
+          interface="popover"
+          placeholder="Nézet típus"
+          [formControl]="aggregationType"
+          (ionChange)="onAggregationTypeChange()"
+        >
+          <ion-select-option *ngFor="let option of aggregationTypeOptions" [value]="option.value">
+            {{option.label}}
+          </ion-select-option>
+        </ion-select>
+
         <ion-button color="medium" fill="outline" (click)="clearFilters()" type="button">
           Szűrők törlése
         </ion-button>
@@ -49,7 +61,7 @@
 
   <!-- KPI Cards -->
   <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
-    <app-kpi-card 
+    <app-kpi-card
       [dateFrom]="chartDateFrom()"
       [dateTo]="chartDateTo()"
       [userId]="chartUserId()"
@@ -59,7 +71,7 @@
       unit="Ft">
     </app-kpi-card>
 
-    <app-kpi-card 
+    <app-kpi-card
       [dateFrom]="chartDateFrom()"
       [dateTo]="chartDateTo()"
       [userId]="chartUserId()"
@@ -68,7 +80,7 @@
       color="secondary">
     </app-kpi-card>
 
-    <app-kpi-card 
+    <app-kpi-card
       [dateFrom]="chartDateFrom()"
       [dateTo]="chartDateTo()"
       [userId]="chartUserId()"
@@ -82,33 +94,48 @@
   <!-- Charts -->
   <div style="display: grid; grid-template-columns: 1fr; gap: 2rem;">
     <!-- Vásárlások időbeli alakulása -->
-    <app-receipts-chart 
-      [dateFrom]="chartDateFrom()"
-      [dateTo]="chartDateTo()"
-      [userId]="chartUserId()">
-    </app-receipts-chart>
-
-    <!-- Összeg időbeli alakulása -->
-    <app-amounts-chart 
-      [dateFrom]="chartDateFrom()"
-      [dateTo]="chartDateTo()"
-      [userId]="chartUserId()">
-    </app-amounts-chart>
-
-    <!-- Szófelhő -->
-    <app-wordcloud 
+    <app-receipts-chart
       [dateFrom]="chartDateFrom()"
       [dateTo]="chartDateTo()"
       [userId]="chartUserId()"
-      [limit]="30">
-    </app-wordcloud>
+      [aggregationType]="chartAggregationType()">
+    </app-receipts-chart>
+
+    <!-- Összeg időbeli alakulása -->
+    <app-amounts-chart
+      [dateFrom]="chartDateFrom()"
+      [dateTo]="chartDateTo()"
+      [userId]="chartUserId()"
+      [aggregationType]="chartAggregationType()">
+    </app-amounts-chart>
+
+    <!-- ÚJ: Összköltés boltonként -->
+    <app-market-total-spent-chart
+      [dateFrom]="chartDateFrom()"
+      [dateTo]="chartDateTo()"
+      [userId]="chartUserId()">
+    </app-market-total-spent-chart>
+
+    <!-- ÚJ: Vásárlások száma boltonként -->
+    <app-market-total-receipts-chart
+      [dateFrom]="chartDateFrom()"
+      [dateTo]="chartDateTo()"
+      [userId]="chartUserId()">
+    </app-market-total-receipts-chart>
+
+    <!-- ÚJ: Átlagos költés boltonként -->
+    <app-market-average-spent-chart
+      [dateFrom]="chartDateFrom()"
+      [dateTo]="chartDateTo()"
+      [userId]="chartUserId()">
+    </app-market-average-spent-chart>
 
     <!-- Top termékek lista -->
-    <app-top-items 
+    <app-top-items
       [dateFrom]="chartDateFrom()"
       [dateTo]="chartDateTo()"
       [userId]="chartUserId()"
       [limit]="10">
     </app-top-items>
   </div>
-</ion-content> 
+</ion-content>

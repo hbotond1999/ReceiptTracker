@@ -17,11 +17,19 @@ import { CustomHttpParameterCodec }                          from '../encoder';
 import { Observable }                                        from 'rxjs';
 
 // @ts-ignore
+import { AggregationType } from '../model/aggregationType';
+// @ts-ignore
 import { AverageReceiptValueKPI } from '../model/averageReceiptValueKPI';
 // @ts-ignore
 import { HTTPValidationError } from '../model/hTTPValidationError';
 // @ts-ignore
+import { MarketAverageSpentList } from '../model/marketAverageSpentList';
+// @ts-ignore
 import { MarketOut } from '../model/marketOut';
+// @ts-ignore
+import { MarketTotalReceiptsList } from '../model/marketTotalReceiptsList';
+// @ts-ignore
+import { MarketTotalSpentList } from '../model/marketTotalSpentList';
 // @ts-ignore
 import { MarketUpdateRequest } from '../model/marketUpdateRequest';
 // @ts-ignore
@@ -455,13 +463,14 @@ export class ReceiptService extends BaseService {
      * @param dateFrom Szűrés kezdő dátum alapján
      * @param dateTo Szűrés vég dátum alapján
      * @param userId Szűrés felhasználó ID alapján (csak adminoknak)
+     * @param aggregation Aggregálás szintje: day, month, year
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public getAmountsTimeseriesStatisticStatisticsTimeseriesAmountsGet(dateFrom?: string, dateTo?: string, userId?: number, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<Array<TimeSeriesData>>;
-    public getAmountsTimeseriesStatisticStatisticsTimeseriesAmountsGet(dateFrom?: string, dateTo?: string, userId?: number, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<Array<TimeSeriesData>>>;
-    public getAmountsTimeseriesStatisticStatisticsTimeseriesAmountsGet(dateFrom?: string, dateTo?: string, userId?: number, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<Array<TimeSeriesData>>>;
-    public getAmountsTimeseriesStatisticStatisticsTimeseriesAmountsGet(dateFrom?: string, dateTo?: string, userId?: number, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+    public getAmountsTimeseriesStatisticStatisticsTimeseriesAmountsGet(dateFrom?: string, dateTo?: string, userId?: number, aggregation?: AggregationType, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<Array<TimeSeriesData>>;
+    public getAmountsTimeseriesStatisticStatisticsTimeseriesAmountsGet(dateFrom?: string, dateTo?: string, userId?: number, aggregation?: AggregationType, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<Array<TimeSeriesData>>>;
+    public getAmountsTimeseriesStatisticStatisticsTimeseriesAmountsGet(dateFrom?: string, dateTo?: string, userId?: number, aggregation?: AggregationType, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<Array<TimeSeriesData>>>;
+    public getAmountsTimeseriesStatisticStatisticsTimeseriesAmountsGet(dateFrom?: string, dateTo?: string, userId?: number, aggregation?: AggregationType, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
 
         let localVarQueryParameters = new HttpParams({encoder: this.encoder});
         localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
@@ -470,6 +479,8 @@ export class ReceiptService extends BaseService {
           <any>dateTo, 'date_to');
         localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
           <any>userId, 'user_id');
+        localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
+          <any>aggregation, 'aggregation');
 
         let localVarHeaders = this.defaultHeaders;
 
@@ -582,6 +593,72 @@ export class ReceiptService extends BaseService {
     }
 
     /**
+     * Get Market Average Spent
+     * Átlagos költés marketenként - aggregáció az adatbázisban
+     * @param dateFrom Szűrés kezdő dátum alapján
+     * @param dateTo Szűrés vég dátum alapján
+     * @param userId Szűrés felhasználó ID alapján (csak adminoknak)
+     * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
+     * @param reportProgress flag to report request and response progress.
+     */
+    public getMarketAverageSpentStatisticStatisticsMarketAverageSpentGet(dateFrom?: string, dateTo?: string, userId?: number, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<MarketAverageSpentList>;
+    public getMarketAverageSpentStatisticStatisticsMarketAverageSpentGet(dateFrom?: string, dateTo?: string, userId?: number, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<MarketAverageSpentList>>;
+    public getMarketAverageSpentStatisticStatisticsMarketAverageSpentGet(dateFrom?: string, dateTo?: string, userId?: number, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<MarketAverageSpentList>>;
+    public getMarketAverageSpentStatisticStatisticsMarketAverageSpentGet(dateFrom?: string, dateTo?: string, userId?: number, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+
+        let localVarQueryParameters = new HttpParams({encoder: this.encoder});
+        localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
+          <any>dateFrom, 'date_from');
+        localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
+          <any>dateTo, 'date_to');
+        localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
+          <any>userId, 'user_id');
+
+        let localVarHeaders = this.defaultHeaders;
+
+        // authentication (HTTPBearer) required
+        localVarHeaders = this.configuration.addCredentialToHeaders('HTTPBearer', 'Authorization', localVarHeaders, 'Bearer ');
+
+        const localVarHttpHeaderAcceptSelected: string | undefined = options?.httpHeaderAccept ?? this.configuration.selectHeaderAccept([
+            'application/json'
+        ]);
+        if (localVarHttpHeaderAcceptSelected !== undefined) {
+            localVarHeaders = localVarHeaders.set('Accept', localVarHttpHeaderAcceptSelected);
+        }
+
+        const localVarHttpContext: HttpContext = options?.context ?? new HttpContext();
+
+        const localVarTransferCache: boolean = options?.transferCache ?? true;
+
+
+        let responseType_: 'text' | 'json' | 'blob' = 'json';
+        if (localVarHttpHeaderAcceptSelected) {
+            if (localVarHttpHeaderAcceptSelected.startsWith('text')) {
+                responseType_ = 'text';
+            } else if (this.configuration.isJsonMime(localVarHttpHeaderAcceptSelected)) {
+                responseType_ = 'json';
+            } else {
+                responseType_ = 'blob';
+            }
+        }
+
+        let localVarPath = `/statistic/statistics/market/average-spent`;
+        const { basePath, withCredentials } = this.configuration;
+        return this.httpClient.request<MarketAverageSpentList>('get', `${basePath}${localVarPath}`,
+            {
+                context: localVarHttpContext,
+                params: localVarQueryParameters,
+                responseType: <any>responseType_,
+                ...(withCredentials ? { withCredentials } : {}),
+                headers: localVarHeaders,
+                observe: observe,
+                transferCache: localVarTransferCache,
+                reportProgress: reportProgress
+            }
+        );
+    }
+
+    /**
      * Get Market
      * Get market by ID
      * @param marketId 
@@ -629,6 +706,138 @@ export class ReceiptService extends BaseService {
         return this.httpClient.request<MarketOut>('get', `${basePath}${localVarPath}`,
             {
                 context: localVarHttpContext,
+                responseType: <any>responseType_,
+                ...(withCredentials ? { withCredentials } : {}),
+                headers: localVarHeaders,
+                observe: observe,
+                transferCache: localVarTransferCache,
+                reportProgress: reportProgress
+            }
+        );
+    }
+
+    /**
+     * Get Market Total Receipts
+     * Vásárlások száma marketenként - aggregáció az adatbázisban
+     * @param dateFrom Szűrés kezdő dátum alapján
+     * @param dateTo Szűrés vég dátum alapján
+     * @param userId Szűrés felhasználó ID alapján (csak adminoknak)
+     * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
+     * @param reportProgress flag to report request and response progress.
+     */
+    public getMarketTotalReceiptsStatisticStatisticsMarketTotalReceiptsGet(dateFrom?: string, dateTo?: string, userId?: number, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<MarketTotalReceiptsList>;
+    public getMarketTotalReceiptsStatisticStatisticsMarketTotalReceiptsGet(dateFrom?: string, dateTo?: string, userId?: number, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<MarketTotalReceiptsList>>;
+    public getMarketTotalReceiptsStatisticStatisticsMarketTotalReceiptsGet(dateFrom?: string, dateTo?: string, userId?: number, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<MarketTotalReceiptsList>>;
+    public getMarketTotalReceiptsStatisticStatisticsMarketTotalReceiptsGet(dateFrom?: string, dateTo?: string, userId?: number, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+
+        let localVarQueryParameters = new HttpParams({encoder: this.encoder});
+        localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
+          <any>dateFrom, 'date_from');
+        localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
+          <any>dateTo, 'date_to');
+        localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
+          <any>userId, 'user_id');
+
+        let localVarHeaders = this.defaultHeaders;
+
+        // authentication (HTTPBearer) required
+        localVarHeaders = this.configuration.addCredentialToHeaders('HTTPBearer', 'Authorization', localVarHeaders, 'Bearer ');
+
+        const localVarHttpHeaderAcceptSelected: string | undefined = options?.httpHeaderAccept ?? this.configuration.selectHeaderAccept([
+            'application/json'
+        ]);
+        if (localVarHttpHeaderAcceptSelected !== undefined) {
+            localVarHeaders = localVarHeaders.set('Accept', localVarHttpHeaderAcceptSelected);
+        }
+
+        const localVarHttpContext: HttpContext = options?.context ?? new HttpContext();
+
+        const localVarTransferCache: boolean = options?.transferCache ?? true;
+
+
+        let responseType_: 'text' | 'json' | 'blob' = 'json';
+        if (localVarHttpHeaderAcceptSelected) {
+            if (localVarHttpHeaderAcceptSelected.startsWith('text')) {
+                responseType_ = 'text';
+            } else if (this.configuration.isJsonMime(localVarHttpHeaderAcceptSelected)) {
+                responseType_ = 'json';
+            } else {
+                responseType_ = 'blob';
+            }
+        }
+
+        let localVarPath = `/statistic/statistics/market/total-receipts`;
+        const { basePath, withCredentials } = this.configuration;
+        return this.httpClient.request<MarketTotalReceiptsList>('get', `${basePath}${localVarPath}`,
+            {
+                context: localVarHttpContext,
+                params: localVarQueryParameters,
+                responseType: <any>responseType_,
+                ...(withCredentials ? { withCredentials } : {}),
+                headers: localVarHeaders,
+                observe: observe,
+                transferCache: localVarTransferCache,
+                reportProgress: reportProgress
+            }
+        );
+    }
+
+    /**
+     * Get Market Total Spent
+     * Összköltés marketenként - minden aggregáció az adatbázisban történik
+     * @param dateFrom Szűrés kezdő dátum alapján
+     * @param dateTo Szűrés vég dátum alapján
+     * @param userId Szűrés felhasználó ID alapján (csak adminoknak)
+     * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
+     * @param reportProgress flag to report request and response progress.
+     */
+    public getMarketTotalSpentStatisticStatisticsMarketTotalSpentGet(dateFrom?: string, dateTo?: string, userId?: number, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<MarketTotalSpentList>;
+    public getMarketTotalSpentStatisticStatisticsMarketTotalSpentGet(dateFrom?: string, dateTo?: string, userId?: number, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<MarketTotalSpentList>>;
+    public getMarketTotalSpentStatisticStatisticsMarketTotalSpentGet(dateFrom?: string, dateTo?: string, userId?: number, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<MarketTotalSpentList>>;
+    public getMarketTotalSpentStatisticStatisticsMarketTotalSpentGet(dateFrom?: string, dateTo?: string, userId?: number, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+
+        let localVarQueryParameters = new HttpParams({encoder: this.encoder});
+        localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
+          <any>dateFrom, 'date_from');
+        localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
+          <any>dateTo, 'date_to');
+        localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
+          <any>userId, 'user_id');
+
+        let localVarHeaders = this.defaultHeaders;
+
+        // authentication (HTTPBearer) required
+        localVarHeaders = this.configuration.addCredentialToHeaders('HTTPBearer', 'Authorization', localVarHeaders, 'Bearer ');
+
+        const localVarHttpHeaderAcceptSelected: string | undefined = options?.httpHeaderAccept ?? this.configuration.selectHeaderAccept([
+            'application/json'
+        ]);
+        if (localVarHttpHeaderAcceptSelected !== undefined) {
+            localVarHeaders = localVarHeaders.set('Accept', localVarHttpHeaderAcceptSelected);
+        }
+
+        const localVarHttpContext: HttpContext = options?.context ?? new HttpContext();
+
+        const localVarTransferCache: boolean = options?.transferCache ?? true;
+
+
+        let responseType_: 'text' | 'json' | 'blob' = 'json';
+        if (localVarHttpHeaderAcceptSelected) {
+            if (localVarHttpHeaderAcceptSelected.startsWith('text')) {
+                responseType_ = 'text';
+            } else if (this.configuration.isJsonMime(localVarHttpHeaderAcceptSelected)) {
+                responseType_ = 'json';
+            } else {
+                responseType_ = 'blob';
+            }
+        }
+
+        let localVarPath = `/statistic/statistics/market/total-spent`;
+        const { basePath, withCredentials } = this.configuration;
+        return this.httpClient.request<MarketTotalSpentList>('get', `${basePath}${localVarPath}`,
+            {
+                context: localVarHttpContext,
+                params: localVarQueryParameters,
                 responseType: <any>responseType_,
                 ...(withCredentials ? { withCredentials } : {}),
                 headers: localVarHeaders,
@@ -801,13 +1010,14 @@ export class ReceiptService extends BaseService {
      * @param dateFrom Szűrés kezdő dátum alapján
      * @param dateTo Szűrés vég dátum alapján
      * @param userId Szűrés felhasználó ID alapján (csak adminoknak)
+     * @param aggregation Aggregálás szintje: day, month, year
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public getReceiptsTimeseriesStatisticTimeseriesReceiptsGet(dateFrom?: string, dateTo?: string, userId?: number, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<Array<TimeSeriesData>>;
-    public getReceiptsTimeseriesStatisticTimeseriesReceiptsGet(dateFrom?: string, dateTo?: string, userId?: number, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<Array<TimeSeriesData>>>;
-    public getReceiptsTimeseriesStatisticTimeseriesReceiptsGet(dateFrom?: string, dateTo?: string, userId?: number, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<Array<TimeSeriesData>>>;
-    public getReceiptsTimeseriesStatisticTimeseriesReceiptsGet(dateFrom?: string, dateTo?: string, userId?: number, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+    public getReceiptsTimeseriesStatisticTimeseriesReceiptsGet(dateFrom?: string, dateTo?: string, userId?: number, aggregation?: AggregationType, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<Array<TimeSeriesData>>;
+    public getReceiptsTimeseriesStatisticTimeseriesReceiptsGet(dateFrom?: string, dateTo?: string, userId?: number, aggregation?: AggregationType, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<Array<TimeSeriesData>>>;
+    public getReceiptsTimeseriesStatisticTimeseriesReceiptsGet(dateFrom?: string, dateTo?: string, userId?: number, aggregation?: AggregationType, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<Array<TimeSeriesData>>>;
+    public getReceiptsTimeseriesStatisticTimeseriesReceiptsGet(dateFrom?: string, dateTo?: string, userId?: number, aggregation?: AggregationType, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
 
         let localVarQueryParameters = new HttpParams({encoder: this.encoder});
         localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
@@ -816,6 +1026,8 @@ export class ReceiptService extends BaseService {
           <any>dateTo, 'date_to');
         localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
           <any>userId, 'user_id');
+        localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
+          <any>aggregation, 'aggregation');
 
         let localVarHeaders = this.defaultHeaders;
 
