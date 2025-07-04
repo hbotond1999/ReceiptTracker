@@ -1,5 +1,5 @@
 // @ts-nocheck
-import { Component, Input, OnChanges, OnDestroy, OnInit, SimpleChanges, inject, signal } from '@angular/core';
+import { Component, Input, OnChanges, OnDestroy, OnInit, SimpleChanges, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
   IonCard,
@@ -47,7 +47,7 @@ export class MarketTotalSpentChartComponent implements OnInit, OnChanges, OnDest
   private darkModeSubscription?: Subscription;
   
   chartId = Math.random().toString(36).substr(2, 9);
-  isLoading = signal(false);
+  isLoading = false;
 
   ngOnInit() {
     setTimeout(() => {
@@ -141,7 +141,7 @@ export class MarketTotalSpentChartComponent implements OnInit, OnChanges, OnDest
   private loadData() {
     if (!this.dateFrom || !this.dateTo) return;
 
-    this.isLoading.set(true);
+    this.isLoading = true;
 
     if (this.subscription) {
       this.subscription.unsubscribe();
@@ -153,14 +153,14 @@ export class MarketTotalSpentChartComponent implements OnInit, OnChanges, OnDest
       this.userId || undefined
     ).subscribe({
       next: (data: MarketTotalSpentList) => {
-        this.isLoading.set(false);
+        this.isLoading = false;
         const markets: MarketTotalSpent[] = data.markets || [];
         const chartData = markets.map(m => ({ category: m.market_name, value: m.total_spent }));
         this.updateChartData(chartData);
       },
       error: err => {
         console.error('Error loading market total spent:', err);
-        this.isLoading.set(false);
+        this.isLoading = false;
         this.updateChartData([]);
       }
     });
