@@ -118,3 +118,4 @@ backend/profile_pics/
 
 backend/receipt_images
 frontend/ReceiptTracker/android
+docker/backend/receipt_images

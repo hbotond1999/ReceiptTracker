@@ -176,57 +176,53 @@ async def get_top_items_kpi(
 
         return TopItemsKPI(items=items)
 
-
 @router.get("/timeseries/receipts", response_model=List[TimeSeriesData])
 async def get_receipts_timeseries(
-        current_user: User = Depends(get_current_user),
-        date_from: Optional[datetime] = Query(None, description="Szűrés kezdő dátum alapján"),
-        date_to: Optional[datetime] = Query(None, description="Szűrés vég dátum alapján"),
-        user_id: Optional[int] = Query(None, description="Szűrés felhasználó ID alapján (csak adminoknak)"),
-        aggregation: AggregationType = Query(AggregationType.DAY, description="Aggregálás szintje: day, month, year")
+    current_user: User = Depends(get_current_user),
+    date_from: Optional[datetime] = Query(None, description="Szűrés kezdő dátum alapján"),
+    date_to: Optional[datetime] = Query(None, description="Szűrés vég dátum alapján"),
+    user_id: Optional[int] = Query(None, description="Szűrés felhasználó ID alapján (csak adminoknak)"),
+    aggregation: AggregationType = Query(AggregationType.DAY, description="Aggregálás szintje: day, month, year")
 ):
     """Get time series data for receipts count by date - calculated in database"""
     with Session(engine) as session:
-        # Build base query
-        query = select(Receipt).where(True)
+        # Date grouping logic
+        if aggregation == AggregationType.YEAR:
+            date_expr = func.date_trunc("year", Receipt.date)
+        elif aggregation == AggregationType.MONTH:
+            date_expr = func.date_trunc("month", Receipt.date)
+        else:  # AggregationType.DAY
+            date_expr = func.date_trunc("day", Receipt.date)
 
-        # Apply user filter
+        stmt = select(
+            date_expr.label("date"),
+            func.count().label("value")
+        ).select_from(Receipt)
+
+        # Filtering
+        conditions = []
+
         if is_admin_user(current_user) and user_id is not None:
-            query = query.where(Receipt.user_id == user_id)
+            conditions.append(Receipt.user_id == user_id)
         else:
-            query = query.where(Receipt.user_id == current_user.id)
+            conditions.append(Receipt.user_id == current_user.id)
 
-        # Apply date filters
         if date_from:
-            query = query.where(Receipt.date >= date_from)
+            conditions.append(Receipt.date >= date_from)
         if date_to:
-            query = query.where(Receipt.date <= date_to)
+            conditions.append(Receipt.date <= date_to)
 
-        # Execute query and get all receipts
-        receipts = session.exec(query).all()
+        if conditions:
+            stmt = stmt.where(*conditions)
 
-        # Group receipts by date based on aggregation type
-        from collections import defaultdict
-        grouped_data = defaultdict(int)
-        
-        for receipt in receipts:
-            if aggregation == AggregationType.YEAR:
-                date_key = receipt.date.year
-            elif aggregation == AggregationType.MONTH:
-                date_key = receipt.date.year * 100 + receipt.date.month
-            else:  # DAY
-                date_key = receipt.date.date()
-            
-            grouped_data[date_key] += 1
+        stmt = stmt.group_by(date_expr).order_by(date_expr)
 
-        # Convert to TimeSeriesData format
-        time_series_data = [
-            TimeSeriesData(date=date_key, value=float(count))
-            for date_key, count in sorted(grouped_data.items())
+        results = session.exec(stmt).all()
+
+        return [
+            TimeSeriesData(date=row.date, value=float(row.value))
+            for row in results
         ]
-
-        return time_series_data
-
 
 @router.get("/statistics/timeseries/amounts", response_model=List[TimeSeriesData])
 async def get_amounts_timeseries(
