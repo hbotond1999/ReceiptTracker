@@ -23,7 +23,7 @@ load_dotenv()
 
 # Database setup
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./test.db")
-engine = create_engine(DATABASE_URL, echo=False, connect_args={"check_same_thread": False})
+engine = create_engine(DATABASE_URL)
 
 # Test data lists
 MARKET_NAMES = [
@@ -189,7 +189,7 @@ def main():
             markets = create_markets(session)
         
         # Generate receipts
-        receipt_count = random.randint(5000, 10000)
+        receipt_count = 500
         print(f"\nGenerating {receipt_count} receipts...")
         
         create_receipts_and_items(session, markets, existing_users, receipt_count)

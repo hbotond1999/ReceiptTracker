@@ -1,22 +1,22 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Security, Query, UploadFile, File
 from fastapi.security import OAuth2PasswordRequestForm, HTTPAuthorizationCredentials, HTTPBearer
-from datetime import timedelta
 
 from sqlalchemy import func
 
-from . import utils, schemas
 from sqlmodel import Session, create_engine, select
-from .models import User as DBUser, Role
 import os
 from dotenv import load_dotenv
 import shutil
-from .schemas import UserOut, UserListOut, ProfilePictureOut, TokenOut
+
+from auth import utils, schemas
+from auth.schemas import TokenOut, UserOut, UserListOut, ProfilePictureOut
+from auth.models import User as DBUser, Role
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 load_dotenv()
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./test.db")
-engine = create_engine(DATABASE_URL, echo=True, connect_args={"check_same_thread": False})
+engine = create_engine(DATABASE_URL)
 
 PROFILE_PIC_DIR = "profile_pics"
 os.makedirs(PROFILE_PIC_DIR, exist_ok=True)

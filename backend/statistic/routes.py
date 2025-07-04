@@ -4,11 +4,11 @@ from typing import List, Optional
 from datetime import datetime, date
 from sqlalchemy import text, cast, Integer, Date, func as sa_func, distinct
 
-from backend.auth.models import User
-from backend.auth.routes import engine, get_current_user
-from backend.receipt.models import ReceiptItem, Receipt, Market
-from backend.receipt.utils import is_admin_user
-from backend.statistic.models import TotalSpentKPI, TotalReceiptsKPI, AverageReceiptValueKPI, TimeSeriesData, \
+from auth.models import User
+from auth.routes import engine, get_current_user
+from receipt.models import ReceiptItem, Receipt, Market
+from receipt.utils import is_admin_user
+from statistic.models import TotalSpentKPI, TotalReceiptsKPI, AverageReceiptValueKPI, TimeSeriesData, \
     TopItemsKPI, WordCloudItem, TopItem, AggregationType, \
     MarketTotalSpent, MarketTotalSpentList, MarketTotalReceipts, MarketTotalReceiptsList, MarketAverageSpent, MarketAverageSpentList
 

@@ -9,14 +9,14 @@ from typing import List, Optional
 from datetime import datetime
 from sqlalchemy import text
 
-from backend.auth.models import User
-from backend.auth.routes import get_current_user, engine
-from backend.auth.schemas import Role
-from backend.receipt.ai.agent import recognize_receipt
-from backend.receipt.models import Market, Receipt, ReceiptItem
-from backend.receipt.schemas import ReceiptOut, MarketOut, ReceiptItemOut, UserOut, ReceiptListOut, \
+from auth.models import User
+from auth.routes import get_current_user, engine
+from auth.schemas import Role
+from receipt.ai.agent import recognize_receipt
+from receipt.models import Market, Receipt, ReceiptItem
+from receipt.schemas import ReceiptOut, MarketOut, ReceiptItemOut, UserOut, ReceiptListOut, \
     ReceiptUpdateRequest, MarketUpdateRequest, ReceiptCreateRequest
-from backend.receipt.utils import is_admin_user, get_receipts_count, get_receipts_paginated
+from receipt.utils import is_admin_user, get_receipts_count, get_receipts_paginated
 
 # Központi konfiguráció
 UPLOADS_DIR = "receipt_images"
