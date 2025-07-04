@@ -50,16 +50,11 @@ export class MarketTotalSpentChartComponent implements OnInit, OnChanges, OnDest
   isLoading = false;
 
   ngOnInit() {
-    setTimeout(() => {
-      this.initializeChart();
       this.loadData();
-    }, 100);
-
     // Subscribe to dark mode changes
     this.darkModeSubscription = this.darkModeService.isDarkMode$.subscribe(() => {
       if (this.chart) {
         // Reinitialize chart with new theme
-        this.initializeChart();
         this.loadData();
       }
     });
@@ -155,6 +150,7 @@ export class MarketTotalSpentChartComponent implements OnInit, OnChanges, OnDest
     ).subscribe({
       next: (data: MarketTotalSpentList) => {
         this.isLoading = false;
+        this.initializeChart();
         const markets: MarketTotalSpent[] = data.markets || [];
         const chartData = markets.map(m => ({ category: m.market_name, value: m.total_spent }));
         this.updateChartData(chartData);
@@ -162,7 +158,6 @@ export class MarketTotalSpentChartComponent implements OnInit, OnChanges, OnDest
       error: err => {
         console.error('Error loading market total spent:', err);
         this.isLoading = false;
-        this.updateChartData([]);
       }
     });
   }

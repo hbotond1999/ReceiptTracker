@@ -52,17 +52,11 @@ export class AmountsChartComponent implements OnInit, OnChanges, OnDestroy {
   isLoading = false;
 
   ngOnInit() {
-    // Initialize chart after a short delay to ensure DOM is ready
-    setTimeout(() => {
-      this.initializeChart();
       this.loadData();
-    }, 100);
 
     // Subscribe to dark mode changes
     this.darkModeSubscription = this.darkModeService.isDarkMode$.subscribe(() => {
       if (this.chart) {
-        // Reinitialize chart with new theme
-        this.initializeChart();
         this.loadData();
       }
     });
@@ -187,6 +181,7 @@ export class AmountsChartComponent implements OnInit, OnChanges, OnDestroy {
     ).subscribe({
       next: (data: TimeSeriesData[]) => {
         this.isLoading = false;
+        this.initializeChart();
         if (data && this.chart) {
           const formattedData = data.map(d => ({
             date: new Date(d.date).getTime(),

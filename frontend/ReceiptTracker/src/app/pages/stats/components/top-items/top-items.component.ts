@@ -11,9 +11,8 @@ import {
   IonLabel,
   IonNote
 } from '@ionic/angular/standalone';
-import { ReceiptService } from '../../../../api/api/receipt.service';
-import { TopItemsKPI } from '../../../../api/model/topItemsKPI';
-import { TopItem } from '../../../../api/model/topItem';
+import { TopItemsKPI } from '../../../../api';
+import { TopItem } from '../../../../api';
 import { Subscription } from 'rxjs';
 import {StatisticService} from "../../../../api";
 

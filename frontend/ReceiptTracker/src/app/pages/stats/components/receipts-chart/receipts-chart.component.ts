@@ -53,11 +53,7 @@ export class ReceiptsChartComponent implements OnInit, OnChanges, OnDestroy {
   isLoading = false;
 
   ngOnInit() {
-    // Initialize chart after a short delay to ensure DOM is ready
-    setTimeout(() => {
-      this.initializeChart();
-      this.loadData();
-    }, 100);
+    this.loadData();
 
     // Subscribe to dark mode changes
     this.darkModeSubscription = this.darkModeService.isDarkMode$.subscribe(() => {
@@ -73,7 +69,6 @@ export class ReceiptsChartComponent implements OnInit, OnChanges, OnDestroy {
     if (changes['dateFrom'] || changes['dateTo'] || changes['userId'] || changes['aggregationType']) {
       // Only reload data if chart is already initialized
       if (this.chart) {
-        this.initializeChart();
         this.loadData();
       }
     }
@@ -131,7 +126,7 @@ export class ReceiptsChartComponent implements OnInit, OnChanges, OnDestroy {
     });
 
     const xAxis = this.chart.xAxes.push(am5xy.DateAxis.new(this.root, {
-      maxZoomCount: 1000,
+      maxZoomCount: 100,
       baseInterval: this.getBaseInterval(),
       renderer: xRenderer,
       tooltip: am5.Tooltip.new(this.root, {})
@@ -187,6 +182,7 @@ export class ReceiptsChartComponent implements OnInit, OnChanges, OnDestroy {
       this.aggregationType || AggregationType.Day
     ).subscribe({
       next: (data: TimeSeriesData[]) => {
+        this.initializeChart()
         this.isLoading = false;
         if (data && this.chart) {
           const formattedData = data.map(d => ({

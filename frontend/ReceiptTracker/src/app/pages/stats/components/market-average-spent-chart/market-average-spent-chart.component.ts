@@ -50,10 +50,7 @@ export class MarketAverageSpentChartComponent implements OnInit, OnChanges, OnDe
   isLoading = false;
 
   ngOnInit() {
-    setTimeout(() => {
-      this.initializeChart();
       this.loadData();
-    }, 100);
 
     // Subscribe to dark mode changes
     this.darkModeSubscription = this.darkModeService.isDarkMode$.subscribe(() => {
@@ -147,6 +144,7 @@ export class MarketAverageSpentChartComponent implements OnInit, OnChanges, OnDe
       this.userId || undefined
     ).subscribe({
       next: (data: MarketAverageSpentList) => {
+        this.initializeChart();
         this.isLoading = false;
         const markets: MarketAverageSpent[] = data.markets || [];
         const chartData = markets.map(m => ({ category: m.market_name, value: m.average_spent }));

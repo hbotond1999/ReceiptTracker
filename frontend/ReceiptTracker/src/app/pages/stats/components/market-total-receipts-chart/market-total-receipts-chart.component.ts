@@ -50,16 +50,11 @@ export class MarketTotalReceiptsChartComponent implements OnInit, OnChanges, OnD
   isLoading = false;
 
   ngOnInit() {
-    setTimeout(() => {
-      this.initializeChart();
       this.loadData();
-    }, 100);
 
     // Subscribe to dark mode changes
     this.darkModeSubscription = this.darkModeService.isDarkMode$.subscribe(() => {
       if (this.chart) {
-        // Reinitialize chart with new theme
-        this.initializeChart();
         this.loadData();
       }
     });
@@ -147,6 +142,7 @@ export class MarketTotalReceiptsChartComponent implements OnInit, OnChanges, OnD
     ).subscribe({
       next: (data: MarketTotalReceiptsList) => {
         this.isLoading = false;
+        this.initializeChart();
         const markets: MarketTotalReceipts[] = data.markets || [];
         const chartData = markets.map(m => ({ category: m.market_name, value: m.total_receipts }));
         this.updateChartData(chartData);
