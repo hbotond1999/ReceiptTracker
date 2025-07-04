@@ -59,7 +59,6 @@ export class ReceiptsChartComponent implements OnInit, OnChanges, OnDestroy {
     this.darkModeSubscription = this.darkModeService.isDarkMode$.subscribe(() => {
       if (this.chart) {
         // Reinitialize chart with new theme
-        this.initializeChart();
         this.loadData();
       }
     });
