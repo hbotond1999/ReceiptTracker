@@ -12,9 +12,13 @@ import { ReceiptService } from '../../../../api/api/receipt.service';
 import { MarketTotalReceiptsList } from '../../../../api/model/marketTotalReceiptsList';
 import { MarketTotalReceipts } from '../../../../api/model/marketTotalReceipts';
 import { Subscription } from 'rxjs';
+import { DarkModeService } from '../../../../services/dark-mode.service';
+
+// amCharts 5 imports
 import * as am5 from '@amcharts/amcharts5';
 import * as am5xy from '@amcharts/amcharts5/xy';
 import am5themes_Animated from '@amcharts/amcharts5/themes/Animated';
+import am5themes_Dark from '@amcharts/amcharts5/themes/Dark';
 
 @Component({
   selector: 'app-market-total-receipts-chart',
@@ -36,10 +40,12 @@ export class MarketTotalReceiptsChartComponent implements OnInit, OnChanges, OnD
   @Input() userId?: number | null;
 
   private receiptService = inject(ReceiptService);
+  private darkModeService = inject(DarkModeService);
   private root?: am5.Root;
   private chart?: am5xy.XYChart;
   private subscription?: Subscription;
-
+  private darkModeSubscription?: Subscription;
+  
   chartId = Math.random().toString(36).substr(2, 9);
   isLoading = false;
 
@@ -48,11 +54,22 @@ export class MarketTotalReceiptsChartComponent implements OnInit, OnChanges, OnD
       this.initializeChart();
       this.loadData();
     }, 100);
+
+    // Subscribe to dark mode changes
+    this.darkModeSubscription = this.darkModeService.isDarkMode$.subscribe(() => {
+      if (this.chart) {
+        // Reinitialize chart with new theme
+        this.initializeChart();
+        this.loadData();
+      }
+    });
   }
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes['dateFrom'] || changes['dateTo'] || changes['userId']) {
-      if (this.chart) this.loadData();
+      if (this.chart) {
+        this.loadData();
+      }
     }
   }
 
@@ -61,10 +78,18 @@ export class MarketTotalReceiptsChartComponent implements OnInit, OnChanges, OnD
   }
 
   private initializeChart() {
-    if (this.root) this.root.dispose();
+    if (this.root) {
+      this.root.dispose();
+    }
 
     this.root = am5.Root.new(`market-total-receipts-chart-${this.chartId}`);
-    this.root.setThemes([am5themes_Animated.new(this.root)]);
+    
+    // Set themes based on dark mode
+    const themes = [am5themes_Animated.new(this.root)];
+    if (this.darkModeService.getCurrentDarkMode()) {
+      themes.push(am5themes_Dark.new(this.root));
+    }
+    this.root.setThemes(themes);
 
     this.chart = this.root.container.children.push(am5xy.XYChart.new(this.root, {
       panX: false,
@@ -82,16 +107,13 @@ export class MarketTotalReceiptsChartComponent implements OnInit, OnChanges, OnD
         cellEndLocation: 0.9
       })
     }));
-    // Forgatás mobilon
-    if (window.innerWidth < 600) {
+
       xAxis.get("renderer").labels.template.setAll({
         rotation: -45,
         centerY: am5.p50,
         centerX: am5.p100,
         paddingRight: 10
       });
-    }
-
     const yAxis = this.chart.yAxes.push(am5xy.ValueAxis.new(this.root, {
       renderer: am5xy.AxisRendererY.new(this.root, {})
     }));
@@ -146,7 +168,16 @@ export class MarketTotalReceiptsChartComponent implements OnInit, OnChanges, OnD
   }
 
   private cleanup() {
-    if (this.subscription) this.subscription.unsubscribe();
-    if (this.root) this.root.dispose();
+    if (this.subscription) {
+      this.subscription.unsubscribe();
+    }
+    
+    if (this.darkModeSubscription) {
+      this.darkModeSubscription.unsubscribe();
+    }
+    
+    if (this.root) {
+      this.root.dispose();
+    }
   }
-} 
+}

@@ -1,21 +1,23 @@
 import { Component, Input, OnChanges, OnDestroy, OnInit, SimpleChanges, inject, ElementRef, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { 
-  IonCard, 
-  IonCardHeader, 
-  IonCardTitle, 
-  IonCardContent, 
-  IonSpinner 
+import {
+  IonCard,
+  IonCardHeader,
+  IonCardTitle,
+  IonCardContent,
+  IonSpinner
 } from '@ionic/angular/standalone';
 import { ReceiptService } from '../../../../api/api/receipt.service';
 import { TimeSeriesData } from '../../../../api/model/timeSeriesData';
 import { AggregationType } from '../../../../api/model/aggregationType';
 import { Subscription } from 'rxjs';
+import { DarkModeService } from '../../../../services/dark-mode.service';
 
 // amCharts 5 imports
 import * as am5 from '@amcharts/amcharts5';
 import * as am5xy from '@amcharts/amcharts5/xy';
 import am5themes_Animated from '@amcharts/amcharts5/themes/Animated';
+import am5themes_Dark from '@amcharts/amcharts5/themes/Dark';
 
 @Component({
   selector: 'app-amounts-chart',
@@ -36,14 +38,16 @@ export class AmountsChartComponent implements OnInit, OnChanges, OnDestroy {
   @Input() dateTo!: string;
   @Input() userId?: number | null;
   @Input() aggregationType?: AggregationType;
-  
+
   @ViewChild('chartContainer', { static: false }) chartContainer!: ElementRef;
 
   private receiptService = inject(ReceiptService);
+  private darkModeService = inject(DarkModeService);
   private root?: am5.Root;
   private chart?: am5xy.XYChart;
   private subscription?: Subscription;
-  
+  private darkModeSubscription?: Subscription;
+
   chartId = Math.random().toString(36).substr(2, 9);
   isLoading = false;
 
@@ -53,6 +57,15 @@ export class AmountsChartComponent implements OnInit, OnChanges, OnDestroy {
       this.initializeChart();
       this.loadData();
     }, 100);
+
+    // Subscribe to dark mode changes
+    this.darkModeSubscription = this.darkModeService.isDarkMode$.subscribe(() => {
+      if (this.chart) {
+        // Reinitialize chart with new theme
+        this.initializeChart();
+        this.loadData();
+      }
+    });
   }
 
   ngOnChanges(changes: SimpleChanges) {
@@ -107,11 +120,13 @@ export class AmountsChartComponent implements OnInit, OnChanges, OnDestroy {
     // Create root element
     this.root = am5.Root.new(`amounts-chart-${this.chartId}`);
 
-    // Set themes
-    this.root.setThemes([
-      am5themes_Animated.new(this.root)
-    ]);
-
+    // Set themes based on dark mode
+    const themes = [am5themes_Animated.new(this.root)];
+    if (this.darkModeService.getCurrentDarkMode()) {
+      // @ts-ignore
+      themes.push(am5themes_Dark.new(this.root));
+    }
+    this.root.setThemes(themes);
     // Create chart
     this.chart = this.root.container.children.push(am5xy.XYChart.new(this.root, {
       panX: false,
@@ -176,7 +191,7 @@ export class AmountsChartComponent implements OnInit, OnChanges, OnDestroy {
     }
 
     this.isLoading = true;
-    
+
     // Unsubscribe from previous subscription
     if (this.subscription) {
       this.subscription.unsubscribe();
@@ -195,7 +210,7 @@ export class AmountsChartComponent implements OnInit, OnChanges, OnDestroy {
             date: this.formatDateForChart(d.date),
             value: d.value
           }));
-          
+
           const series = this.chart.series.getIndex(0) as am5xy.LineSeries;
           if (series) {
             series.data.setAll(formattedData);
@@ -213,9 +228,13 @@ export class AmountsChartComponent implements OnInit, OnChanges, OnDestroy {
     if (this.subscription) {
       this.subscription.unsubscribe();
     }
-    
+
+    if (this.darkModeSubscription) {
+      this.darkModeSubscription.unsubscribe();
+    }
+
     if (this.root) {
       this.root.dispose();
     }
   }
-} 
+}

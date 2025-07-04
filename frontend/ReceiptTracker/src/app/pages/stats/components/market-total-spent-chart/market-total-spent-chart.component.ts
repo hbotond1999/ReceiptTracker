@@ -1,5 +1,5 @@
 // @ts-nocheck
-import { Component, Input, OnChanges, OnDestroy, OnInit, SimpleChanges, inject } from '@angular/core';
+import { Component, Input, OnChanges, OnDestroy, OnInit, SimpleChanges, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
   IonCard,
@@ -12,11 +12,13 @@ import { ReceiptService } from '../../../../api/api/receipt.service';
 import { MarketTotalSpentList } from '../../../../api/model/marketTotalSpentList';
 import { MarketTotalSpent } from '../../../../api/model/marketTotalSpent';
 import { Subscription } from 'rxjs';
+import { DarkModeService } from '../../../../services/dark-mode.service';
 
 // amCharts 5 imports
 import * as am5 from '@amcharts/amcharts5';
 import * as am5xy from '@amcharts/amcharts5/xy';
 import am5themes_Animated from '@amcharts/amcharts5/themes/Animated';
+import am5themes_Dark from '@amcharts/amcharts5/themes/Dark';
 
 @Component({
   selector: 'app-market-total-spent-chart',
@@ -38,19 +40,29 @@ export class MarketTotalSpentChartComponent implements OnInit, OnChanges, OnDest
   @Input() userId?: number | null;
 
   private receiptService = inject(ReceiptService);
+  private darkModeService = inject(DarkModeService);
   private root?: am5.Root;
   private chart?: am5xy.XYChart;
   private subscription?: Subscription;
-
+  private darkModeSubscription?: Subscription;
+  
   chartId = Math.random().toString(36).substr(2, 9);
-  isLoading = false;
+  isLoading = signal(false);
 
   ngOnInit() {
-    // Delay to ensure DOM ready
     setTimeout(() => {
       this.initializeChart();
       this.loadData();
     }, 100);
+
+    // Subscribe to dark mode changes
+    this.darkModeSubscription = this.darkModeService.isDarkMode$.subscribe(() => {
+      if (this.chart) {
+        // Reinitialize chart with new theme
+        this.initializeChart();
+        this.loadData();
+      }
+    });
   }
 
   ngOnChanges(changes: SimpleChanges) {
@@ -71,9 +83,13 @@ export class MarketTotalSpentChartComponent implements OnInit, OnChanges, OnDest
     }
 
     this.root = am5.Root.new(`market-total-spent-chart-${this.chartId}`);
-    this.root.setThemes([
-      am5themes_Animated.new(this.root)
-    ]);
+    
+    // Set themes based on dark mode
+    const themes = [am5themes_Animated.new(this.root)];
+    if (this.darkModeService.getCurrentDarkMode()) {
+      themes.push(am5themes_Dark.new(this.root));
+    }
+    this.root.setThemes(themes);
 
     this.chart = this.root.container.children.push(am5xy.XYChart.new(this.root, {
       panX: false,
@@ -91,15 +107,13 @@ export class MarketTotalSpentChartComponent implements OnInit, OnChanges, OnDest
         cellEndLocation: 0.9
       })
     }));
-    // Forgatás mobilon
-    if (window.innerWidth < 600) {
-      xAxis.get("renderer").labels.template.setAll({
-        rotation: -45,
-        centerY: am5.p50,
-        centerX: am5.p100,
-        paddingRight: 10
-      });
-    }
+
+    xAxis.get("renderer").labels.template.setAll({
+      rotation: -45,
+      centerY: am5.p50,
+      centerX: am5.p100,
+      paddingRight: 10
+    });
 
     // Value axis (HUF)
     const yAxis = this.chart.yAxes.push(am5xy.ValueAxis.new(this.root, {
@@ -127,7 +141,7 @@ export class MarketTotalSpentChartComponent implements OnInit, OnChanges, OnDest
   private loadData() {
     if (!this.dateFrom || !this.dateTo) return;
 
-    this.isLoading = true;
+    this.isLoading.set(true);
 
     if (this.subscription) {
       this.subscription.unsubscribe();
@@ -139,14 +153,14 @@ export class MarketTotalSpentChartComponent implements OnInit, OnChanges, OnDest
       this.userId || undefined
     ).subscribe({
       next: (data: MarketTotalSpentList) => {
-        this.isLoading = false;
+        this.isLoading.set(false);
         const markets: MarketTotalSpent[] = data.markets || [];
         const chartData = markets.map(m => ({ category: m.market_name, value: m.total_spent }));
         this.updateChartData(chartData);
       },
       error: err => {
         console.error('Error loading market total spent:', err);
-        this.isLoading = false;
+        this.isLoading.set(false);
         this.updateChartData([]);
       }
     });
@@ -164,6 +178,11 @@ export class MarketTotalSpentChartComponent implements OnInit, OnChanges, OnDest
     if (this.subscription) {
       this.subscription.unsubscribe();
     }
+    
+    if (this.darkModeSubscription) {
+      this.darkModeSubscription.unsubscribe();
+    }
+    
     if (this.root) {
       this.root.dispose();
     }
