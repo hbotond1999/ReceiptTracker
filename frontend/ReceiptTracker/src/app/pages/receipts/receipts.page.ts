@@ -30,7 +30,7 @@ import { AlertController, ModalController, ToastController } from '@ionic/angula
 import { ReceiptEditModalComponent } from './receipt-edit.modal';
 import {chevronDownOutline, chevronUpOutline, searchOutline, downloadOutline} from "ionicons/icons";
 
-const MIN_DATE = new Date(2000, 0, 1).getTime();
+const MIN_DATE = new Date(2023, 0, 1).getTime();
 const now = new Date();
 const MAX_DATE = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999).getTime();
 
@@ -197,7 +197,7 @@ export class ReceiptsPage {
     // API endpoint URL összeállítása
     const baseUrl = this.receiptService.configuration.basePath;
     const downloadUrl = `${baseUrl}/receipt/receipt/${receipt.id}/image`;
-    
+
     // Token hozzáadása a kéréshez
     const token = localStorage.getItem('access_token');
     if (!token) {
@@ -212,7 +212,7 @@ export class ReceiptsPage {
     // Fájl letöltése
     const link = document.createElement('a');
     link.href = downloadUrl;
-    
+
     // Fájl kiterjesztés meghatározása
     let defaultFilename = `receipt_${receipt.id}`;
     if (receipt.original_filename) {
@@ -237,9 +237,9 @@ export class ReceiptsPage {
         defaultFilename += '.jpg'; // fallback
       }
     }
-    
+
     link.download = defaultFilename;
-    
+
     // Authorization header hozzáadása
     fetch(downloadUrl, {
       headers: {
@@ -257,7 +257,7 @@ export class ReceiptsPage {
       link.href = url;
       link.click();
       window.URL.revokeObjectURL(url);
-      
+
       this.toastController.create({
         message: 'Kép letöltése sikeres!',
         duration: 2000,

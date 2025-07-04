@@ -84,7 +84,7 @@ export class StatsPage implements OnInit, OnDestroy {
   });
 
   // Date range
-  MIN_DATE = new Date('2020-01-01').getTime();
+  MIN_DATE = new Date('2023-01-01').getTime();
   MAX_DATE = new Date().getTime();
   dateRange = signal<[number, number]>([this.MIN_DATE, this.MAX_DATE]);
 
@@ -95,7 +95,7 @@ export class StatsPage implements OnInit, OnDestroy {
   // Aggregation type - signal-alapú
   selectedAggregationType = signal<AggregationType>(AggregationType.Day);
   aggregationType = new FormControl<AggregationType>(AggregationType.Day);
-  
+
   // Aggregation type options
   aggregationTypeOptions = [
     { value: AggregationType.Day, label: 'Napi' },
