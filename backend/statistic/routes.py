@@ -238,8 +238,27 @@ async def get_amounts_timeseries(
 ):
     """Get time series data for amounts spent by date - calculated in database"""
     with Session(engine) as session:
-        # Build base query to get receipts with items
-        query = select(Receipt, ReceiptItem).join(ReceiptItem)
+        # Build SQL aggregation based on aggregation type
+        if aggregation == AggregationType.YEAR:
+            date_part = func.extract('year', Receipt.date).label('date_key')
+        elif aggregation == AggregationType.MONTH:
+            # Create YYYYMM format: year * 100 + month
+            date_part = (func.extract('year', Receipt.date) * 100 +
+                        func.extract('month', Receipt.date)).label('date_key')
+        else:  # DAY
+            date_part = func.date(Receipt.date).label('date_key')
+
+        # Build query with SQL aggregation
+        query = (
+            select(
+                date_part,
+                func.sum(ReceiptItem.price).label('total_amount')
+            )
+            .select_from(Receipt)
+            .join(ReceiptItem)
+            .group_by(date_part)
+            .order_by(date_part)
+        )
 
         # Apply user filter
         if is_admin_user(current_user) and user_id is not None:
@@ -253,31 +272,16 @@ async def get_amounts_timeseries(
         if date_to:
             query = query.where(Receipt.date <= date_to)
 
-        # Execute query and get all receipt-item pairs
+        # Execute query and get aggregated results
         results = session.exec(query).all()
-
-        # Group amounts by date based on aggregation type
-        from collections import defaultdict
-        grouped_data = defaultdict(float)
-        
-        for receipt, item in results:
-            if aggregation == AggregationType.YEAR:
-                date_key = receipt.date.year
-            elif aggregation == AggregationType.MONTH:
-                date_key = receipt.date.year * 100 + receipt.date.month
-            else:  # DAY
-                date_key = receipt.date.date()
-            
-            grouped_data[date_key] += item.price
 
         # Convert to TimeSeriesData format
         time_series_data = [
-            TimeSeriesData(date=date_key, value=float(total_amount))
-            for date_key, total_amount in sorted(grouped_data.items())
+            TimeSeriesData(date=row.date_key, value=float(row.total_amount))
+            for row in results
         ]
 
         return time_series_data
-
 
 @router.get("/wordcloud", response_model=List[WordCloudItem])
 async def get_wordcloud_data(
