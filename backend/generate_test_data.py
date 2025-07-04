@@ -199,17 +199,6 @@ def main():
         print(f"Markets: {len(markets)}")
         print(f"Receipts: {receipt_count}")
         print(f"Users: {len(existing_users)}")
-        
-        # Database statistics
-        total_receipts = len(session.exec(select(Receipt)).all())
-        total_items = len(session.exec(select(ReceiptItem)).all())
-        total_markets = len(session.exec(select(Market)).all())
-        
-        print(f"\nDatabase totals:")
-        print(f"- Total markets: {total_markets}")
-        print(f"- Total receipts: {total_receipts}")
-        print(f"- Total receipt items: {total_items}")
-        print(f"- Average items per receipt: {total_items/total_receipts:.2f}")
 
 if __name__ == "__main__":
     main() 
