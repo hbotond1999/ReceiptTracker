@@ -1,0 +1,190 @@
+import { Component, Input, OnChanges, OnDestroy, OnInit, SimpleChanges, inject, ElementRef, ViewChild } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { 
+  IonCard, 
+  IonCardHeader, 
+  IonCardTitle, 
+  IonCardContent, 
+  IonSpinner 
+} from '@ionic/angular/standalone';
+import { ReceiptService } from '../../../../api/api/receipt.service';
+import { TimeSeriesData } from '../../../../api/model/timeSeriesData';
+import { Subscription } from 'rxjs';
+
+// amCharts 5 imports
+import * as am5 from '@amcharts/amcharts5';
+import * as am5xy from '@amcharts/amcharts5/xy';
+import am5themes_Animated from '@amcharts/amcharts5/themes/Animated';
+
+@Component({
+  selector: 'app-receipts-chart',
+  standalone: true,
+  imports: [
+    CommonModule,
+    IonCard,
+    IonCardHeader,
+    IonCardTitle,
+    IonCardContent,
+    IonSpinner
+  ],
+  templateUrl: './receipts-chart.component.html',
+  styleUrls: ['./receipts-chart.component.scss']
+})
+export class ReceiptsChartComponent implements OnInit, OnChanges, OnDestroy {
+  @Input() dateFrom!: string;
+  @Input() dateTo!: string;
+  @Input() userId?: number | null;
+  
+  @ViewChild('chartContainer', { static: false }) chartContainer!: ElementRef;
+
+  private receiptService = inject(ReceiptService);
+  private root?: am5.Root;
+  private chart?: am5xy.XYChart;
+  private subscription?: Subscription;
+  
+  chartId = Math.random().toString(36).substr(2, 9);
+  isLoading = false;
+
+  ngOnInit() {
+    // Initialize chart after a short delay to ensure DOM is ready
+    setTimeout(() => {
+      this.initializeChart();
+      this.loadData();
+    }, 100);
+  }
+
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes['dateFrom'] || changes['dateTo'] || changes['userId']) {
+      // Only reload data if chart is already initialized
+      if (this.chart) {
+        this.loadData();
+      }
+    }
+  }
+
+  ngOnDestroy() {
+    this.cleanup();
+  }
+
+  private initializeChart() {
+    if (this.root) {
+      this.root.dispose();
+    }
+
+    // Create root element
+    this.root = am5.Root.new(`receipts-chart-${this.chartId}`);
+
+    // Set themes
+    this.root.setThemes([
+      am5themes_Animated.new(this.root)
+    ]);
+
+    // Create chart
+    this.chart = this.root.container.children.push(am5xy.XYChart.new(this.root, {
+      panX: false,
+      panY: false,
+      wheelX: "panX",
+      wheelY: "zoomX",
+      paddingLeft: 0,
+      paddingRight: 1
+    }));
+
+    // Add cursor
+    const cursor = this.chart.set("cursor", am5xy.XYCursor.new(this.root, {}));
+    cursor.lineY.set("visible", false);
+
+    // Create axes
+    const xRenderer = am5xy.AxisRendererX.new(this.root, {
+      minGridDistance: 50,
+      minorGridEnabled: true
+    });
+
+    const xAxis = this.chart.xAxes.push(am5xy.DateAxis.new(this.root, {
+      maxZoomCount: 1000,
+      baseInterval: {
+        timeUnit: "day",
+        count: 1
+      },
+      renderer: xRenderer,
+      tooltip: am5.Tooltip.new(this.root, {})
+    }));
+
+    const yAxis = this.chart.yAxes.push(am5xy.ValueAxis.new(this.root, {
+      renderer: am5xy.AxisRendererY.new(this.root, {
+        strokeDasharray: [1, 5]
+      })
+    }));
+
+    // Create series
+    const series = this.chart.series.push(am5xy.LineSeries.new(this.root, {
+      name: "Vásárlások",
+      xAxis: xAxis,
+      yAxis: yAxis,
+      valueYField: "value",
+      valueXField: "date",
+      tooltip: am5.Tooltip.new(this.root, {
+        labelText: "{valueY} vásárlás"
+      })
+    }));
+
+    // Add circle bullet
+    series.bullets.push(() => {
+      return am5.Bullet.new(this.root!, {
+        sprite: am5.Circle.new(this.root!, {
+          strokeWidth: 2,
+          radius: 5,
+          stroke: series.get("stroke"),
+          fill: am5.color(0xffffff)
+        })
+      });
+    });
+  }
+
+  private loadData() {
+    if (!this.dateFrom || !this.dateTo) {
+      return;
+    }
+
+    this.isLoading = true;
+    
+    // Unsubscribe from previous subscription
+    if (this.subscription) {
+      this.subscription.unsubscribe();
+    }
+
+    this.subscription = this.receiptService.getReceiptsTimeseriesStatisticTimeseriesReceiptsGet(
+      this.dateFrom,
+      this.dateTo,
+      this.userId || undefined
+    ).subscribe({
+      next: (data: TimeSeriesData[]) => {
+        this.isLoading = false;
+        if (data && this.chart) {
+          const formattedData = data.map(d => ({
+            date: new Date(d.date).getTime(),
+            value: d.value
+          }));
+          
+          const series = this.chart.series.getIndex(0) as am5xy.LineSeries;
+          if (series) {
+            series.data.setAll(formattedData);
+          }
+        }
+      },
+      error: (error) => {
+        this.isLoading = false;
+        console.error('Error loading receipts time series data:', error);
+      }
+    });
+  }
+
+  private cleanup() {
+    if (this.subscription) {
+      this.subscription.unsubscribe();
+    }
+    
+    if (this.root) {
+      this.root.dispose();
+    }
+  }
+} 

@@ -1,0 +1,33 @@
+.no-data {
+  text-align: center;
+  color: var(--ion-color-medium);
+  font-style: italic;
+  padding: 2rem;
+}
+
+.loading-spinner {
+  display: block;
+  margin: 2rem auto;
+}
+
+ion-list {
+  ion-item {
+    ion-label {
+      h3 {
+        margin: 0.5rem 0 0.25rem 0;
+        font-weight: 600;
+      }
+      
+      p {
+        margin: 0.25rem 0 0.5rem 0;
+        font-size: 0.9rem;
+        color: var(--ion-color-medium);
+      }
+    }
+    
+    ion-note {
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+  }
+} 

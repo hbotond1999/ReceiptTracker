@@ -1,0 +1,9 @@
+<ion-card>
+  <ion-card-header>
+    <ion-card-title>Vásárlások időbeli alakulása</ion-card-title>
+  </ion-card-header>
+  <ion-card-content>
+    <div #chartContainer id="receipts-chart-{{ chartId }}" class="chart-container"></div>
+    <ion-spinner *ngIf="isLoading" class="loading-spinner"></ion-spinner>
+  </ion-card-content>
+</ion-card> 

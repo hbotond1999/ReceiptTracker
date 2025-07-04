@@ -7,6 +7,7 @@ from backend.auth.models import Role, RoleEnum
 from backend.receipt.routes import router as receipt_router
 from sqlmodel import SQLModel, Session, select
 from backend.auth.routes import engine
+from backend.statistic.routes import router as statistic_router
 
 from dotenv import load_dotenv
 import uvicorn
@@ -56,6 +57,6 @@ def on_startup():
 
 app.include_router(auth_router)
 app.include_router(receipt_router)
-
+app.include_router(statistic_router)
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000) 

@@ -458,10 +458,10 @@ export class ReceiptService extends BaseService {
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public getAmountsTimeseriesReceiptStatisticsTimeseriesAmountsGet(dateFrom?: string, dateTo?: string, userId?: number, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<Array<TimeSeriesData>>;
-    public getAmountsTimeseriesReceiptStatisticsTimeseriesAmountsGet(dateFrom?: string, dateTo?: string, userId?: number, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<Array<TimeSeriesData>>>;
-    public getAmountsTimeseriesReceiptStatisticsTimeseriesAmountsGet(dateFrom?: string, dateTo?: string, userId?: number, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<Array<TimeSeriesData>>>;
-    public getAmountsTimeseriesReceiptStatisticsTimeseriesAmountsGet(dateFrom?: string, dateTo?: string, userId?: number, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+    public getAmountsTimeseriesStatisticStatisticsTimeseriesAmountsGet(dateFrom?: string, dateTo?: string, userId?: number, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<Array<TimeSeriesData>>;
+    public getAmountsTimeseriesStatisticStatisticsTimeseriesAmountsGet(dateFrom?: string, dateTo?: string, userId?: number, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<Array<TimeSeriesData>>>;
+    public getAmountsTimeseriesStatisticStatisticsTimeseriesAmountsGet(dateFrom?: string, dateTo?: string, userId?: number, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<Array<TimeSeriesData>>>;
+    public getAmountsTimeseriesStatisticStatisticsTimeseriesAmountsGet(dateFrom?: string, dateTo?: string, userId?: number, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
 
         let localVarQueryParameters = new HttpParams({encoder: this.encoder});
         localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
@@ -499,7 +499,7 @@ export class ReceiptService extends BaseService {
             }
         }
 
-        let localVarPath = `/receipt/statistics/timeseries/amounts`;
+        let localVarPath = `/statistic/statistics/timeseries/amounts`;
         const { basePath, withCredentials } = this.configuration;
         return this.httpClient.request<Array<TimeSeriesData>>('get', `${basePath}${localVarPath}`,
             {
@@ -524,10 +524,10 @@ export class ReceiptService extends BaseService {
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public getAverageReceiptValueKpiReceiptStatisticsKpiAverageReceiptValueGet(dateFrom?: string, dateTo?: string, userId?: number, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<AverageReceiptValueKPI>;
-    public getAverageReceiptValueKpiReceiptStatisticsKpiAverageReceiptValueGet(dateFrom?: string, dateTo?: string, userId?: number, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<AverageReceiptValueKPI>>;
-    public getAverageReceiptValueKpiReceiptStatisticsKpiAverageReceiptValueGet(dateFrom?: string, dateTo?: string, userId?: number, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<AverageReceiptValueKPI>>;
-    public getAverageReceiptValueKpiReceiptStatisticsKpiAverageReceiptValueGet(dateFrom?: string, dateTo?: string, userId?: number, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+    public getAverageReceiptValueKpiStatisticKpiAverageReceiptValueGet(dateFrom?: string, dateTo?: string, userId?: number, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<AverageReceiptValueKPI>;
+    public getAverageReceiptValueKpiStatisticKpiAverageReceiptValueGet(dateFrom?: string, dateTo?: string, userId?: number, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<AverageReceiptValueKPI>>;
+    public getAverageReceiptValueKpiStatisticKpiAverageReceiptValueGet(dateFrom?: string, dateTo?: string, userId?: number, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<AverageReceiptValueKPI>>;
+    public getAverageReceiptValueKpiStatisticKpiAverageReceiptValueGet(dateFrom?: string, dateTo?: string, userId?: number, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
 
         let localVarQueryParameters = new HttpParams({encoder: this.encoder});
         localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
@@ -565,7 +565,7 @@ export class ReceiptService extends BaseService {
             }
         }
 
-        let localVarPath = `/receipt/statistics/kpi/average-receipt-value`;
+        let localVarPath = `/statistic/kpi/average-receipt-value`;
         const { basePath, withCredentials } = this.configuration;
         return this.httpClient.request<AverageReceiptValueKPI>('get', `${basePath}${localVarPath}`,
             {
@@ -804,10 +804,10 @@ export class ReceiptService extends BaseService {
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public getReceiptsTimeseriesReceiptStatisticsTimeseriesReceiptsGet(dateFrom?: string, dateTo?: string, userId?: number, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<Array<TimeSeriesData>>;
-    public getReceiptsTimeseriesReceiptStatisticsTimeseriesReceiptsGet(dateFrom?: string, dateTo?: string, userId?: number, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<Array<TimeSeriesData>>>;
-    public getReceiptsTimeseriesReceiptStatisticsTimeseriesReceiptsGet(dateFrom?: string, dateTo?: string, userId?: number, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<Array<TimeSeriesData>>>;
-    public getReceiptsTimeseriesReceiptStatisticsTimeseriesReceiptsGet(dateFrom?: string, dateTo?: string, userId?: number, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+    public getReceiptsTimeseriesStatisticTimeseriesReceiptsGet(dateFrom?: string, dateTo?: string, userId?: number, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<Array<TimeSeriesData>>;
+    public getReceiptsTimeseriesStatisticTimeseriesReceiptsGet(dateFrom?: string, dateTo?: string, userId?: number, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<Array<TimeSeriesData>>>;
+    public getReceiptsTimeseriesStatisticTimeseriesReceiptsGet(dateFrom?: string, dateTo?: string, userId?: number, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<Array<TimeSeriesData>>>;
+    public getReceiptsTimeseriesStatisticTimeseriesReceiptsGet(dateFrom?: string, dateTo?: string, userId?: number, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
 
         let localVarQueryParameters = new HttpParams({encoder: this.encoder});
         localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
@@ -845,7 +845,7 @@ export class ReceiptService extends BaseService {
             }
         }
 
-        let localVarPath = `/receipt/statistics/timeseries/receipts`;
+        let localVarPath = `/statistic/timeseries/receipts`;
         const { basePath, withCredentials } = this.configuration;
         return this.httpClient.request<Array<TimeSeriesData>>('get', `${basePath}${localVarPath}`,
             {
@@ -871,10 +871,10 @@ export class ReceiptService extends BaseService {
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public getTopItemsKpiReceiptStatisticsKpiTopItemsGet(dateFrom?: string, dateTo?: string, userId?: number, limit?: number, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<TopItemsKPI>;
-    public getTopItemsKpiReceiptStatisticsKpiTopItemsGet(dateFrom?: string, dateTo?: string, userId?: number, limit?: number, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<TopItemsKPI>>;
-    public getTopItemsKpiReceiptStatisticsKpiTopItemsGet(dateFrom?: string, dateTo?: string, userId?: number, limit?: number, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<TopItemsKPI>>;
-    public getTopItemsKpiReceiptStatisticsKpiTopItemsGet(dateFrom?: string, dateTo?: string, userId?: number, limit?: number, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+    public getTopItemsKpiStatisticKpiTopItemsGet(dateFrom?: string, dateTo?: string, userId?: number, limit?: number, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<TopItemsKPI>;
+    public getTopItemsKpiStatisticKpiTopItemsGet(dateFrom?: string, dateTo?: string, userId?: number, limit?: number, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<TopItemsKPI>>;
+    public getTopItemsKpiStatisticKpiTopItemsGet(dateFrom?: string, dateTo?: string, userId?: number, limit?: number, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<TopItemsKPI>>;
+    public getTopItemsKpiStatisticKpiTopItemsGet(dateFrom?: string, dateTo?: string, userId?: number, limit?: number, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
 
         let localVarQueryParameters = new HttpParams({encoder: this.encoder});
         localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
@@ -914,7 +914,7 @@ export class ReceiptService extends BaseService {
             }
         }
 
-        let localVarPath = `/receipt/statistics/kpi/top-items`;
+        let localVarPath = `/statistic/kpi/top-items`;
         const { basePath, withCredentials } = this.configuration;
         return this.httpClient.request<TopItemsKPI>('get', `${basePath}${localVarPath}`,
             {
@@ -939,10 +939,10 @@ export class ReceiptService extends BaseService {
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public getTotalReceiptsKpiReceiptStatisticsKpiTotalReceiptsGet(dateFrom?: string, dateTo?: string, userId?: number, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<TotalReceiptsKPI>;
-    public getTotalReceiptsKpiReceiptStatisticsKpiTotalReceiptsGet(dateFrom?: string, dateTo?: string, userId?: number, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<TotalReceiptsKPI>>;
-    public getTotalReceiptsKpiReceiptStatisticsKpiTotalReceiptsGet(dateFrom?: string, dateTo?: string, userId?: number, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<TotalReceiptsKPI>>;
-    public getTotalReceiptsKpiReceiptStatisticsKpiTotalReceiptsGet(dateFrom?: string, dateTo?: string, userId?: number, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+    public getTotalReceiptsKpiStatisticStatisticsKpiTotalReceiptsGet(dateFrom?: string, dateTo?: string, userId?: number, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<TotalReceiptsKPI>;
+    public getTotalReceiptsKpiStatisticStatisticsKpiTotalReceiptsGet(dateFrom?: string, dateTo?: string, userId?: number, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<TotalReceiptsKPI>>;
+    public getTotalReceiptsKpiStatisticStatisticsKpiTotalReceiptsGet(dateFrom?: string, dateTo?: string, userId?: number, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<TotalReceiptsKPI>>;
+    public getTotalReceiptsKpiStatisticStatisticsKpiTotalReceiptsGet(dateFrom?: string, dateTo?: string, userId?: number, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
 
         let localVarQueryParameters = new HttpParams({encoder: this.encoder});
         localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
@@ -980,7 +980,7 @@ export class ReceiptService extends BaseService {
             }
         }
 
-        let localVarPath = `/receipt/statistics/kpi/total-receipts`;
+        let localVarPath = `/statistic/statistics/kpi/total-receipts`;
         const { basePath, withCredentials } = this.configuration;
         return this.httpClient.request<TotalReceiptsKPI>('get', `${basePath}${localVarPath}`,
             {
@@ -1005,10 +1005,10 @@ export class ReceiptService extends BaseService {
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public getTotalSpentKpiReceiptStatisticsKpiTotalSpentGet(dateFrom?: string, dateTo?: string, userId?: number, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<TotalSpentKPI>;
-    public getTotalSpentKpiReceiptStatisticsKpiTotalSpentGet(dateFrom?: string, dateTo?: string, userId?: number, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<TotalSpentKPI>>;
-    public getTotalSpentKpiReceiptStatisticsKpiTotalSpentGet(dateFrom?: string, dateTo?: string, userId?: number, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<TotalSpentKPI>>;
-    public getTotalSpentKpiReceiptStatisticsKpiTotalSpentGet(dateFrom?: string, dateTo?: string, userId?: number, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+    public getTotalSpentKpiStatisticStatisticsKpiTotalSpentGet(dateFrom?: string, dateTo?: string, userId?: number, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<TotalSpentKPI>;
+    public getTotalSpentKpiStatisticStatisticsKpiTotalSpentGet(dateFrom?: string, dateTo?: string, userId?: number, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<TotalSpentKPI>>;
+    public getTotalSpentKpiStatisticStatisticsKpiTotalSpentGet(dateFrom?: string, dateTo?: string, userId?: number, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<TotalSpentKPI>>;
+    public getTotalSpentKpiStatisticStatisticsKpiTotalSpentGet(dateFrom?: string, dateTo?: string, userId?: number, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
 
         let localVarQueryParameters = new HttpParams({encoder: this.encoder});
         localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
@@ -1046,7 +1046,7 @@ export class ReceiptService extends BaseService {
             }
         }
 
-        let localVarPath = `/receipt/statistics/kpi/total-spent`;
+        let localVarPath = `/statistic/statistics/kpi/total-spent`;
         const { basePath, withCredentials } = this.configuration;
         return this.httpClient.request<TotalSpentKPI>('get', `${basePath}${localVarPath}`,
             {
@@ -1072,10 +1072,10 @@ export class ReceiptService extends BaseService {
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public getWordcloudDataReceiptStatisticsWordcloudGet(dateFrom?: string, dateTo?: string, userId?: number, limit?: number, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<Array<WordCloudItem>>;
-    public getWordcloudDataReceiptStatisticsWordcloudGet(dateFrom?: string, dateTo?: string, userId?: number, limit?: number, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<Array<WordCloudItem>>>;
-    public getWordcloudDataReceiptStatisticsWordcloudGet(dateFrom?: string, dateTo?: string, userId?: number, limit?: number, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<Array<WordCloudItem>>>;
-    public getWordcloudDataReceiptStatisticsWordcloudGet(dateFrom?: string, dateTo?: string, userId?: number, limit?: number, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+    public getWordcloudDataStatisticWordcloudGet(dateFrom?: string, dateTo?: string, userId?: number, limit?: number, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<Array<WordCloudItem>>;
+    public getWordcloudDataStatisticWordcloudGet(dateFrom?: string, dateTo?: string, userId?: number, limit?: number, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<Array<WordCloudItem>>>;
+    public getWordcloudDataStatisticWordcloudGet(dateFrom?: string, dateTo?: string, userId?: number, limit?: number, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<Array<WordCloudItem>>>;
+    public getWordcloudDataStatisticWordcloudGet(dateFrom?: string, dateTo?: string, userId?: number, limit?: number, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
 
         let localVarQueryParameters = new HttpParams({encoder: this.encoder});
         localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
@@ -1115,7 +1115,7 @@ export class ReceiptService extends BaseService {
             }
         }
 
-        let localVarPath = `/receipt/statistics/wordcloud`;
+        let localVarPath = `/statistic/wordcloud`;
         const { basePath, withCredentials } = this.configuration;
         return this.httpClient.request<Array<WordCloudItem>>('get', `${basePath}${localVarPath}`,
             {
