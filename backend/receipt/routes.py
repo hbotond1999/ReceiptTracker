@@ -1,19 +1,22 @@
 import uuid
 from fastapi import APIRouter, UploadFile, File, HTTPException, Depends, Query
+from fastapi.responses import FileResponse
 from sqlmodel import Session, select, func
 import shutil
 import os
+import mimetypes
 from typing import List, Optional
 from datetime import datetime
 from sqlalchemy import text
 
-from backend.auth.models import User
-from backend.auth.routes import get_current_user, engine
-from backend.auth.schemas import Role
-from backend.receipt.ai.agent import recognize_receipt
-from backend.receipt.models import Market, Receipt, ReceiptItem
-from backend.receipt.schemas import ReceiptOut, MarketOut, ReceiptItemOut, UserOut, ReceiptListOut, ReceiptUpdateRequest, ReceiptItemUpdateRequest, MarketUpdateRequest, ReceiptCreateRequest
-from backend.receipt.utils import is_admin_user, get_receipts_count, get_receipts_paginated
+from auth.models import User
+from auth.routes import get_current_user, engine
+from auth.schemas import Role
+from receipt.ai.agent import recognize_receipt
+from receipt.models import Market, Receipt, ReceiptItem
+from receipt.schemas import ReceiptOut, MarketOut, ReceiptItemOut, UserOut, ReceiptListOut, \
+    ReceiptUpdateRequest, MarketUpdateRequest, ReceiptCreateRequest
+from receipt.utils import is_admin_user, get_receipts_count, get_receipts_paginated
 
 # Központi konfiguráció
 UPLOADS_DIR = "receipt_images"
@@ -92,7 +95,7 @@ async def create_receipt(
         if not receipt.id:
             raise HTTPException(status_code=500, detail="Failed to create receipt")
             
-        for item in receipt_data.items:  # type: ignore
+        for item in receipt_data.items:
             receipt_item = ReceiptItem(
                 name=item.name,
                 price=item.price,
@@ -624,3 +627,39 @@ async def delete_receipt(
         session.delete(receipt)
         session.commit()
         return {"message": "Receipt deleted successfully"}
+
+
+@router.get("/receipt/{receipt_id}/image")
+async def download_receipt_image(
+    receipt_id: int,
+    current_user: User = Depends(get_current_user)
+):
+    """Receipt képének letöltése (mezei user csak a sajátját, admin mindent)"""
+    with Session(engine) as session:
+        receipt = session.exec(select(Receipt).where(Receipt.id == receipt_id)).first()
+        if not receipt:
+            raise HTTPException(status_code=404, detail="Receipt not found")
+        
+        # Ellenőrizzük, hogy a felhasználó jogosult-e a receipt képének letöltésére
+        if not (is_admin_user(current_user) or receipt.user_id == current_user.id):
+            raise HTTPException(status_code=403, detail="Not authorized to download this receipt image")
+        
+        # Ellenőrizzük, hogy a képfájl létezik-e
+        if not receipt.image_path or not os.path.exists(receipt.image_path):
+            raise HTTPException(status_code=404, detail="Receipt image file not found")
+        
+        # Fájl kiterjesztés meghatározása
+        file_extension = os.path.splitext(receipt.image_path)[1] if receipt.image_path else '.jpg'
+        default_filename = f"receipt_{receipt_id}{file_extension}"
+        
+        # Content-Type meghatározása a mimetypes modullal
+        media_type, _ = mimetypes.guess_type(receipt.image_path)
+        if not media_type:
+            media_type = 'image/*'  # fallback
+        
+        # Visszaadjuk a fájlt a megfelelő Content-Type-dal
+        return FileResponse(
+            path=receipt.image_path,
+            filename=receipt.original_filename or default_filename,
+            media_type=media_type
+        )

@@ -3,6 +3,156 @@
     <ion-title>Statisztikák</ion-title>
   </ion-toolbar>
 </ion-header>
+
 <ion-content class="ion-padding">
-  <h2>Itt láthatod a statisztikáidat és kimutatásaidat.</h2>
-</ion-content> 
+  <!-- Szűrők -->
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>Szűrők</ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      <div style="display: flex; gap: 1rem; flex-wrap: wrap; align-items: center;">
+        <!-- Dátum választók -->
+        <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+          <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+            <ion-label>Kezdő dátum:</ion-label>
+            <ion-datetime-button datetime="datetime-from" ></ion-datetime-button>
+            <ion-modal [keepContentsMounted]="true">
+              <ng-template>
+              <ion-datetime
+                id="datetime-from"
+                presentation="date"
+                [value]="dateRange()[0]"
+                (ionChange)="onDateFromChange($event)"
+              ></ion-datetime>
+              </ng-template>
+            </ion-modal>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+            <ion-label>Vég dátum:</ion-label>
+            <ion-datetime-button datetime="datetime-to"></ion-datetime-button>
+            <ion-modal [keepContentsMounted]="true">
+              <ng-template>
+              <ion-datetime
+                id="datetime-to"
+                presentation="date"
+                [value]="dateRange()[1]"
+                (ionChange)="onDateToChange($event)"
+              ></ion-datetime>
+              </ng-template>
+            </ion-modal>
+          </div>
+        </div>
+
+        <!-- User filter (admin only) -->
+        <ion-select
+          *ngIf="isAdmin()"
+          interface="popover"
+          placeholder="Felhasználó"
+          [formControl]="userId"
+          (ionChange)="onUserChange()"
+        >
+          <ion-select-option [value]="null">Összes felhasználó</ion-select-option>
+          <ion-select-option *ngFor="let user of users$ | async" [value]="user.id">{{user.fullname || user.username}}</ion-select-option>
+        </ion-select>
+
+        <!-- Aggregation type filter -->
+        <ion-select
+          interface="popover"
+          placeholder="Nézet típus"
+          [formControl]="aggregationType"
+          (ionChange)="onAggregationTypeChange()"
+        >
+          <ion-select-option *ngFor="let option of aggregationTypeOptions" [value]="option.value">
+            {{option.label}}
+          </ion-select-option>
+        </ion-select>
+
+        <ion-button color="medium" fill="outline" (click)="clearFilters()" type="button">
+          Szűrők törlése
+        </ion-button>
+      </div>
+    </ion-card-content>
+  </ion-card>
+
+  <!-- KPI Cards -->
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
+    <app-kpi-card
+      [dateFrom]="chartParams().dateFrom"
+      [dateTo]="chartParams().dateTo"
+      [userId]="chartParams().userId"
+      kpiType="totalSpent"
+      title="Összesen elköltött"
+      color="primary"
+      unit="Ft">
+    </app-kpi-card>
+
+    <app-kpi-card
+      [dateFrom]="chartParams().dateFrom"
+      [dateTo]="chartParams().dateTo"
+      [userId]="chartParams().userId"
+      kpiType="totalReceipts"
+      title="Vásárlások száma"
+      color="secondary">
+    </app-kpi-card>
+
+    <app-kpi-card
+      [dateFrom]="chartParams().dateFrom"
+      [dateTo]="chartParams().dateTo"
+      [userId]="chartParams().userId"
+      kpiType="averageReceiptValue"
+      title="Átlagos blokk érték"
+      color="tertiary"
+      unit="Ft">
+    </app-kpi-card>
+  </div>
+
+  <!-- Charts -->
+  <div style="display: grid; grid-template-columns: 1fr; gap: 2rem;">
+    <!-- Vásárlások időbeli alakulása -->
+    <app-receipts-chart
+      [dateFrom]="chartParams().dateFrom"
+      [dateTo]="chartParams().dateTo"
+      [userId]="chartParams().userId"
+      [aggregationType]="chartParams().aggregationType">
+    </app-receipts-chart>
+
+    <!-- Összeg időbeli alakulása -->
+    <app-amounts-chart
+      [dateFrom]="chartParams().dateFrom"
+      [dateTo]="chartParams().dateTo"
+      [userId]="chartParams().userId"
+      [aggregationType]="chartParams().aggregationType">
+    </app-amounts-chart>
+
+    <!-- Összköltés boltonként -->
+    <app-market-total-spent-chart
+      [dateFrom]="chartParams().dateFrom"
+      [dateTo]="chartParams().dateTo"
+      [userId]="chartParams().userId">
+    </app-market-total-spent-chart>
+
+    <!-- vásárlások száma boltonként -->
+    <app-market-total-receipts-chart
+      [dateFrom]="chartParams().dateFrom"
+      [dateTo]="chartParams().dateTo"
+      [userId]="chartParams().userId">
+    </app-market-total-receipts-chart>
+
+    <!-- ÚJ: Átlagos költés boltonként -->
+    <app-market-average-spent-chart
+      [dateFrom]="chartParams().dateFrom"
+      [dateTo]="chartParams().dateTo"
+      [userId]="chartParams().userId">
+    </app-market-average-spent-chart>
+
+    <!-- Top termékek lista -->
+    <app-top-items
+      [dateFrom]="chartParams().dateFrom"
+      [dateTo]="chartParams().dateTo"
+      [userId]="chartParams().userId"
+      [limit]="10">
+    </app-top-items>
+  </div>
+</ion-content>

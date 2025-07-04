@@ -1,0 +1,14 @@
+<ion-card [color]="color">
+  <ion-card-header>
+    <ion-card-title>{{ title }}</ion-card-title>
+  </ion-card-header>
+  <ion-card-content>
+    <div *ngIf="!isLoading && value !== null" class="kpi-value">
+      {{ value | number:'1.0-0' }}{{ unit ? ' ' + unit : '' }}
+    </div>
+    <div *ngIf="!isLoading && value === null" class="no-data">
+      Nincs adat
+    </div>
+    <ion-spinner *ngIf="isLoading" class="loading-spinner"></ion-spinner>
+  </ion-card-content>
+</ion-card> 

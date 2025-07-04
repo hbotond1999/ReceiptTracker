@@ -1,0 +1,20 @@
+<ion-card>
+  <ion-card-header>
+    <ion-card-title>Top {{ limit }} termék</ion-card-title>
+  </ion-card-header>
+  <ion-card-content>
+    <ion-list *ngIf="!isLoading && topItems.length > 0">
+      <ion-item *ngFor="let item of topItems; let i = index">
+        <ion-label>
+          <h3>{{ i + 1 }}. {{ item.name }}</h3>
+          <p>{{ item.count }}x vásárolva</p>
+        </ion-label>
+        <ion-note slot="end">{{ item.total_spent | number:'1.0-0' }} Ft</ion-note>
+      </ion-item>
+    </ion-list>
+    <div *ngIf="!isLoading && topItems.length === 0" class="no-data">
+      Nincs megjeleníthető adat a megadott szűrőkre.
+    </div>
+    <ion-spinner *ngIf="isLoading" class="loading-spinner"></ion-spinner>
+  </ion-card-content>
+</ion-card> 

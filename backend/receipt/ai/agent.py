@@ -2,8 +2,8 @@ import base64
 import mimetypes
 from langchain_core.messages import HumanMessage
 
-from backend.common.ai import get_llm_model
-from backend.receipt.ai.structured_output import Receipt
+from common.ai import get_llm_model
+from receipt.ai.structured_output import Receipt
 
 
 def recognize_receipt(image_path):

@@ -1,8 +1,8 @@
 from datetime import datetime
 from typing import Optional, List
 from sqlmodel import Session, select, func
-from backend.auth.models import User, RoleEnum
-from backend.receipt.models import Receipt, Market, ReceiptItem
+from auth.models import User, RoleEnum
+from receipt.models import Receipt, Market, ReceiptItem
 
 
 def is_admin_user(user: User) -> bool:

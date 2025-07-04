@@ -1,8 +1,7 @@
-from datetime import datetime
+from datetime import datetime, date
 from typing import List, Optional
 from pydantic import BaseModel
-from backend.auth.models import RoleEnum
-from backend.auth.schemas import UserOut
+from auth.schemas import UserOut
 
 
 class MarketOut(BaseModel):
@@ -82,3 +81,4 @@ class ReceiptListOut(BaseModel):
     total: int
     has_next: bool
     has_previous: bool
+

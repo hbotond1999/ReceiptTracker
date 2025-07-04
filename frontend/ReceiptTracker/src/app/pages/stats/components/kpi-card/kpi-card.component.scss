@@ -1,0 +1,18 @@
+.kpi-value {
+  font-size: 2rem;
+  font-weight: bold;
+  text-align: center;
+  margin: 0.5rem 0;
+}
+
+.no-data {
+  text-align: center;
+  color: var(--ion-color-medium);
+  font-style: italic;
+  padding: 1rem;
+}
+
+.loading-spinner {
+  display: block;
+  margin: 1rem auto;
+} 

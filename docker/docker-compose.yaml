@@ -1,0 +1,46 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: receipt-tracker-postgres
+    environment:
+      POSTGRES_DB: receipt_tracker
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - receipt-tracker-network
+
+  backend:
+    build:
+      context: ../backend
+      dockerfile: Dockerfile
+    container_name: receipt-tracker-backend
+    env_file:
+      - .env
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./backend/keys:/app/keys
+      - ./backend/profile_pics:/app/profile_pics
+      - ./backend/receipt_images:/app/receipt_images
+    networks:
+      - receipt-tracker-network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+
+networks:
+  receipt-tracker-network:
+    driver: bridge
