@@ -18,9 +18,7 @@ import {
   IonItem,
   IonLabel,
   IonNote,
-  IonList,
-  IonDatetime,
-  IonInput
+  IonList
 } from '@ionic/angular/standalone';
 import { ReceiptService } from '../../api/api/receipt.service';
 import { AuthService } from '../../api/api/auth.service';
@@ -64,8 +62,6 @@ import { MarketAverageSpentChartComponent } from './components/market-average-sp
     IonLabel,
     IonNote,
     IonList,
-    IonDatetime,
-    IonInput,
     ReceiptsChartComponent,
     AmountsChartComponent,
     WordCloudComponent,
@@ -88,21 +84,9 @@ export class StatsPage implements OnInit, OnDestroy {
   });
 
   // Date range
-  // MIN_DATE és MAX_DATE eltávolítva
-  // Alapértelmezett: hónap első napja és mai nap
-  private getFirstDayOfMonth(): number {
-    const now = new Date();
-    return new Date(now.getFullYear(), now.getMonth(), 1).getTime();
-  }
-  private getToday(): number {
-    const now = new Date();
-    return new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
-  }
-  dateRange = signal<[number, number]>([this.getFirstDayOfMonth(), this.getToday()]);
-
-  // Date input form controls
-  dateFrom = new FormControl<string>(new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0]);
-  dateTo = new FormControl<string>(new Date().toISOString().split('T')[0]);
+  MIN_DATE = new Date('2020-01-01').getTime();
+  MAX_DATE = new Date().getTime();
+  dateRange = signal<[number, number]>([this.MIN_DATE, this.MAX_DATE]);
 
   // User filter (admin only) - signal-alapú
   selectedUserId = signal<number | null>(null);
@@ -111,7 +95,7 @@ export class StatsPage implements OnInit, OnDestroy {
   // Aggregation type - signal-alapú
   selectedAggregationType = signal<AggregationType>(AggregationType.Day);
   aggregationType = new FormControl<AggregationType>(AggregationType.Day);
-
+  
   // Aggregation type options
   aggregationTypeOptions = [
     { value: AggregationType.Day, label: 'Napi' },
@@ -120,7 +104,7 @@ export class StatsPage implements OnInit, OnDestroy {
   ];
 
   // Filter subjects (megtartva a kompatibilitás miatt)
-  private dateRangeSubject = new BehaviorSubject<[number, number]>([this.getFirstDayOfMonth(), this.getToday()]);
+  private dateRangeSubject = new BehaviorSubject<[number, number]>([this.MIN_DATE, this.MAX_DATE]);
   private userIdSubject = new BehaviorSubject<number | null>(null);
   private aggregationTypeSubject = new BehaviorSubject<AggregationType>(AggregationType.Day);
 
@@ -173,9 +157,6 @@ export class StatsPage implements OnInit, OnDestroy {
     this.loadCurrentUser();
     this.setupUserFilter();
     this.setupAggregationTypeFilter();
-    // Initialize date inputs with current month
-    this.dateFrom.setValue(new Date(this.getFirstDayOfMonth()).toISOString().split('T')[0]);
-    this.dateTo.setValue(new Date(this.getToday()).toISOString().split('T')[0]);
   }
 
   ngOnDestroy() {
@@ -218,24 +199,6 @@ export class StatsPage implements OnInit, OnDestroy {
     const { lower, upper } = event.detail.value;
     this.dateRange.set([lower, upper]);
     this.dateRangeSubject.next([lower, upper]);
-
-    // Update date inputs
-    this.dateFrom.setValue(new Date(lower).toISOString().split('T')[0]);
-    this.dateTo.setValue(new Date(upper).toISOString().split('T')[0]);
-  }
-
-  onDateFromChange(event: any) {
-    const dateFrom = new Date(event.target.value).getTime();
-    const [, dateTo] = this.dateRange();
-    this.dateRange.set([dateFrom, dateTo]);
-    this.dateRangeSubject.next([dateFrom, dateTo]);
-  }
-
-  onDateToChange(event: any) {
-    const [dateFrom] = this.dateRange();
-    const dateTo = new Date(event.target.value).getTime();
-    this.dateRange.set([dateFrom, dateTo]);
-    this.dateRangeSubject.next([dateFrom, dateTo]);
   }
 
   onUserChange() {
@@ -251,10 +214,8 @@ export class StatsPage implements OnInit, OnDestroy {
   }
 
   clearFilters() {
-    this.dateRange.set([this.getFirstDayOfMonth(), this.getToday()]);
-    this.dateRangeSubject.next([this.getFirstDayOfMonth(), this.getToday()]);
-    this.dateFrom.setValue(new Date(this.getFirstDayOfMonth()).toISOString().split('T')[0]);
-    this.dateTo.setValue(new Date(this.getToday()).toISOString().split('T')[0]);
+    this.dateRange.set([this.MIN_DATE, this.MAX_DATE]);
+    this.dateRangeSubject.next([this.MIN_DATE, this.MAX_DATE]);
     this.userId.setValue(null);
     this.selectedUserId.set(null);
     this.userIdSubject.next(null);
