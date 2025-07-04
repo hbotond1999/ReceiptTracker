@@ -6,7 +6,6 @@ import {
   IonToolbar,
   IonTitle,
   IonContent,
-  IonRange,
   IonSelect,
   IonSelectOption,
   IonButton,
@@ -14,18 +13,17 @@ import {
   IonCardHeader,
   IonCardTitle,
   IonCardContent,
-  IonSpinner,
-  IonItem,
   IonLabel,
-  IonNote,
-  IonList
+  IonDatetimeButton,
+  IonDatetime,
+  IonModal
 } from '@ionic/angular/standalone';
 
 import { ReceiptService } from '../../api/api/receipt.service';
 import { AuthService } from '../../api/api/auth.service';
 import { UserOut } from '../../api/model/userOut';
 import { AggregationType } from '../../api/model/aggregationType';
-import { Observable, BehaviorSubject, switchMap, map, catchError, of, Subscription } from 'rxjs';
+import { Observable, switchMap, map, catchError, of, Subscription } from 'rxjs';
 
 // Chart components
 import { ReceiptsChartComponent } from './components/receipts-chart/receipts-chart.component';
@@ -50,7 +48,6 @@ import { MarketAverageSpentChartComponent } from './components/market-average-sp
     IonToolbar,
     IonTitle,
     IonContent,
-    IonRange,
     IonSelect,
     IonSelectOption,
     IonButton,
@@ -58,19 +55,17 @@ import { MarketAverageSpentChartComponent } from './components/market-average-sp
     IonCardHeader,
     IonCardTitle,
     IonCardContent,
-    IonSpinner,
-    IonItem,
     IonLabel,
-    IonNote,
-    IonList,
     ReceiptsChartComponent,
     AmountsChartComponent,
-    WordCloudComponent,
     KpiCardComponent,
     TopItemsComponent,
     MarketTotalSpentChartComponent,
     MarketTotalReceiptsChartComponent,
-    MarketAverageSpentChartComponent
+    MarketAverageSpentChartComponent,
+    IonDatetimeButton,
+    IonModal,
+    IonDatetime
   ],
 })
 export class StatsPage implements OnInit, OnDestroy {
@@ -79,13 +74,7 @@ export class StatsPage implements OnInit, OnDestroy {
   private readonly authService = inject(AuthService);
 
   // Constants
-  private readonly MIN_DATE = new Date('2023-01-01').getTime();
-  private readonly MAX_DATE = new Date().getTime();
-  private readonly DEFAULT_DATE_RANGE: [number, number] = [this.MIN_DATE, this.MAX_DATE];
-
-  // Public constants for template
-  readonly minDate = this.MIN_DATE;
-  readonly maxDate = this.MAX_DATE;
+  private readonly DEFAULT_DATE_RANGE: [string, string] = [new Date(new Date().getFullYear(), 0, 1).toISOString().split('T')[0], new Date().toISOString().split('T')[0]];
 
   // Aggregation type options
   readonly aggregationTypeOptions = [
@@ -96,12 +85,12 @@ export class StatsPage implements OnInit, OnDestroy {
 
   // User state
   currentUser = signal<UserOut | null>(null);
-  isAdmin = computed(() => 
+  isAdmin = computed(() =>
     this.currentUser()?.roles?.some(role => role === 'admin') || false
   );
 
   // Filter state
-  dateRange = signal<[number, number]>(this.DEFAULT_DATE_RANGE);
+  dateRange = signal<[string, string]>(this.DEFAULT_DATE_RANGE);
   selectedUserId = signal<number | null>(null);
   selectedAggregationType = signal<AggregationType>(AggregationType.Month);
 
@@ -111,8 +100,8 @@ export class StatsPage implements OnInit, OnDestroy {
 
   // Chart computed properties
   chartParams = computed(() => ({
-    dateFrom: new Date(this.dateRange()[0]).toISOString(),
-    dateTo: new Date(this.dateRange()[1]).toISOString(),
+    dateFrom: this.dateRange()[0] + 'T00:00:00.000Z',
+    dateTo: this.dateRange()[1] + 'T23:59:59.999Z',
     userId: this.isAdmin() ? this.selectedUserId() : null,
     aggregationType: this.selectedAggregationType()
   }));
@@ -137,12 +126,14 @@ export class StatsPage implements OnInit, OnDestroy {
   }
 
   // Event handlers
-  onDateRangeInput(event: any): void {
-    this.updateDateRange(event.detail.value);
+  onDateFromChange(event: any): void {
+    const dateFrom = event.detail.value.split('T')[0];
+    this.dateRange.set([dateFrom, this.dateRange()[1]]);
   }
 
-  onDateRangeChange(event: any): void {
-    this.updateDateRange(event.detail.value);
+  onDateToChange(event: any): void {
+    const dateTo = event.detail.value.split('T')[0];
+    this.dateRange.set([this.dateRange()[0], dateTo]);
   }
 
   onUserChange(): void {
@@ -179,7 +170,7 @@ export class StatsPage implements OnInit, OnDestroy {
 
   private setupFormSubscriptions(): void {
     this.subscriptions.push(
-      this.userId.valueChanges.subscribe(userId => 
+      this.userId.valueChanges.subscribe(userId =>
         this.selectedUserId.set(userId)
       ),
       this.aggregationType.valueChanges.subscribe(aggregationType => {
@@ -189,9 +180,7 @@ export class StatsPage implements OnInit, OnDestroy {
     );
   }
 
-  private updateDateRange(value: { lower: number; upper: number }): void {
-    this.dateRange.set([value.lower, value.upper]);
-  }
+
 
   private isUserAdmin(user: UserOut | null): boolean {
     return user?.roles?.some(role => role === 'admin') || false;

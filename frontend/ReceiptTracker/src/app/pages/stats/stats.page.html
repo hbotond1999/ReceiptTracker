@@ -12,20 +12,37 @@
     </ion-card-header>
     <ion-card-content>
       <div style="display: flex; gap: 1rem; flex-wrap: wrap; align-items: center;">
-        <ion-range
-          [min]="minDate"
-          [max]="maxDate"
-          [value]="{ lower: dateRange()[0], upper: dateRange()[1] }"
-          [dualKnobs]="true"
-          (ionInput)="onDateRangeInput($event)"
-          (ionChange)="onDateRangeChange($event)"
-          style="flex: 1 1 300px; max-width: 400px;"
-        >
-        </ion-range>
-        <div style="min-width: 180px; text-align: center; font-size: 0.95em;">
-          <span>{{ dateRange() && (dateRange()[0] | date:'yyyy.MM.dd') }}</span>
-          &ndash;
-          <span>{{ dateRange() && (dateRange()[1] | date:'yyyy.MM.dd') }}</span>
+        <!-- Dátum választók -->
+        <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+          <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+            <ion-label>Kezdő dátum:</ion-label>
+            <ion-datetime-button datetime="datetime-from" ></ion-datetime-button>
+            <ion-modal [keepContentsMounted]="true">
+              <ng-template>
+              <ion-datetime
+                id="datetime-from"
+                presentation="date"
+                [value]="dateRange()[0]"
+                (ionChange)="onDateFromChange($event)"
+              ></ion-datetime>
+              </ng-template>
+            </ion-modal>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+            <ion-label>Vég dátum:</ion-label>
+            <ion-datetime-button datetime="datetime-to"></ion-datetime-button>
+            <ion-modal [keepContentsMounted]="true">
+              <ng-template>
+              <ion-datetime
+                id="datetime-to"
+                presentation="date"
+                [value]="dateRange()[1]"
+                (ionChange)="onDateToChange($event)"
+              ></ion-datetime>
+              </ng-template>
+            </ion-modal>
+          </div>
         </div>
 
         <!-- User filter (admin only) -->
