@@ -94,26 +94,6 @@ export class ReceiptsChartComponent implements OnInit, OnChanges, OnDestroy {
     }
   }
 
-  private formatDateForChart(dateValue: any): number {
-    if (typeof dateValue === 'string') {
-      // For day aggregation, it's a date string
-      return new Date(dateValue).getTime();
-    } else if (typeof dateValue === 'number') {
-      // For month/year aggregation, it's a numeric value
-      if (this.aggregationType === AggregationType.Year) {
-        // Year format: YYYY -> create date for Jan 1st of that year
-        return new Date(dateValue, 0, 1).getTime();
-      } else if (this.aggregationType === AggregationType.Month) {
-        // Month format: YYYYMM -> create date for 1st of that month
-        const year = Math.floor(dateValue / 100);
-        const month = dateValue % 100;
-        return new Date(year, month - 1, 1).getTime();
-      }
-    }
-    // Fallback
-    return new Date(dateValue).getTime();
-  }
-
   private initializeChart() {
     if (this.root) {
       this.root.dispose();
@@ -210,7 +190,7 @@ export class ReceiptsChartComponent implements OnInit, OnChanges, OnDestroy {
         this.isLoading = false;
         if (data && this.chart) {
           const formattedData = data.map(d => ({
-            date: this.formatDateForChart(d.date),
+            date: new Date(d.date).getTime(),
             value: d.value
           }));
 
