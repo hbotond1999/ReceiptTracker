@@ -28,7 +28,6 @@ import { Observable, switchMap, map, catchError, of, Subscription } from 'rxjs';
 // Chart components
 import { ReceiptsChartComponent } from './components/receipts-chart/receipts-chart.component';
 import { AmountsChartComponent } from './components/amounts-chart/amounts-chart.component';
-import { WordCloudComponent } from './components/wordcloud/wordcloud.component';
 import { KpiCardComponent } from './components/kpi-card/kpi-card.component';
 import { TopItemsComponent } from './components/top-items/top-items.component';
 import { MarketTotalSpentChartComponent } from './components/market-total-spent-chart/market-total-spent-chart.component';

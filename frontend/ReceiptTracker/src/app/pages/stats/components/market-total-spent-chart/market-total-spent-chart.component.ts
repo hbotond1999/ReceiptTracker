@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { Component, Input, OnChanges, OnDestroy, OnInit, SimpleChanges, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
@@ -19,6 +18,7 @@ import * as am5 from '@amcharts/amcharts5';
 import * as am5xy from '@amcharts/amcharts5/xy';
 import am5themes_Animated from '@amcharts/amcharts5/themes/Animated';
 import am5themes_Dark from '@amcharts/amcharts5/themes/Dark';
+import {StatisticService} from "../../../../api";
 
 @Component({
   selector: 'app-market-total-spent-chart',
@@ -39,13 +39,13 @@ export class MarketTotalSpentChartComponent implements OnInit, OnChanges, OnDest
   @Input() dateTo!: string;
   @Input() userId?: number | null;
 
-  private receiptService = inject(ReceiptService);
+  private statisticService = inject(StatisticService);
   private darkModeService = inject(DarkModeService);
   private root?: am5.Root;
   private chart?: am5xy.XYChart;
   private subscription?: Subscription;
   private darkModeSubscription?: Subscription;
-  
+
   chartId = Math.random().toString(36).substr(2, 9);
   isLoading = false;
 
@@ -83,10 +83,11 @@ export class MarketTotalSpentChartComponent implements OnInit, OnChanges, OnDest
     }
 
     this.root = am5.Root.new(`market-total-spent-chart-${this.chartId}`);
-    
+
     // Set themes based on dark mode
     const themes = [am5themes_Animated.new(this.root)];
     if (this.darkModeService.getCurrentDarkMode()) {
+      // @ts-ignore
       themes.push(am5themes_Dark.new(this.root));
     }
     this.root.setThemes(themes);
@@ -147,7 +148,7 @@ export class MarketTotalSpentChartComponent implements OnInit, OnChanges, OnDest
       this.subscription.unsubscribe();
     }
 
-    this.subscription = this.receiptService.getMarketTotalSpentStatisticStatisticsMarketTotalSpentGet(
+    this.subscription = this.statisticService.getMarketTotalSpentStatisticMarketTotalSpentGet(
       this.dateFrom,
       this.dateTo,
       this.userId || undefined
@@ -168,21 +169,21 @@ export class MarketTotalSpentChartComponent implements OnInit, OnChanges, OnDest
 
   private updateChartData(data: any[]) {
     if (!this.chart) return;
-    const xAxis = this.chart.xAxes.getIndex(0) as am5xy.CategoryAxis;
-    const series = this.chart.series.getIndex(0) as am5xy.ColumnSeries;
-    xAxis.data.setAll(data);
-    series.data.setAll(data);
+    const xAxis = this.chart.xAxes.getIndex(0)
+    const series = this.chart.series.getIndex(0)
+    xAxis?.data.setAll(data);
+    series?.data.setAll(data);
   }
 
   private cleanup() {
     if (this.subscription) {
       this.subscription.unsubscribe();
     }
-    
+
     if (this.darkModeSubscription) {
       this.darkModeSubscription.unsubscribe();
     }
-    
+
     if (this.root) {
       this.root.dispose();
     }

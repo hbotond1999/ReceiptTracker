@@ -1,17 +1,18 @@
 import { Component, Input, OnChanges, OnDestroy, OnInit, SimpleChanges, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { 
-  IonCard, 
-  IonCardHeader, 
-  IonCardTitle, 
-  IonCardContent, 
-  IonSpinner 
+import {
+  IonCard,
+  IonCardHeader,
+  IonCardTitle,
+  IonCardContent,
+  IonSpinner
 } from '@ionic/angular/standalone';
 import { ReceiptService } from '../../../../api/api/receipt.service';
 import { TotalSpentKPI } from '../../../../api/model/totalSpentKPI';
 import { TotalReceiptsKPI } from '../../../../api/model/totalReceiptsKPI';
 import { AverageReceiptValueKPI } from '../../../../api/model/averageReceiptValueKPI';
 import { Subscription } from 'rxjs';
+import {StatisticService} from "../../../../api";
 
 export type KPIType = 'totalSpent' | 'totalReceipts' | 'averageReceiptValue';
 
@@ -38,9 +39,9 @@ export class KpiCardComponent implements OnInit, OnChanges, OnDestroy {
   @Input() color: string = 'primary';
   @Input() unit?: string;
 
-  private receiptService = inject(ReceiptService);
+  private statisticService = inject(StatisticService);
   private subscription?: Subscription;
-  
+
   value: number | null = null;
   isLoading = false;
 
@@ -65,7 +66,7 @@ export class KpiCardComponent implements OnInit, OnChanges, OnDestroy {
 
     this.isLoading = true;
     this.value = null;
-    
+
     // Unsubscribe from previous subscription
     if (this.subscription) {
       this.subscription.unsubscribe();
@@ -73,7 +74,7 @@ export class KpiCardComponent implements OnInit, OnChanges, OnDestroy {
 
     switch (this.kpiType) {
       case 'totalSpent':
-        this.subscription = this.receiptService.getTotalSpentKpiStatisticStatisticsKpiTotalSpentGet(
+        this.subscription = this.statisticService.getTotalSpentKpiStatisticKpiTotalSpentGet(
           this.dateFrom,
           this.dateTo,
           this.userId || undefined
@@ -90,7 +91,7 @@ export class KpiCardComponent implements OnInit, OnChanges, OnDestroy {
         break;
 
       case 'totalReceipts':
-        this.subscription = this.receiptService.getTotalReceiptsKpiStatisticStatisticsKpiTotalReceiptsGet(
+        this.subscription = this.statisticService.getTotalReceiptsKpiStatisticKpiTotalReceiptsGet(
           this.dateFrom,
           this.dateTo,
           this.userId || undefined
@@ -107,7 +108,7 @@ export class KpiCardComponent implements OnInit, OnChanges, OnDestroy {
         break;
 
       case 'averageReceiptValue':
-        this.subscription = this.receiptService.getAverageReceiptValueKpiStatisticKpiAverageReceiptValueGet(
+        this.subscription = this.statisticService.getAverageReceiptValueKpiStatisticKpiAverageReceiptValueGet(
           this.dateFrom,
           this.dateTo,
           this.userId || undefined
@@ -130,4 +131,4 @@ export class KpiCardComponent implements OnInit, OnChanges, OnDestroy {
       this.subscription.unsubscribe();
     }
   }
-} 
+}

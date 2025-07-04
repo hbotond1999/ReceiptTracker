@@ -1,10 +1,10 @@
 import { Component, Input, OnChanges, OnDestroy, OnInit, SimpleChanges, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { 
-  IonCard, 
-  IonCardHeader, 
-  IonCardTitle, 
-  IonCardContent, 
+import {
+  IonCard,
+  IonCardHeader,
+  IonCardTitle,
+  IonCardContent,
   IonSpinner,
   IonList,
   IonItem,
@@ -15,6 +15,7 @@ import { ReceiptService } from '../../../../api/api/receipt.service';
 import { TopItemsKPI } from '../../../../api/model/topItemsKPI';
 import { TopItem } from '../../../../api/model/topItem';
 import { Subscription } from 'rxjs';
+import {StatisticService} from "../../../../api";
 
 @Component({
   selector: 'app-top-items',
@@ -40,9 +41,9 @@ export class TopItemsComponent implements OnInit, OnChanges, OnDestroy {
   @Input() userId?: number | null;
   @Input() limit: number = 10;
 
-  private receiptService = inject(ReceiptService);
+  private statisticService = inject(StatisticService);
   private subscription?: Subscription;
-  
+
   topItems: TopItem[] = [];
   isLoading = false;
 
@@ -66,13 +67,13 @@ export class TopItemsComponent implements OnInit, OnChanges, OnDestroy {
     }
 
     this.isLoading = true;
-    
+
     // Unsubscribe from previous subscription
     if (this.subscription) {
       this.subscription.unsubscribe();
     }
 
-    this.subscription = this.receiptService.getTopItemsKpiStatisticKpiTopItemsGet(
+    this.subscription = this.statisticService.getTopItemsKpiStatisticKpiTopItemsGet(
       this.dateFrom,
       this.dateTo,
       this.userId || undefined,
@@ -95,4 +96,4 @@ export class TopItemsComponent implements OnInit, OnChanges, OnDestroy {
       this.subscription.unsubscribe();
     }
   }
-} 
+}

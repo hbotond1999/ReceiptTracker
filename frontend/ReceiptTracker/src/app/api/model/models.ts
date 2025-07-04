@@ -9,7 +9,6 @@ export * from './marketTotalReceiptsList';
 export * from './marketTotalSpent';
 export * from './marketTotalSpentList';
 export * from './marketUpdateRequest';
-export * from './modelDate';
 export * from './profilePictureOut';
 export * from './receiptCreateRequest';
 export * from './receiptItemCreateRequest';

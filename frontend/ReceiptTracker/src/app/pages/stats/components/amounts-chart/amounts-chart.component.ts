@@ -7,9 +7,9 @@ import {
   IonCardContent,
   IonSpinner
 } from '@ionic/angular/standalone';
-import { ReceiptService } from '../../../../api/api/receipt.service';
-import { TimeSeriesData } from '../../../../api/model/timeSeriesData';
-import { AggregationType } from '../../../../api/model/aggregationType';
+import {ReceiptService, StatisticService} from '../../../../api';
+import { TimeSeriesData } from '../../../../api';
+import { AggregationType } from '../../../../api';
 import { Subscription } from 'rxjs';
 import { DarkModeService } from '../../../../services/dark-mode.service';
 
@@ -41,7 +41,7 @@ export class AmountsChartComponent implements OnInit, OnChanges, OnDestroy {
 
   @ViewChild('chartContainer', { static: false }) chartContainer!: ElementRef;
 
-  private receiptService = inject(ReceiptService);
+  private statisticService = inject(StatisticService);
   private darkModeService = inject(DarkModeService);
   private root?: am5.Root;
   private chart?: am5xy.XYChart;
@@ -199,7 +199,7 @@ export class AmountsChartComponent implements OnInit, OnChanges, OnDestroy {
       this.subscription.unsubscribe();
     }
 
-    this.subscription = this.receiptService.getAmountsTimeseriesStatisticStatisticsTimeseriesAmountsGet(
+    this.subscription = this.statisticService.getAmountsTimeseriesStatisticTimeseriesAmountsGet(
       this.dateFrom,
       this.dateTo,
       this.userId || undefined,

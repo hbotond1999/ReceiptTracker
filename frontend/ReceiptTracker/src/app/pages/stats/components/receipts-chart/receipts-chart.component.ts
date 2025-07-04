@@ -18,6 +18,7 @@ import * as am5 from '@amcharts/amcharts5';
 import * as am5xy from '@amcharts/amcharts5/xy';
 import am5themes_Animated from '@amcharts/amcharts5/themes/Animated';
 import am5themes_Dark from '@amcharts/amcharts5/themes/Dark';
+import {StatisticService} from "../../../../api";
 
 @Component({
   selector: 'app-receipts-chart',
@@ -41,7 +42,7 @@ export class ReceiptsChartComponent implements OnInit, OnChanges, OnDestroy {
 
   @ViewChild('chartContainer', { static: false }) chartContainer!: ElementRef;
 
-  private receiptService = inject(ReceiptService);
+  private statisticService = inject(StatisticService);
   private darkModeService = inject(DarkModeService);
   private root?: am5.Root;
   private chart?: am5xy.XYChart;
@@ -199,7 +200,7 @@ export class ReceiptsChartComponent implements OnInit, OnChanges, OnDestroy {
       this.subscription.unsubscribe();
     }
 
-    this.subscription = this.receiptService.getReceiptsTimeseriesStatisticTimeseriesReceiptsGet(
+    this.subscription = this.statisticService.getReceiptsTimeseriesStatisticTimeseriesReceiptsGet(
       this.dateFrom,
       this.dateTo,
       this.userId || undefined,

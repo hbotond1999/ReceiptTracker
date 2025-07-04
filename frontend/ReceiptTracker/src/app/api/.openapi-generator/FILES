@@ -5,6 +5,7 @@ api.module.ts
 api/api.ts
 api/auth.service.ts
 api/receipt.service.ts
+api/statistic.service.ts
 configuration.ts
 encoder.ts
 git_push.sh
@@ -20,7 +21,6 @@ model/marketTotalReceiptsList.ts
 model/marketTotalSpent.ts
 model/marketTotalSpentList.ts
 model/marketUpdateRequest.ts
-model/modelDate.ts
 model/models.ts
 model/profilePictureOut.ts
 model/receiptCreateRequest.ts

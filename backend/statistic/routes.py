@@ -15,7 +15,7 @@ from statistic.models import TotalSpentKPI, TotalReceiptsKPI, AverageReceiptValu
 router = APIRouter(prefix="/statistic", tags=["statistic"])
 
 
-@router.get("/statistics/kpi/total-spent", response_model=TotalSpentKPI)
+@router.get("/kpi/total-spent", response_model=TotalSpentKPI)
 async def get_total_spent_kpi(
         current_user: User = Depends(get_current_user),
         date_from: Optional[datetime] = Query(None, description="Szűrés kezdő dátum alapján"),
@@ -47,7 +47,7 @@ async def get_total_spent_kpi(
         return TotalSpentKPI(total_spent=total_spent or 0.0)
 
 
-@router.get("/statistics/kpi/total-receipts", response_model=TotalReceiptsKPI)
+@router.get("/kpi/total-receipts", response_model=TotalReceiptsKPI)
 async def get_total_receipts_kpi(
         current_user: User = Depends(get_current_user),
         date_from: Optional[datetime] = Query(None, description="Szűrés kezdő dátum alapján"),
@@ -223,7 +223,7 @@ async def get_receipts_timeseries(
             TimeSeriesData(date=row.date, value=float(row.value))
             for row in results
         ]
-@router.get("/statistics/timeseries/amounts", response_model=List[TimeSeriesData])
+@router.get("/timeseries/amounts", response_model=List[TimeSeriesData])
 async def get_amounts_timeseries(
         current_user: User = Depends(get_current_user),
         date_from: Optional[datetime] = Query(None, description="Szűrés kezdő dátum alapján"),
@@ -321,7 +321,7 @@ async def get_wordcloud_data(
 
         return wordcloud_data
     
-@router.get("/statistics/market/total-spent", response_model=MarketTotalSpentList)
+@router.get("/market/total-spent", response_model=MarketTotalSpentList)
 async def get_market_total_spent(
     current_user: User = Depends(get_current_user),
     date_from: Optional[datetime] = Query(None, description="Szűrés kezdő dátum alapján"),
@@ -363,7 +363,7 @@ async def get_market_total_spent(
 
         return MarketTotalSpentList(markets=markets)
 
-@router.get("/statistics/market/total-receipts", response_model=MarketTotalReceiptsList)
+@router.get("/market/total-receipts", response_model=MarketTotalReceiptsList)
 async def get_market_total_receipts(
     current_user: User = Depends(get_current_user),
     date_from: Optional[datetime] = Query(None, description="Szűrés kezdő dátum alapján"),
@@ -402,7 +402,7 @@ async def get_market_total_receipts(
 
         return MarketTotalReceiptsList(markets=markets)
 
-@router.get("/statistics/market/average-spent", response_model=MarketAverageSpentList)
+@router.get("/market/average-spent", response_model=MarketAverageSpentList)
 async def get_market_average_spent(
     current_user: User = Depends(get_current_user),
     date_from: Optional[datetime] = Query(None, description="Szűrés kezdő dátum alapján"),
