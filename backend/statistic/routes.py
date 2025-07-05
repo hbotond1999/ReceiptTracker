@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Depends, Query
 from sqlmodel import Session, select, func
 from typing import List, Optional
-from datetime import datetime, date
-from sqlalchemy import text, cast, Integer, Date, func as sa_func, distinct
+from datetime import datetime
+from sqlalchemy import text, distinct
 
 from auth.models import User
 from auth.routes import engine, get_current_user
@@ -25,7 +25,7 @@ async def get_total_spent_kpi(
     """Get total spent KPI - calculated in database"""
     with Session(engine) as session:
         # Build query with JOIN to get total spent directly from database
-        query = select(func.sum(ReceiptItem.price)).select_from(
+        query = select(func.sum(ReceiptItem.unit_price * ReceiptItem.quantity)).select_from(
             ReceiptItem.__table__.join(Receipt.__table__, ReceiptItem.receipt_id == Receipt.id)
         )
 
@@ -88,7 +88,7 @@ async def get_average_receipt_value_kpi(
     with Session(engine) as session:
         # Build query to calculate average receipt value
         # First get total spent
-        total_query = select(func.sum(ReceiptItem.price)).select_from(
+        total_query = select(func.sum(ReceiptItem.unit_price * ReceiptItem.quantity)).select_from(
             ReceiptItem.__table__.join(Receipt.__table__, ReceiptItem.receipt_id == Receipt.id)
         )
 
@@ -140,8 +140,8 @@ async def get_top_items_kpi(
         # Build query to get top items with aggregation
         query = select(
             ReceiptItem.name,
-            func.count().label("count"),
-            func.sum(ReceiptItem.price).label("total_spent")
+            func.sum(ReceiptItem.quantity).label("count"),
+            func.sum(ReceiptItem.unit_price * ReceiptItem.quantity).label("total_spent")
         ).select_from(
             ReceiptItem.__table__.join(Receipt.__table__, ReceiptItem.receipt_id == Receipt.id)
         ).group_by(ReceiptItem.name)
@@ -244,7 +244,7 @@ async def get_amounts_timeseries(
         # Build query with SQL aggregation
         stmt = select(
             date_expr.label("date"),
-            func.sum(ReceiptItem.price).label("total_amount")
+            func.sum(ReceiptItem.unit_price * ReceiptItem.quantity).label("total_amount")
         ).select_from(Receipt).join(ReceiptItem)
 
         # Filtering
@@ -286,7 +286,7 @@ async def get_wordcloud_data(
         query = select(
             ReceiptItem.name,
             func.count().label("count"),
-            func.sum(ReceiptItem.price).label("total_spent")
+            func.sum(ReceiptItem.unit_price * ReceiptItem.quantity).label("total_spent")
         ).select_from(
             ReceiptItem.__table__.join(Receipt.__table__, ReceiptItem.receipt_id == Receipt.id)
         ).group_by(ReceiptItem.name)
@@ -330,10 +330,9 @@ async def get_market_total_spent(
 ):
     """Összköltés marketenként - minden aggregáció az adatbázisban történik"""
     with Session(engine) as session:
-        # Build base query: SUM(ReceiptItem.price) GROUP BY Market.name
         query = select(
             Market.name,
-            func.sum(ReceiptItem.price).label("total_spent")
+            func.sum(ReceiptItem.unit_price * ReceiptItem.quantity).label("total_spent")
         ).select_from(
             ReceiptItem.__table__
             .join(Receipt.__table__, ReceiptItem.receipt_id == Receipt.id)
@@ -374,7 +373,7 @@ async def get_market_total_receipts(
     with Session(engine) as session:
         query = select(
             Market.name,
-            func.count().label("total_receipts")
+            func.sum(ReceiptItem.quantity).label("total_receipts")
         ).select_from(
             Receipt.__table__.join(Market.__table__, Receipt.market_id == Market.id)
         )
@@ -411,8 +410,7 @@ async def get_market_average_spent(
 ):
     """Átlagos költés marketenként - aggregáció az adatbázisban"""
     with Session(engine) as session:
-        # SUM(price) / COUNT(DISTINCT receipt.id) per market
-        avg_expr = func.sum(ReceiptItem.price) / func.count(distinct(Receipt.id))
+        avg_expr = func.sum(ReceiptItem.unit_price * ReceiptItem.quantity) / func.count(distinct(Receipt.id))
 
         query = select(
             Market.name,

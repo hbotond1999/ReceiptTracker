@@ -13,5 +13,8 @@ export interface ReceiptItemOut {
     id: number;
     name: string;
     price: number;
+    unit_price: number;
+    quantity: number;
+    unit: string;
 }
 

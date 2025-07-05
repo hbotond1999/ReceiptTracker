@@ -20,12 +20,17 @@ class ReceiptItemOut(BaseModel):
     id: int
     name: str
     price: float
+    unit_price: float
+    quantity: float
+    unit: str
 
 
 class ReceiptItemUpdateRequest(BaseModel):
     id: Optional[int] = None  # None means new item
     name: str
-    price: float
+    unit_price: float
+    quantity: float
+    unit: str
 
 
 class ReceiptOut(BaseModel):
@@ -46,7 +51,9 @@ class ReceiptOut(BaseModel):
 
 class ReceiptItemCreateRequest(BaseModel):
     name: str
-    price: float
+    unit_price: float
+    quantity: float
+    unit: str
 
 
 class ReceiptCreateRequest(BaseModel):

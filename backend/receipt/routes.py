@@ -98,7 +98,9 @@ async def create_receipt(
         for item in receipt_data.items:
             receipt_item = ReceiptItem(
                 name=item.name,
-                price=item.price,
+                unit_price=item.unit_price,
+                quantity=item.quantity,
+                unit=item.unit,
                 receipt_id=receipt.id
             )
             session.add(receipt_item)
@@ -108,7 +110,7 @@ async def create_receipt(
         items = session.exec(select(ReceiptItem).where(ReceiptItem.receipt_id == receipt.id)).all()
         
         # Calculate total
-        total = sum(item.price for item in items)
+        total = sum(item.unit_price * item.quantity for item in items)
         
         # Create a complete response using the schema
         response = ReceiptOut(
@@ -139,7 +141,10 @@ async def create_receipt(
                 ReceiptItemOut(
                     id=item.id or 0,
                     name=item.name,
-                    price=item.price
+                    price=item.quantity * item.unit_price,
+                    unit_price=item.unit_price,
+                    quantity=item.quantity,
+                    unit=item.unit
                 )
                 for item in items
             ],
@@ -204,7 +209,7 @@ async def get_receipts(
                 continue
             
             # Calculate total for this receipt
-            total = sum(item.price for item in items)
+            total = sum(item.unit_price * item.quantity for item in items)
             
             # Create response object
             response = ReceiptOut(
@@ -235,7 +240,10 @@ async def get_receipts(
                     ReceiptItemOut(
                         id=item.id or 0,
                         name=item.name,
-                        price=item.price
+                        price=item.unit_price * item.quantity,
+                        unit_price=item.unit_price,
+                        quantity=item.quantity,
+                        unit=item.unit
                     )
                     for item in items
                 ],
@@ -308,7 +316,9 @@ async def update_receipt(
                     existing_item = session.exec(select(ReceiptItem).where(ReceiptItem.id == item_data.id)).first()
                     if existing_item and existing_item.receipt_id == receipt_id:
                         existing_item.name = item_data.name
-                        existing_item.price = item_data.price
+                        existing_item.unit_price = item_data.unit_price
+                        existing_item.quantity = item_data.quantity
+                        existing_item.unit = item_data.unit
                         items_to_keep.add(item_data.id)
                     else:
                         raise HTTPException(status_code=400, detail=f"Item with id {item_data.id} not found or doesn't belong to this receipt")
@@ -316,7 +326,9 @@ async def update_receipt(
                     # Add new item
                     new_item = ReceiptItem(
                         name=item_data.name,
-                        price=item_data.price,
+                        unit_price=item_data.unit_price,
+                        quantity=item_data.quantity,
+                        unit=item_data.unit,
                         receipt_id=receipt_id
                     )
                     session.add(new_item)
@@ -371,7 +383,9 @@ async def update_receipt(
                 ReceiptItemOut(
                     id=item.id or 0,
                     name=item.name,
-                    price=item.price
+                    unit_price=item.unit_price,
+                    quantity=item.quantity,
+                    unit=item.unit
                 )
                 for item in items
             ],
@@ -562,8 +576,10 @@ async def create_receipt_manual(
             for item_data in receipt_data.items:
                 receipt_item = ReceiptItem(
                     name=item_data.name,
-                    price=item_data.price,
-                    receipt_id=receipt.id
+                    receipt_id=receipt.id,
+                    unit_price=item_data.unit_price,
+                    quantity=item_data.quantity,
+                    unit=item_data.unit
                 )
                 session.add(receipt_item)
                 items.append(receipt_item)
@@ -600,7 +616,10 @@ async def create_receipt_manual(
                 ReceiptItemOut(
                     id=item.id or 0,
                     name=item.name,
-                    price=item.price
+                    unit_price=item.unit_price,
+                    quantity=item.quantity,
+                    unit=item.unit,
+                    price=item.unit_price * item.quantity,
                 )
                 for item in items
             ],
