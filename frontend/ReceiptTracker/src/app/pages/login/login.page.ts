@@ -1,11 +1,11 @@
-import { Component, OnInit } from '@angular/core';
+import {Component, OnDestroy, OnInit} from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, FormsModule, Validators } from '@angular/forms';
 import { Store } from '@ngrx/store';
 import { login, biometricLogin, enableBiometric } from '../../store/auth/auth.actions';
 import { selectAuthError, selectAuthLoading, selectIsAuthenticated } from '../../store/auth/auth.selectors';
 import { IonContent, IonHeader, IonTitle, IonToolbar, IonInput, IonButton, IonItem, IonLabel, IonSpinner, IonIcon, IonCheckbox, IonToast, IonAlert } from '@ionic/angular/standalone';
 import { CommonModule } from '@angular/common';
-import { Observable } from 'rxjs';
+import {Observable, Subscription} from 'rxjs';
 import { Router } from '@angular/router';
 import { BiometricService } from '../../services/biometric.service';
 import { BiometryType } from 'capacitor-native-biometric';
@@ -36,18 +36,18 @@ import { fingerPrint, eye, checkmark } from 'ionicons/icons';
   templateUrl: './login.page.html',
   styleUrls: ['./login.page.scss']
 })
-export class LoginPage implements OnInit {
+export class LoginPage implements OnInit, OnDestroy {
   form: FormGroup;
   loading$: Observable<boolean>;
   error$: Observable<string | null>;
-  
+
   // Biometric properties
   biometricAvailable = false;
   biometricType: BiometryType | null = null;
   biometricTypeDisplayName = '';
   hasBiometricCredentials = false;
   enableBiometricAfterLogin = false;
-  
+
   // Toast and alert states
   showSuccessToast = false;
   showErrorToast = false;
@@ -66,15 +66,16 @@ export class LoginPage implements OnInit {
       role: 'cancel'
     }
   ];
+  sub !: Subscription;
 
   constructor(
-    private fb: FormBuilder, 
-    private store: Store, 
+    private fb: FormBuilder,
+    private store: Store,
     private router: Router,
     private biometricService: BiometricService
   ) {
     addIcons({ fingerPrint, eye, checkmark });
-    
+
     this.form = this.fb.group({
       username: ['', Validators.required],
       password: ['', Validators.required]
@@ -91,6 +92,14 @@ export class LoginPage implements OnInit {
 
   async ngOnInit() {
     await this.checkBiometricAvailability();
+    if (this.biometricAvailable && this.hasBiometricCredentials)
+    {
+      this.sub = this.store.select(selectIsAuthenticated).subscribe(isAuthenticated => {
+        if (!isAuthenticated) {
+          this.biometricLogin()
+        }
+      });
+    }
   }
 
   async checkBiometricAvailability() {
@@ -106,7 +115,7 @@ export class LoginPage implements OnInit {
     if (this.form.valid) {
       const { username, password } = this.form.value;
       this.store.dispatch(login({ username, password }));
-      
+
       // If biometric is available and user wants to enable it
       if (this.biometricAvailable && this.enableBiometricAfterLogin) {
         this.store.dispatch(enableBiometric({ username, password }));
@@ -116,12 +125,12 @@ export class LoginPage implements OnInit {
     }
   }
 
-  async biometricLogin() {
+  biometricLogin() {
     if (!this.biometricAvailable || !this.hasBiometricCredentials) {
       this.showToast('Biometrikus azonosítás nem érhető el', 'danger');
       return;
     }
-    
+
     this.store.dispatch(biometricLogin());
   }
 
@@ -163,4 +172,11 @@ export class LoginPage implements OnInit {
         return 'finger-print';
     }
   }
-} 
+
+  ngOnDestroy() {
+    if (this.sub)
+    {
+      this.sub.unsubscribe();
+    }
+  }
+}
