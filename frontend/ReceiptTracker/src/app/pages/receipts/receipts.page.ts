@@ -19,7 +19,11 @@ import {
   IonAccordion,
   IonSearchbar,
   IonSpinner,
-  IonNote
+  IonNote,
+  IonCard,
+  IonCardHeader,
+  IonCardTitle,
+  IonCardContent
 } from '@ionic/angular/standalone';
 import { ReceiptService } from '../../api/api/receipt.service';
 import { MarketOut } from '../../api/model/marketOut';
@@ -42,7 +46,7 @@ const MAX_DATE = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 
   styleUrls: ['./receipts.page.scss'],
   imports: [
     IonHeader, IonToolbar, IonTitle, IonContent, IonList, IonItem, IonLabel, IonInput, IonDatetime, IonDatetimeButton, IonModal, IonSelect, IonSelectOption, IonAccordionGroup, IonAccordion, IonSearchbar, IonSpinner, IonNote, ReactiveFormsModule, CommonModule,
-    ReceiptEditModalComponent, IonButton, IonIcon
+    ReceiptEditModalComponent, IonButton, IonIcon, IonCard, IonCardHeader, IonCardTitle, IonCardContent
   ],
   providers: [ReceiptService]
 })
