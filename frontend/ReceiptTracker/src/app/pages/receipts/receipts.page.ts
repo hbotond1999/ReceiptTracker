@@ -9,6 +9,8 @@ import {
   IonLabel,
   IonInput,
   IonDatetime,
+  IonDatetimeButton,
+  IonModal,
   IonSelect,
   IonSelectOption,
   IonButton,
@@ -17,8 +19,7 @@ import {
   IonAccordion,
   IonSearchbar,
   IonSpinner,
-  IonNote,
-  IonRange
+  IonNote
 } from '@ionic/angular/standalone';
 import { ReceiptService } from '../../api/api/receipt.service';
 import { MarketOut } from '../../api/model/marketOut';
@@ -40,7 +41,7 @@ const MAX_DATE = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 
   templateUrl: './receipts.page.html',
   styleUrls: ['./receipts.page.scss'],
   imports: [
-    IonHeader, IonToolbar, IonTitle, IonContent, IonList, IonItem, IonLabel, IonInput, IonDatetime, IonSelect, IonSelectOption, IonAccordionGroup, IonAccordion, IonSearchbar, IonSpinner, IonNote, ReactiveFormsModule, CommonModule, IonRange,
+    IonHeader, IonToolbar, IonTitle, IonContent, IonList, IonItem, IonLabel, IonInput, IonDatetime, IonDatetimeButton, IonModal, IonSelect, IonSelectOption, IonAccordionGroup, IonAccordion, IonSearchbar, IonSpinner, IonNote, ReactiveFormsModule, CommonModule,
     ReceiptEditModalComponent, IonButton, IonIcon
   ],
   providers: [ReceiptService]
@@ -85,19 +86,32 @@ export class ReceiptsPage {
     this.orderDir.valueChanges.subscribe(() => this.onFilterChange());
   }
 
-  onDateRangeChange(ev: CustomEvent) {
+  onDateFromChange(ev: CustomEvent) {
     const val = ev.detail.value;
-    if (val && typeof val.lower === 'number' && typeof val.upper === 'number') {
-      this.dateRange.set([val.lower, val.upper]);
+    if (val) {
+      const newDate = new Date(val).getTime();
+      const [, to] = this.dateRange();
+      this.dateRange.set([newDate, to]);
       this.onFilterChange();
     }
   }
 
-  onDateRangeInput(ev: CustomEvent) {
+  onDateToChange(ev: CustomEvent) {
     const val = ev.detail.value;
-    if (val && typeof val.lower === 'number' && typeof val.upper === 'number') {
-      this.dateRange.set([val.lower, val.upper]);
+    if (val) {
+      const newDate = new Date(val).getTime();
+      const [from] = this.dateRange();
+      this.dateRange.set([from, newDate]);
+      this.onFilterChange();
     }
+  }
+
+  getDateFromISO(): string {
+    return new Date(this.dateRange()[0]).toISOString();
+  }
+
+  getDateToISO(): string {
+    return new Date(this.dateRange()[1]).toISOString();
   }
 
   onFilterChange() {
