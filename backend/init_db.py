@@ -2,6 +2,7 @@ from sqlmodel import SQLModel, Session, select
 from auth.routes import engine
 from auth.models import Role, RoleEnum
 from dotenv import load_dotenv
+from receipt.models import *
 
 load_dotenv()
 

@@ -1,6 +1,6 @@
 <ion-card [color]="color">
   <ion-card-header>
-    <ion-card-title>{{ title }}</ion-card-title>
+    <ion-card-title><span style="color: white">{{ title }}</span></ion-card-title>
   </ion-card-header>
   <ion-card-content>
     <div *ngIf="!isLoading && value !== null" class="kpi-value">
@@ -11,4 +11,4 @@
     </div>
     <ion-spinner *ngIf="isLoading" class="loading-spinner"></ion-spinner>
   </ion-card-content>
-</ion-card> 
+</ion-card>

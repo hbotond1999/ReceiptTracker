@@ -21,7 +21,7 @@ class WordCloudItem(BaseModel):
 
 class TopItem(BaseModel):
     name: str
-    count: int
+    count: float
     total_spent: float
 
 

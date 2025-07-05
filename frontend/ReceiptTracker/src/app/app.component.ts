@@ -3,7 +3,7 @@ import { IonApp, IonRouterOutlet } from '@ionic/angular/standalone';
 import { Store } from '@ngrx/store';
 import { autoLogin } from './store/auth/auth.actions';
 import {addIcons} from "ionicons";
-import {chevronDownOutline, chevronUpOutline, logoIonic, closeOutline, addOutline, trashOutline, createOutline} from "ionicons/icons";
+import {chevronDownOutline, downloadOutline, chevronUpOutline, logoIonic, closeOutline, addOutline, trashOutline, createOutline} from "ionicons/icons";
 
 @Component({
   selector: 'app-root',
@@ -15,7 +15,7 @@ export class AppComponent implements OnInit {
 
   ngOnInit() {
     this.store.dispatch(autoLogin());
-    addIcons({ logoIonic,  chevronUpOutline, chevronDownOutline, trashOutline, createOutline, closeOutline, addOutline });
+    addIcons({ logoIonic,downloadOutline, chevronUpOutline, chevronDownOutline, trashOutline, createOutline, closeOutline, addOutline });
 
   }
 }

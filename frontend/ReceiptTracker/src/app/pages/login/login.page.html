@@ -1,69 +1,73 @@
-<ion-content class="ion-padding">
-  <form [formGroup]="form" (ngSubmit)="submit()">
-    <ion-header>
-      <ion-toolbar color="primary">
-        <ion-title>Bejelentkezés</ion-title>
-      </ion-toolbar>
-    </ion-header>
-    <div class="form-content">
-      <!-- Biometric Login Button (if available and credentials exist) -->
-      <div *ngIf="biometricAvailable && hasBiometricCredentials" class="biometric-section">
-        <ion-button
-          expand="block"
-          fill="outline"
-          color="secondary"
-          (click)="biometricLogin()"
-          [disabled]="loading$ | async">
-          <ion-icon [name]="getBiometricIcon()" slot="start"></ion-icon>
-          Bejelentkezés {{ biometricTypeDisplayName }}sal
-        </ion-button>
+<ion-content class="login-content">
+  <div class="login-container">
+    <div class="login-form-wrapper">
+      <div class="login-header">
+        <ion-icon name="receipt-outline" class="login-icon"></ion-icon>
+        <h1 class="login-title">Bejelentkezés</h1>
+      </div>
+      
+      <form [formGroup]="form" (ngSubmit)="submit()">
+        <div class="form-content">
+          <!-- Biometric Login Button (if available and credentials exist) -->
+          <div *ngIf="biometricAvailable && hasBiometricCredentials" class="biometric-section">
+            <ion-button
+              expand="block"
+              fill="outline"
+              color="secondary"
+              (click)="biometricLogin()"
+              [disabled]="loading$ | async">
+              <ion-icon [name]="getBiometricIcon()" slot="start"></ion-icon>
+              Bejelentkezés {{ biometricTypeDisplayName }}sal
+            </ion-button>
 
-        <div class="divider">
-          <span>vagy</span>
+            <div class="divider">
+              <span>vagy</span>
+            </div>
+          </div>
+
+          <!-- Traditional Login Form -->
+          <ion-item>
+            <ion-label position="floating">Felhasználónév</ion-label>
+            <ion-input formControlName="username" type="text" required></ion-input>
+          </ion-item>
+          <ion-item>
+            <ion-label position="floating">Jelszó</ion-label>
+            <ion-input formControlName="password" type="password" required></ion-input>
+          </ion-item>
+
+          <!-- Enable Biometric Option -->
+          <ion-item *ngIf="biometricAvailable && !hasBiometricCredentials">
+            <ion-checkbox
+              slot="start"
+              [(ngModel)]="enableBiometricAfterLogin"
+              (ionChange)="onEnableBiometricChange($event)">
+            </ion-checkbox>
+            <ion-label>{{ biometricTypeDisplayName }} engedélyezése a jövőben</ion-label>
+          </ion-item>
+
+          <div *ngIf="biometricAvailable && hasBiometricCredentials" class="biometric-management">
+            <ion-button
+              fill="clear"
+              size="small"
+              color="medium"
+              (click)="showBiometricSetupAlert()">
+              <ion-icon name="checkmark" slot="start"></ion-icon>
+              {{ biometricTypeDisplayName }} beállítva
+            </ion-button>
+          </div>
+
+          <div *ngIf="error$ | async as error" class="error">{{ error }}</div>
+
+          <ion-button expand="block" type="submit" class="login-button" [disabled]="form.invalid || (loading$ | async)">
+            <ng-container *ngIf="loading$ | async; else loginText">
+              <ion-spinner name="crescent"></ion-spinner>
+            </ng-container>
+            <ng-template #loginText>Bejelentkezés</ng-template>
+          </ion-button>
         </div>
-      </div>
-
-      <!-- Traditional Login Form -->
-      <ion-item>
-        <ion-label position="floating">Felhasználónév</ion-label>
-        <ion-input formControlName="username" type="text" required></ion-input>
-      </ion-item>
-      <ion-item>
-        <ion-label position="floating">Jelszó</ion-label>
-        <ion-input formControlName="password" type="password" required></ion-input>
-      </ion-item>
-
-      <!-- Enable Biometric Option -->
-      <ion-item *ngIf="biometricAvailable && !hasBiometricCredentials">
-        <ion-checkbox
-          slot="start"
-          [(ngModel)]="enableBiometricAfterLogin"
-          (ionChange)="onEnableBiometricChange($event)">
-        </ion-checkbox>
-        <ion-label>{{ biometricTypeDisplayName }} engedélyezése a jövőben</ion-label>
-      </ion-item>
-
-      <div *ngIf="biometricAvailable && hasBiometricCredentials" class="biometric-management">
-        <ion-button
-          fill="clear"
-          size="small"
-          color="medium"
-          (click)="showBiometricSetupAlert()">
-          <ion-icon name="checkmark" slot="start"></ion-icon>
-          {{ biometricTypeDisplayName }} beállítva
-        </ion-button>
-      </div>
-
-      <div *ngIf="error$ | async as error" class="error">{{ error }}</div>
-
-      <ion-button expand="block" type="submit" [disabled]="form.invalid || (loading$ | async)">
-        <ng-container *ngIf="loading$ | async; else loginText">
-          <ion-spinner name="crescent"></ion-spinner>
-        </ng-container>
-        <ng-template #loginText>Bejelentkezés</ng-template>
-      </ion-button>
+      </form>
     </div>
-  </form>
+  </div>
 
   <!-- Success Toast -->
   <ion-toast

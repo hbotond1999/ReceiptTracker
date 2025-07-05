@@ -14,7 +14,9 @@ class Address(BaseModel):
 
 class ReceiptItem(BaseModel):
     name: str = Field(..., description="A termék neve a blokkon.")
-    price: float = Field(..., description="A termék ára forintban.")
+    quantity: float = Field(..., description="A blokkon szereplő termék mennyisége")
+    unit_price: float = Field(..., description="A termék egységára")
+    unit: str = Field(..., description="A termék mértékegysége, db, kg, l stb. A magyar standard szerint add vissza")
 
 class Receipt(BaseModel):
     date: datetime = Field(..., description="A vásárlás dátuma és ideje a blokkon.")

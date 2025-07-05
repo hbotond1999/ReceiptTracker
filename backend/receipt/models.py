@@ -32,6 +32,8 @@ class ReceiptItem(SQLModel, table=True):
     __table_args__ = {'extend_existing': True}
     id: Optional[int] = Field(default=None, primary_key=True)
     name: str = Field()
-    price: float = Field()
+    unit_price: float = Field()
+    quantity: float = Field()
+    unit: str = Field()
     receipt_id: int = Field(foreign_key="receipt.id")
     receipt: Receipt = Relationship(back_populates="items")
