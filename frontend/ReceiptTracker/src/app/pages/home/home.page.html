@@ -1,7 +1,7 @@
 <ion-header>
-  <ion-toolbar color="primary">
+  <ion-toolbar>
     <ion-title>Főoldal</ion-title>
-    <ion-button slot="end" fill="clear" color="danger" (click)="logout()">Kijelentkezés</ion-button>
+    <ion-button slot="end" fill="clear" (click)="logout()">Kijelentkezés</ion-button>
   </ion-toolbar>
 </ion-header>
 <ion-content class="ion-padding">
@@ -21,7 +21,7 @@
           Fájl kiválasztása
         </ion-button>
         <input #fileInput type="file" accept="image/*" style="display: none;" (change)="onFileSelected($event)">
-        
+
         <!-- Töltési állapot megjelenítése -->
         <div *ngIf="loading" class="upload-status">
           <div class="upload-header">
@@ -43,7 +43,7 @@
         </div>
       </ion-card-content>
     </ion-card>
-    
+
     <ion-card (click)="goTo('receipts')" [class.disabled]="loading">
       <ion-card-header>
         <ion-card-title>Blokkok kezelése</ion-card-title>
@@ -52,7 +52,7 @@
         Feltöltés, lista, szerkesztés, törlés.
       </ion-card-content>
     </ion-card>
-    
+
     <ion-card (click)="goTo('stats')" [class.disabled]="loading">
       <ion-card-header>
         <ion-card-title>Statisztikák</ion-card-title>
@@ -61,7 +61,7 @@
         Kimutatások, grafikonok, összesítések.
       </ion-card-content>
     </ion-card>
-    
+
     <ng-container *ngIf="userProfile$ | async as user">
       <ion-card *ngIf="user.roles && user.roles.includes('admin')" (click)="goTo('admin')" [class.disabled]="loading">
         <ion-card-header>
@@ -81,4 +81,4 @@
     duration="3000"
     position="top">
   </ion-toast>
-</ion-content> 
+</ion-content>
