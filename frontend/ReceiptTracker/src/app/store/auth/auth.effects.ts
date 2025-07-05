@@ -9,6 +9,7 @@ import { AuthService } from '../../api/api/auth.service';
 import { TokenOut } from '../../api/model/tokenOut';
 import { Storage } from '@ionic/storage-angular';
 import { Router } from '@angular/router';
+import { NativeBiometric, BiometricOptions } from 'capacitor-native-biometric';
 
 @Injectable()
 export class AuthEffects {
@@ -47,10 +48,84 @@ export class AuthEffects {
     )
   );
 
+  // Enable biometric authentication
+  enableBiometric$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(AuthActions.enableBiometric),
+      mergeMap(({ username, password }) =>
+        from(NativeBiometric.setCredentials({
+          username,
+          password,
+          server: 'ReceiptTracker'
+        })).pipe(
+          map(() => AuthActions.enableBiometricSuccess()),
+          catchError(error => of(AuthActions.enableBiometricFailure({ 
+            error: error?.message || 'Biometric setup failed' 
+          })))
+        )
+      )
+    )
+  );
+
+  // Biometric login effect
+  biometricLogin$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(AuthActions.biometricLogin),
+      mergeMap(() =>
+        from(NativeBiometric.verifyIdentity({
+          reason: 'Bejelentkezés biometrikus azonosítással',
+          title: 'Biometrikus azonosítás',
+          subtitle: 'Használja ujjlenyomatát vagy arcfelismerést a bejelentkezéshez',
+          description: 'Helyezze ujját a szenzorra vagy nézzen a kamerába'
+        } as BiometricOptions)).pipe(
+          mergeMap(() => 
+            from(NativeBiometric.getCredentials({
+              server: 'ReceiptTracker'
+            })).pipe(
+              mergeMap(credentials => 
+                this.authService.loginAuthLoginPost(credentials.username, credentials.password).pipe(
+                  mergeMap((tokenOut: TokenOut) => {
+                    const expiresIn = 3600;
+                    const expiresAt = Date.now() + (expiresIn * 1000) - 5000;
+                    return from(Promise.all([
+                      this.storage.set('accessToken', tokenOut.access_token),
+                      this.storage.set('refreshToken', tokenOut.refresh_token),
+                      this.storage.set('expiresAt', expiresAt)
+                    ])).pipe(
+                      map(() => AuthActions.biometricLoginSuccess({
+                        accessToken: tokenOut.access_token,
+                        refreshToken: tokenOut.refresh_token,
+                        expiresAt
+                      }))
+                    );
+                  }),
+                  catchError(error => of(AuthActions.biometricLoginFailure({ 
+                    error: error?.error?.detail || 'Biometric login failed' 
+                  })))
+                )
+              )
+            )
+          ),
+          catchError(error => of(AuthActions.biometricLoginFailure({ 
+            error: error?.message || 'Biometric verification failed' 
+          })))
+        )
+      )
+    )
+  );
+
   // LoginSuccess után user profil betöltése
   loginSuccess$ = createEffect(() =>
     this.actions$.pipe(
       ofType(AuthActions.loginSuccess),
+      map(() => AuthActions.loadUserProfile())
+    )
+  );
+
+  // BiometricLoginSuccess után user profil betöltése
+  biometricLoginSuccess$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(AuthActions.biometricLoginSuccess),
       map(() => AuthActions.loadUserProfile())
     )
   );
@@ -177,7 +252,7 @@ export class AuthEffects {
     )
   );
 
-  // Logout effect: Storage törlése
+  // Logout effect: Storage törlése (biometric credentials are kept)
   logout$ = createEffect(() =>
     this.actions$.pipe(
       ofType(AuthActions.logout),

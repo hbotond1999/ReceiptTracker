@@ -5,6 +5,14 @@ export const login = createAction('[Auth] Login', props<{ username: string; pass
 export const loginSuccess = createAction('[Auth] Login Success', props<{ accessToken: string; refreshToken: string; expiresAt: number }>());
 export const loginFailure = createAction('[Auth] Login Failure', props<{ error: string }>());
 
+export const biometricLogin = createAction('[Auth] Biometric Login');
+export const biometricLoginSuccess = createAction('[Auth] Biometric Login Success', props<{ accessToken: string; refreshToken: string; expiresAt: number }>());
+export const biometricLoginFailure = createAction('[Auth] Biometric Login Failure', props<{ error: string }>());
+
+export const enableBiometric = createAction('[Auth] Enable Biometric', props<{ username: string; password: string }>());
+export const enableBiometricSuccess = createAction('[Auth] Enable Biometric Success');
+export const enableBiometricFailure = createAction('[Auth] Enable Biometric Failure', props<{ error: string }>());
+
 export const logout = createAction('[Auth] Logout');
 
 export const loadUserProfile = createAction('[Auth] Load User Profile');

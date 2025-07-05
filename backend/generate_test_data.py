@@ -2,6 +2,7 @@
 """
 Teszt adat generátor script
 Generál 10 boltot és 5000-10000 számlát tesztelési célokra
+Többszálú feldolgozással
 """
 
 import random
@@ -11,6 +12,10 @@ from datetime import datetime, timedelta
 from typing import List, Optional
 from sqlmodel import SQLModel, Session, create_engine, select
 from dotenv import load_dotenv
+import threading
+from concurrent.futures import ThreadPoolExecutor, as_completed
+import time
+from dataclasses import dataclass
 
 # Add the current directory to sys.path so we can import our models
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
@@ -23,12 +28,38 @@ load_dotenv()
 
 # Database setup
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./test.db")
-engine = create_engine(DATABASE_URL)
+# SQLite specific configuration for better concurrency
+if "sqlite" in DATABASE_URL:
+    engine = create_engine(
+        DATABASE_URL, 
+        pool_size=1,  # SQLite works better with fewer connections
+        max_overflow=0,
+        pool_pre_ping=True,
+        connect_args={"check_same_thread": False, "timeout": 30}
+    )
+else:
+    # PostgreSQL/MySQL configuration
+    engine = create_engine(DATABASE_URL, pool_size=20, max_overflow=30)
+
+# Thread-safe lock for progress reporting
+progress_lock = threading.Lock()
+
+@dataclass
+class GenerationStats:
+    receipts_created: int = 0
+    items_created: int = 0
+    
+    def add_receipt(self, item_count: int):
+        with progress_lock:
+            self.receipts_created += 1
+            self.items_created += item_count
+
+# Global stats object
+stats = GenerationStats()
 
 # Test data lists
 MARKET_NAMES = [
-    "Tesco", "Auchan", "Spar", "CBA", "Penny Market",
-    "Lidl", "Aldi", "Interspar", "Coop", "Match"
+    "Tesco", "Auchan", "CBA","Lidl",
 ]
 
 HUNGARIAN_CITIES = [
@@ -94,52 +125,123 @@ def create_markets(session: Session) -> List[Market]:
     print(f"Created {len(markets)} markets")
     return markets
 
-def create_receipts_and_items(session: Session, markets: List[Market], users: List[User], count: int):
-    """Create test receipts and receipt items"""
-    print(f"Creating {count} receipts...")
+def create_receipt_batch(market_ids: List[int], user_ids: List[int], batch_size: int, thread_id: int) -> None:
+    """Create a batch of receipts with items in a separate thread"""
+    try:
+        with Session(engine) as session:
+            # Process receipts one by one to avoid deadlocks
+            for i in range(batch_size):
+                # Generate receipt data
+                postal_code, city, street_name, street_number = generate_address()
+                
+                selected_market_id = random.choice(market_ids)
+                selected_user_id = random.choice(user_ids)
+                
+                receipt = Receipt(
+                    date=generate_random_date(),
+                    receipt_number=generate_receipt_number(),
+                    market_id=selected_market_id,
+                    user_id=selected_user_id,
+                    image_path=f"receipt_images/receipt_{thread_id}_{i+1}.jpg",
+                    original_filename=f"receipt_{thread_id}_{i+1}.jpg",
+                    postal_code=postal_code,
+                    city=city,
+                    street_name=street_name,
+                    street_number=street_number
+                )
+                
+                # Add and commit receipt immediately
+                session.add(receipt)
+                session.commit()
+                session.refresh(receipt)
+                
+                # Generate items for this receipt
+                item_count = random.randint(1, 10)
+                items_to_add = []
+                
+                for j in range(item_count):
+                    item = ReceiptItem(
+                        name=random.choice(PRODUCT_NAMES),
+                        price=round(random.uniform(100, 5000), 2),  # 100-5000 HUF
+                        receipt_id=receipt.id or 0
+                    )
+                    items_to_add.append(item)
+                
+                # Bulk insert items for this receipt
+                if items_to_add:
+                    session.add_all(items_to_add)
+                    session.commit()
+                
+                stats.add_receipt(item_count)
+                
+                # Progress update every 10 receipts
+                if (i + 1) % 10 == 0:
+                    with progress_lock:
+                        print(f"Thread {thread_id}: {i + 1}/{batch_size} receipts processed")
+            
+    except Exception as e:
+        print(f"Error in thread {thread_id}: {e}")
+        import traceback
+        traceback.print_exc()
+        raise
+
+def create_receipts_and_items_parallel(session: Session, markets: List[Market], users: List[User], count: int):
+    """Create test receipts and receipt items using multiple threads"""
+    print(f"Creating {count} receipts using parallel processing...")
     
-    for i in range(count):
-        # Generate receipt data
-        postal_code, city, street_name, street_number = generate_address()
-        
-        selected_market = random.choice(markets)
-        selected_user = random.choice(users)
-        
-        receipt = Receipt(
-            date=generate_random_date(),
-            receipt_number=generate_receipt_number(),
-            market_id=selected_market.id or 0,
-            user_id=selected_user.id or 0,
-            image_path=f"receipt_images/receipt_{i+1}.jpg",
-            original_filename=f"receipt_{i+1}.jpg",
-            postal_code=postal_code,
-            city=city,
-            street_name=street_name,
-            street_number=street_number
-        )
-        session.add(receipt)
-        session.commit()
-        session.refresh(receipt)
-        
-        # Generate 1-10 items per receipt
-        item_count = random.randint(1, 10)
-        total_price = 0
-        
-        for j in range(item_count):
-            item = ReceiptItem(
-                name=random.choice(PRODUCT_NAMES),
-                price=round(random.uniform(100, 5000), 2),  # 100-5000 HUF
-                receipt_id=receipt.id or 0
-            )
-            session.add(item)
-            total_price += item.price
-        
-        if (i + 1) % 100 == 0:
-            print(f"  - Created {i + 1} receipts...")
-            session.commit()
+    # Extract IDs for thread safety
+    market_ids = [market.id for market in markets if market.id]
+    user_ids = [user.id for user in users if user.id]
     
-    session.commit()
-    print(f"Created {count} receipts with items")
+    # Calculate optimal batch size and thread count
+    # SQLite works better with fewer threads due to locking
+    if "sqlite" in DATABASE_URL:
+        max_threads = min(os.cpu_count() or 2, 4)  # Limit to 4 threads max for SQLite
+    else:
+        max_threads = min(os.cpu_count() or 4, 10)  # Limit to 10 threads max for other DBs
+    
+    batch_size = max(20, count // max_threads)  # At least 20 receipts per batch
+    
+    print(f"Using {max_threads} threads with batch size of {batch_size}")
+    
+    # Create thread pool and submit tasks
+    with ThreadPoolExecutor(max_workers=max_threads) as executor:
+        futures = []
+        remaining_count = count
+        thread_id = 0
+        
+        while remaining_count > 0:
+            current_batch_size = min(batch_size, remaining_count)
+            future = executor.submit(create_receipt_batch, market_ids, user_ids, current_batch_size, thread_id)
+            futures.append(future)
+            remaining_count -= current_batch_size
+            thread_id += 1
+        
+        # Monitor progress
+        completed = 0
+        start_time = time.time()
+        
+        for future in as_completed(futures):
+            try:
+                future.result()  # This will raise any exceptions that occurred
+                completed += 1
+                
+                with progress_lock:
+                    elapsed = time.time() - start_time
+                    receipts_per_second = stats.receipts_created / elapsed if elapsed > 0 else 0
+                    print(f"Progress: {stats.receipts_created}/{count} receipts "
+                          f"({stats.items_created} items) - "
+                          f"{receipts_per_second:.1f} receipts/sec - "
+                          f"Completed batches: {completed}/{len(futures)}")
+            
+            except Exception as e:
+                print(f"Batch failed: {e}")
+                raise
+    
+    total_time = time.time() - start_time
+    print(f"\nCompleted in {total_time:.2f} seconds")
+    print(f"Average speed: {stats.receipts_created / total_time:.1f} receipts/second")
+    print(f"Created {stats.receipts_created} receipts with {stats.items_created} items")
 
 def get_existing_users(session: Session) -> List[User]:
     """Get existing users from the database"""
@@ -148,12 +250,25 @@ def get_existing_users(session: Session) -> List[User]:
 
 def main():
     """Main function to generate test data"""
-    print("=== Receipt Tracker Test Data Generator ===")
+    print("=== Receipt Tracker Test Data Generator (Multithreaded) ===")
     print("This script will generate test data for the Receipt Tracker application.")
     print("- 10 markets")
-    print("- 5000-10000 receipts")
+    print("- Configurable number of receipts (supports up to 1M+)")
     print("- Multiple items per receipt")
+    print("- Uses multithreading for fast generation")
     print()
+    
+    # Get receipt count from user
+    try:
+        receipt_count = int(input("How many receipts to generate? (default: 500): ") or "500")
+        if receipt_count <= 0:
+            print("Invalid number. Using default: 500")
+            receipt_count = 500
+    except ValueError:
+        print("Invalid input. Using default: 500")
+        receipt_count = 500
+    
+    print(f"Will generate {receipt_count} receipts")
     
     # Confirm before proceeding
     response = input("Do you want to proceed? (y/N): ")
@@ -188,17 +303,22 @@ def main():
         else:
             markets = create_markets(session)
         
-        # Generate receipts
-        receipt_count = 500
+        # Generate receipts using parallel processing
         print(f"\nGenerating {receipt_count} receipts...")
+        start_time = time.time()
         
-        create_receipts_and_items(session, markets, existing_users, receipt_count)
+        create_receipts_and_items_parallel(session, markets, existing_users, receipt_count)
+        
+        total_time = time.time() - start_time
         
         # Summary
         print("\n=== Generation Complete ===")
         print(f"Markets: {len(markets)}")
-        print(f"Receipts: {receipt_count}")
+        print(f"Receipts: {stats.receipts_created}")
+        print(f"Items: {stats.items_created}")
         print(f"Users: {len(existing_users)}")
+        print(f"Total time: {total_time:.2f} seconds")
+        print(f"Average speed: {stats.receipts_created / total_time:.1f} receipts/second")
 
 if __name__ == "__main__":
     main() 

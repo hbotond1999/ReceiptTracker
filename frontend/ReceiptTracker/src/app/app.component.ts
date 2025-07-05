@@ -14,7 +14,6 @@ export class AppComponent implements OnInit {
   constructor(private store: Store) {}
 
   ngOnInit() {
-    // Auto-login próbálkozás az alkalmazás indításkor
     this.store.dispatch(autoLogin());
     addIcons({ logoIonic,  chevronUpOutline, chevronDownOutline, trashOutline, createOutline, closeOutline, addOutline });
 

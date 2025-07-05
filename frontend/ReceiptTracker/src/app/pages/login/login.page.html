@@ -6,6 +6,24 @@
       </ion-toolbar>
     </ion-header>
     <div class="form-content">
+      <!-- Biometric Login Button (if available and credentials exist) -->
+      <div *ngIf="biometricAvailable && hasBiometricCredentials" class="biometric-section">
+        <ion-button
+          expand="block"
+          fill="outline"
+          color="secondary"
+          (click)="biometricLogin()"
+          [disabled]="loading$ | async">
+          <ion-icon [name]="getBiometricIcon()" slot="start"></ion-icon>
+          Bejelentkezés {{ biometricTypeDisplayName }}sal
+        </ion-button>
+
+        <div class="divider">
+          <span>vagy</span>
+        </div>
+      </div>
+
+      <!-- Traditional Login Form -->
       <ion-item>
         <ion-label position="floating">Felhasználónév</ion-label>
         <ion-input formControlName="username" type="text" required></ion-input>
@@ -14,7 +32,30 @@
         <ion-label position="floating">Jelszó</ion-label>
         <ion-input formControlName="password" type="password" required></ion-input>
       </ion-item>
+
+      <!-- Enable Biometric Option -->
+      <ion-item *ngIf="biometricAvailable && !hasBiometricCredentials">
+        <ion-checkbox
+          slot="start"
+          [(ngModel)]="enableBiometricAfterLogin"
+          (ionChange)="onEnableBiometricChange($event)">
+        </ion-checkbox>
+        <ion-label>{{ biometricTypeDisplayName }} engedélyezése a jövőben</ion-label>
+      </ion-item>
+
+      <div *ngIf="biometricAvailable && hasBiometricCredentials" class="biometric-management">
+        <ion-button
+          fill="clear"
+          size="small"
+          color="medium"
+          (click)="showBiometricSetupAlert()">
+          <ion-icon name="checkmark" slot="start"></ion-icon>
+          {{ biometricTypeDisplayName }} beállítva
+        </ion-button>
+      </div>
+
       <div *ngIf="error$ | async as error" class="error">{{ error }}</div>
+
       <ion-button expand="block" type="submit" [disabled]="form.invalid || (loading$ | async)">
         <ng-container *ngIf="loading$ | async; else loginText">
           <ion-spinner name="crescent"></ion-spinner>
@@ -23,4 +64,31 @@
       </ion-button>
     </div>
   </form>
-</ion-content> 
+
+  <!-- Success Toast -->
+  <ion-toast
+    [isOpen]="showSuccessToast"
+    [message]="toastMessage"
+    duration="3000"
+    color="success"
+    (didDismiss)="showSuccessToast = false">
+  </ion-toast>
+
+  <!-- Error Toast -->
+  <ion-toast
+    [isOpen]="showErrorToast"
+    [message]="toastMessage"
+    duration="3000"
+    color="danger"
+    (didDismiss)="showErrorToast = false">
+  </ion-toast>
+
+  <!-- Biometric Management Alert -->
+  <ion-alert
+    [isOpen]="showBiometricAlert"
+    header="Biometrikus azonosítás"
+    [message]="'A ' + biometricTypeDisplayName + ' már be van állítva ezen az eszközön.'"
+    [buttons]="biometricAlertButtons"
+    (didDismiss)="showBiometricAlert = false">
+  </ion-alert>
+</ion-content>

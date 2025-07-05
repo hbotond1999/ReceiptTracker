@@ -15,6 +15,23 @@ export const authReducer = createReducer(
     error: null,
   })),
   on(AuthActions.loginFailure, (state, { error }) => ({ ...state, loading: false, error })),
+  
+  on(AuthActions.biometricLogin, (state) => ({ ...state, loading: true, error: null })),
+  on(AuthActions.biometricLoginSuccess, (state, { accessToken, refreshToken, expiresAt }) => ({
+    ...state,
+    accessToken,
+    refreshToken,
+    expiresAt,
+    isAuthenticated: true,
+    loading: false,
+    error: null,
+  })),
+  on(AuthActions.biometricLoginFailure, (state, { error }) => ({ ...state, loading: false, error })),
+  
+  on(AuthActions.enableBiometric, (state) => ({ ...state, loading: true, error: null })),
+  on(AuthActions.enableBiometricSuccess, (state) => ({ ...state, loading: false, error: null })),
+  on(AuthActions.enableBiometricFailure, (state, { error }) => ({ ...state, loading: false, error })),
+  
   on(AuthActions.logout, () => initialAuthState),
   on(AuthActions.loadUserProfileSuccess, (state, { userProfile }) => ({ ...state, userProfile })),
   on(AuthActions.loadUserProfileFailure, (state, { error }) => ({ ...state, error })),
