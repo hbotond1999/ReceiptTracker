@@ -84,6 +84,11 @@ PRODUCT_NAMES = [
     "Csokoládé", "Keksz", "Chips", "Mosószer", "Fogkrém", "Sampon"
 ]
 
+# Units for different product types
+UNITS = [
+    "db", "kg", "l"
+]
+
 def generate_tax_number() -> str:
     """Generate a realistic Hungarian tax number"""
     return f"{random.randint(10000000, 99999999)}-{random.randint(1, 9)}-{random.randint(10, 99)}"
@@ -162,7 +167,9 @@ def create_receipt_batch(market_ids: List[int], user_ids: List[int], batch_size:
                 for j in range(item_count):
                     item = ReceiptItem(
                         name=random.choice(PRODUCT_NAMES),
-                        price=round(random.uniform(100, 5000), 2),  # 100-5000 HUF
+                        unit_price=round(random.uniform(50, 2000), 2),  # 50-2000 HUF per unit
+                        quantity=round(random.uniform(0.1, 5.0), 2),  # 0.1-5.0 units
+                        unit=random.choice(UNITS),
                         receipt_id=receipt.id or 0
                     )
                     items_to_add.append(item)

@@ -55,7 +55,10 @@
         <div class="ion-padding" slot="content">
           <ion-list>
             <ion-item *ngFor="let item of receipt.items">
-              <ion-label>{{item.name}}</ion-label>
+              <ion-label>
+                <h3>{{item.name}}</h3>
+                <p>{{item.quantity}} {{item.unit}} × {{item.unit_price | number:'1.2-2'}} Ft</p>
+              </ion-label>
               <ion-note slot="end">{{item.price | number:'1.2-2'}} Ft</ion-note>
             </ion-item>
           </ion-list>

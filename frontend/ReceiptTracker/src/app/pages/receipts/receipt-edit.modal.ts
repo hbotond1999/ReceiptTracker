@@ -64,11 +64,20 @@ export class ReceiptEditModalComponent implements OnInit {
         street_number: this.receipt.street_number
       });
       this.receipt.items.forEach(item => {
-        this.items.push(this.fb.group({
+        const itemGroup = this.fb.group({
           id: [item.id],
           name: [item.name, Validators.required],
+          unit_price: [item.unit_price, [Validators.required, Validators.min(0.01)]],
+          quantity: [item.quantity, [Validators.required, Validators.min(0.01)]],
+          unit: [item.unit, Validators.required],
           price: [item.price, [Validators.required, Validators.min(0.01)]]
-        }));
+        });
+        
+        // Auto-calculate price when unit_price or quantity changes
+        itemGroup.get('unit_price')?.valueChanges.subscribe(() => this.calculatePrice(itemGroup));
+        itemGroup.get('quantity')?.valueChanges.subscribe(() => this.calculatePrice(itemGroup));
+        
+        this.items.push(itemGroup);
       });
     }
   }
@@ -78,15 +87,31 @@ export class ReceiptEditModalComponent implements OnInit {
   }
 
   addItem() {
-    this.items.push(this.fb.group({
+    const newItem = this.fb.group({
       id: [null],
       name: ['', Validators.required],
+      unit_price: [0, [Validators.required, Validators.min(0.01)]],
+      quantity: [1, [Validators.required, Validators.min(0.01)]],
+      unit: ['db', Validators.required],
       price: [0, [Validators.required, Validators.min(0.01)]]
-    }));
+    });
+    
+    // Auto-calculate price when unit_price or quantity changes
+    newItem.get('unit_price')?.valueChanges.subscribe(() => this.calculatePrice(newItem));
+    newItem.get('quantity')?.valueChanges.subscribe(() => this.calculatePrice(newItem));
+    
+    this.items.push(newItem);
   }
 
   removeItem(i: number) {
     this.items.removeAt(i);
+  }
+
+  calculatePrice(itemGroup: FormGroup) {
+    const unitPrice = itemGroup.get('unit_price')?.value || 0;
+    const quantity = itemGroup.get('quantity')?.value || 0;
+    const calculatedPrice = unitPrice * quantity;
+    itemGroup.get('price')?.setValue(calculatedPrice, { emitEvent: false });
   }
 
   onSave() {

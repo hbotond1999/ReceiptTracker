@@ -73,7 +73,7 @@ async def create_receipt(
             raise HTTPException(status_code=500, detail="Failed to create required entities")
         
         # Get address data from AI recognition
-        address_data = receipt_data.address
+        address_data = receipt_data.address  # type: ignore
 
         receipt = Receipt(
             date=receipt_data.date,  # type: ignore
@@ -95,7 +95,7 @@ async def create_receipt(
         if not receipt.id:
             raise HTTPException(status_code=500, detail="Failed to create receipt")
             
-        for item in receipt_data.items:
+        for item in receipt_data.items:  # type: ignore
             receipt_item = ReceiptItem(
                 name=item.name,
                 unit_price=item.unit_price,
@@ -352,7 +352,7 @@ async def update_receipt(
             raise HTTPException(status_code=500, detail="Failed to retrieve related data")
         
         # Calculate total
-        total = sum(item.price for item in items)
+        total = sum(item.unit_price * item.quantity for item in items)
         
         # Create response
         return ReceiptOut(
@@ -383,6 +383,7 @@ async def update_receipt(
                 ReceiptItemOut(
                     id=item.id or 0,
                     name=item.name,
+                    price=item.unit_price * item.quantity,
                     unit_price=item.unit_price,
                     quantity=item.quantity,
                     unit=item.unit
@@ -586,7 +587,7 @@ async def create_receipt_manual(
             session.commit()
             
             # Calculate total
-            total = sum(item.price for item in items)
+            total = sum(item.unit_price * item.quantity for item in items)
         
         return ReceiptOut(
             id=receipt.id or 0,
