@@ -671,9 +671,9 @@ async def download_receipt_image(
             raise HTTPException(status_code=404, detail="Receipt image file not found")
 
         filename = receipt.original_filename
-        if Path(filename).suffix == '':
+        if not Path(filename).suffix:
             filename = "result.jpg"
-        
+
         # Content-Type meghatározása a mimetypes modullal
         media_type, _ = mimetypes.guess_type(receipt.image_path)
         if not media_type:
