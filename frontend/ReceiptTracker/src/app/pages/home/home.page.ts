@@ -50,7 +50,7 @@ export class HomePage {
       });
 
       if (image && image.base64String) {
-        this.startUploadProcess(image.base64String, "receipt.jpeg");
+        this.startUploadProcess(image.base64String);
       } else {
         this.showFeedback('Nem sikerült képet készíteni.');
       }
@@ -68,7 +68,7 @@ export class HomePage {
     }
   }
 
-  private startUploadProcess(base64String: string, filename: string) {
+  private startUploadProcess(base64String: string) {
     this.loading = true;
     this.uploadProgress = 0;
 
@@ -79,8 +79,7 @@ export class HomePage {
       intArray[i] = byteString.charCodeAt(i);
     }
     const blob = new Blob([intArray], { type: 'image/jpeg' });
-    const fileOfBlob = new File([blob], filename);
-    this.uploadReceiptImage(fileOfBlob);
+    this.uploadReceiptImage(blob);
   }
 
   private startFileUploadProcess(file: File) {

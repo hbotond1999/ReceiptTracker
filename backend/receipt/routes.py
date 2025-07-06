@@ -1,4 +1,6 @@
 import uuid
+from pathlib import Path
+
 from fastapi import APIRouter, UploadFile, File, HTTPException, Depends, Query
 from fastapi.responses import FileResponse
 from sqlmodel import Session, select, func
@@ -667,10 +669,10 @@ async def download_receipt_image(
         # Ellenőrizzük, hogy a képfájl létezik-e
         if not receipt.image_path or not os.path.exists(receipt.image_path):
             raise HTTPException(status_code=404, detail="Receipt image file not found")
-        
-        # Fájl kiterjesztés meghatározása
-        file_extension = os.path.splitext(receipt.image_path)[1] if receipt.image_path else '.jpg'
-        default_filename = f"receipt_{receipt_id}{file_extension}"
+
+        filename = receipt.original_filename
+        if Path(filename).suffix == '':
+            filename = "result.jpg"
         
         # Content-Type meghatározása a mimetypes modullal
         media_type, _ = mimetypes.guess_type(receipt.image_path)
@@ -680,6 +682,6 @@ async def download_receipt_image(
         # Visszaadjuk a fájlt a megfelelő Content-Type-dal
         return FileResponse(
             path=receipt.image_path,
-            filename=receipt.original_filename or default_filename,
+            filename=filename,
             media_type=media_type
         )
