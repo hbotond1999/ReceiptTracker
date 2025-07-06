@@ -39,7 +39,7 @@ async def create_receipt(
         raise HTTPException(status_code=400, detail="Filename is required")
     
     # Generate UUID filename with original extension
-    file_extension = os.path.splitext(file.filename)[1]
+    file_extension = os.path.splitext(file.filename)[-1]
     uuid_filename = f"{uuid.uuid4()}{file_extension}"
     file_path = os.path.join(UPLOADS_DIR, uuid_filename)
     

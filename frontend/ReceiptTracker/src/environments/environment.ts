@@ -4,7 +4,7 @@
 
 export const environment = {
   production: false,
-  apiUrl: 'http://192.168.88.20:8000'
+  apiUrl: 'https://receipttracker-216847281581.europe-west1.run.app',
 };
 
 /*

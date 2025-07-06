@@ -48,9 +48,9 @@ export class HomePage {
         resultType: CameraResultType.Base64,
         source: CameraSource.Camera
       });
-      
+
       if (image && image.base64String) {
-        this.startUploadProcess(image.base64String);
+        this.startUploadProcess(image.base64String, "receipt.jpeg");
       } else {
         this.showFeedback('Nem sikerült képet készíteni.');
       }
@@ -68,10 +68,10 @@ export class HomePage {
     }
   }
 
-  private startUploadProcess(base64String: string) {
+  private startUploadProcess(base64String: string, filename: string) {
     this.loading = true;
     this.uploadProgress = 0;
-    
+
     const byteString = atob(base64String);
     const arrayBuffer = new ArrayBuffer(byteString.length);
     const intArray = new Uint8Array(arrayBuffer);
@@ -79,8 +79,8 @@ export class HomePage {
       intArray[i] = byteString.charCodeAt(i);
     }
     const blob = new Blob([intArray], { type: 'image/jpeg' });
-    
-    this.uploadReceiptImage(blob);
+    const fileOfBlob = new File([blob], filename);
+    this.uploadReceiptImage(fileOfBlob);
   }
 
   private startFileUploadProcess(file: File) {
@@ -100,7 +100,7 @@ export class HomePage {
       next: (result) => {
         clearInterval(progressInterval);
         this.uploadProgress = 100;
-        
+
         setTimeout(() => {
           this.showFeedback('Blokk sikeresen feldolgozva!');
           this.loading = false;
@@ -122,4 +122,4 @@ export class HomePage {
     this.showToast = true;
     setTimeout(() => (this.showToast = false), 3000);
   }
-} 
+}
