@@ -79,10 +79,6 @@ frontend/.env
 ehthumbs.db
 Thumbs.db
 
-# Docker
-docker-compose.override.yml
-.dockerignore
-
 # RSA Keys and sensitive files
 backend/keys/
 *.pem
