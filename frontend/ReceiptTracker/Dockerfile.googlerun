@@ -22,7 +22,9 @@ FROM nginx:alpine
 # Copy built app from build stage
 COPY --from=build /app/www /usr/share/nginx/html
 
+# Copy nginx configuration
 COPY nginx.googlerun.conf /etc/nginx/nginx.conf
+
 # Expose port 80
 EXPOSE 80
 
