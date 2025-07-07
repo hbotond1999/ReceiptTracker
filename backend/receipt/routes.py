@@ -1,4 +1,5 @@
 import uuid
+from datetime import datetime
 from pathlib import Path
 
 from fastapi import APIRouter, UploadFile, File, HTTPException, Depends, Query
@@ -8,7 +9,7 @@ import shutil
 import os
 import mimetypes
 from typing import List, Optional
-from datetime import datetime
+import time
 from sqlalchemy import text
 
 from auth.models import User
@@ -197,10 +198,12 @@ async def get_receipts(
             order_by=order_by,
             order_dir=order_dir
         )
+        print(receipts)
         
         # Build complete response for each receipt
         response_receipts = []
-        for receipt in receipts:
+        for item in receipts:
+            receipt = item[0]
             # Get market and user
             market = session.exec(select(Market).where(Market.id == receipt.market_id)).first()
             user = session.exec(select(User).where(User.id == receipt.user_id)).first()
@@ -211,7 +214,7 @@ async def get_receipts(
                 continue
             
             # Calculate total for this receipt
-            total = sum(item.unit_price * item.quantity for item in items)
+            total = item[1]
             
             # Create response object
             response = ReceiptOut(
@@ -252,7 +255,6 @@ async def get_receipts(
                 total=total
             )
             response_receipts.append(response)
-        
         # Create paginated response
         return ReceiptListOut(
             receipts=response_receipts,

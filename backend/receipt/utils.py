@@ -90,8 +90,9 @@ def get_receipts_paginated(
     order_dir: str = "desc"
 ):
     """Get paginated receipts matching the filters, with sorting."""
-    # Build query based on user permissions
-    query = select(Receipt)
+
+    total_column = ReceiptItem.quantity * ReceiptItem.unit_price
+    query = select(Receipt, total_column.label('total')).join(ReceiptItem).distinct()
     if not is_admin_user(current_user):
         # Regular users can only see their own receipts
         query = query.where(Receipt.user_id == current_user.id)
@@ -112,7 +113,7 @@ def get_receipts_paginated(
     if item_name is not None:
         query = query.join(ReceiptItem).where(ReceiptItem.name.ilike(f"%{item_name}%")).distinct()
     # Sorting
-    allowed_columns = {"date": Receipt.date, "receipt_number": Receipt.receipt_number, "id": Receipt.id}
+    allowed_columns = {"date": Receipt.date, "receipt_number": Receipt.receipt_number, "id": Receipt.id, "total": total_column}
     sort_col = allowed_columns.get(order_by, Receipt.date)
     if order_dir == "asc":
         query = query.order_by(sort_col.asc())
