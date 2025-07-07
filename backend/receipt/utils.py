@@ -75,47 +75,98 @@ def get_receipts_count(
     return session.exec(query).one()
 
 
+from sqlmodel import select, func
+from sqlalchemy import case
+
+
 def get_receipts_paginated(
-    session: Session,
-    current_user: User,
-    user_id: Optional[int] = None,
-    market_id: Optional[int] = None,
-    market_name: Optional[str] = None,
-    item_name: Optional[str] = None,
-    date_from: Optional[datetime] = None,
-    date_to: Optional[datetime] = None,
-    skip: int = 0,
-    limit: int = 10,
-    order_by: str = "date",
-    order_dir: str = "desc"
+        session: Session,
+        current_user: User,
+        user_id: Optional[int] = None,
+        market_id: Optional[int] = None,
+        market_name: Optional[str] = None,
+        item_name: Optional[str] = None,
+        date_from: Optional[datetime] = None,
+        date_to: Optional[datetime] = None,
+        skip: int = 0,
+        limit: int = 10,
+        order_by: str = "date",
+        order_dir: str = "desc"
 ):
     """Get paginated receipts matching the filters, with sorting."""
-    # Build query based on user permissions
-    query = select(Receipt)
+
+    # Ha összeg szerint rendezünk, akkor subquery-t használunk
+    if order_by == "total":
+        # Subquery az összeg kiszámításához
+        total_subquery = (
+            select(
+                ReceiptItem.receipt_id,
+                func.sum(ReceiptItem.unit_price * ReceiptItem.quantity).label("total_amount")
+            )
+            .group_by(ReceiptItem.receipt_id)
+            .subquery()
+        )
+
+        # Fő query a Receipt táblából, left join a total_subquery-vel
+        query = (
+            select(Receipt)
+            .outerjoin(total_subquery, Receipt.id == total_subquery.c.receipt_id)
+        )
+    else:
+        # Alap query Receipt táblából
+        query = select(Receipt)
+
+    # Jogosultság ellenőrzés
     if not is_admin_user(current_user):
         # Regular users can only see their own receipts
         query = query.where(Receipt.user_id == current_user.id)
-    # Apply filters
+
+    # Szűrők alkalmazása
     # User ID filter (only for admins)
     if user_id is not None and is_admin_user(current_user):
         query = query.where(Receipt.user_id == user_id)
+
     if market_id is not None:
         query = query.where(Receipt.market_id == market_id)
+
     if market_name is not None:
         # Join with Market table for name filtering
         query = query.join(Market).where(Market.name.like(f"%{market_name}%"))
+
     if date_from is not None:
         query = query.where(Receipt.date >= date_from)
+
     if date_to is not None:
         query = query.where(Receipt.date <= date_to)
+
     # For item name filtering, we need to join with ReceiptItem and use DISTINCT to avoid duplicates
     if item_name is not None:
-        query = query.join(ReceiptItem).where(ReceiptItem.name.ilike(f"%{item_name}%")).distinct()
-    # Sorting
-    allowed_columns = {"date": Receipt.date, "receipt_number": Receipt.receipt_number, "id": Receipt.id}
-    sort_col = allowed_columns.get(order_by, Receipt.date)
-    if order_dir == "asc":
-        query = query.order_by(sort_col.asc())
+        if order_by == "total":
+            # Ha már van subquery, akkor másképp kell join-olni
+            query = query.join(ReceiptItem, Receipt.id == ReceiptItem.receipt_id).where(
+                ReceiptItem.name.ilike(f"%{item_name}%")
+            ).distinct()
+        else:
+            query = query.join(ReceiptItem).where(ReceiptItem.name.ilike(f"%{item_name}%")).distinct()
+
+    # Rendezés
+    if order_by == "total":
+        # Összeg szerinti rendezés
+        if order_dir == "asc":
+            query = query.order_by(total_subquery.c.total_amount.asc().nulls_last())
+        else:
+            query = query.order_by(total_subquery.c.total_amount.desc().nulls_last())
     else:
-        query = query.order_by(sort_col.desc())
+        # Egyéb mezők szerinti rendezés
+        allowed_columns = {
+            "date": Receipt.date,
+            "receipt_number": Receipt.receipt_number,
+            "id": Receipt.id
+        }
+        sort_col = allowed_columns.get(order_by, Receipt.date)
+        if order_dir == "asc":
+            query = query.order_by(sort_col.asc())
+        else:
+            query = query.order_by(sort_col.desc())
+
     return session.exec(query.offset(skip).limit(limit)).all()
