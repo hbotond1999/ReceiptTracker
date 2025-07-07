@@ -373,7 +373,7 @@ async def get_market_total_receipts(
     with Session(engine) as session:
         query = select(
             Market.name,
-            func.sum(ReceiptItem.quantity).label("total_receipts")
+            func.count(Receipt.id).label("total_receipts")
         ).select_from(
             Receipt.__table__.join(Market.__table__, Receipt.market_id == Market.id)
         )
