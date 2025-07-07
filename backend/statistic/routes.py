@@ -30,8 +30,11 @@ async def get_total_spent_kpi(
         )
 
         # Apply user filter
-        if is_admin_user(current_user) and user_id is not None:
+        is_admin = is_admin_user(current_user)
+        if is_admin and user_id is not None:
             query = query.where(Receipt.user_id == user_id)
+        elif is_admin and not user_id:
+            pass
         else:
             query = query.where(Receipt.user_id == current_user.id)
 
@@ -60,8 +63,11 @@ async def get_total_receipts_kpi(
         query = select(func.count()).select_from(Receipt)
 
         # Apply user filter
-        if is_admin_user(current_user) and user_id is not None:
+        is_admin = is_admin_user(current_user)
+        if is_admin and user_id is not None:
             query = query.where(Receipt.user_id == user_id)
+        elif is_admin and not user_id:
+            pass
         else:
             query = query.where(Receipt.user_id == current_user.id)
 
@@ -93,8 +99,11 @@ async def get_average_receipt_value_kpi(
         )
 
         # Apply user filter
-        if is_admin_user(current_user) and user_id is not None:
+        is_admin = is_admin_user(current_user)
+        if is_admin and user_id is not None:
             total_query = total_query.where(Receipt.user_id == user_id)
+        elif is_admin and not user_id:
+            pass
         else:
             total_query = total_query.where(Receipt.user_id == current_user.id)
 
@@ -109,8 +118,11 @@ async def get_average_receipt_value_kpi(
 
         # Get receipt count
         count_query = select(func.count()).select_from(Receipt)
-        if is_admin_user(current_user) and user_id is not None:
+        is_admin = is_admin_user(current_user)
+        if is_admin and user_id is not None:
             count_query = count_query.where(Receipt.user_id == user_id)
+        elif is_admin and not user_id:
+            pass
         else:
             count_query = count_query.where(Receipt.user_id == current_user.id)
 
@@ -147,8 +159,11 @@ async def get_top_items_kpi(
         ).group_by(ReceiptItem.name)
 
         # Apply user filter
-        if is_admin_user(current_user) and user_id is not None:
+        is_admin =  is_admin_user(current_user)
+        if is_admin and user_id is not None:
             query = query.where(Receipt.user_id == user_id)
+        elif is_admin and not user_id:
+            pass
         else:
             query = query.where(Receipt.user_id == current_user.id)
 
@@ -201,9 +216,11 @@ async def get_receipts_timeseries(
 
         # Filtering
         conditions = []
-
-        if is_admin_user(current_user) and user_id is not None:
+        is_admin = is_admin_user(current_user)
+        if is_admin and user_id is not None:
             conditions.append(Receipt.user_id == user_id)
+        elif is_admin and not user_id:
+            pass
         else:
             conditions.append(Receipt.user_id == current_user.id)
 
@@ -249,9 +266,11 @@ async def get_amounts_timeseries(
 
         # Filtering
         conditions = []
-
-        if is_admin_user(current_user) and user_id is not None:
+        is_admin = is_admin_user(current_user)
+        if is_admin and user_id is not None:
             conditions.append(Receipt.user_id == user_id)
+        elif is_admin and not user_id:
+            pass
         else:
             conditions.append(Receipt.user_id == current_user.id)
 
@@ -292,8 +311,11 @@ async def get_wordcloud_data(
         ).group_by(ReceiptItem.name)
 
         # Apply user filter
-        if is_admin_user(current_user) and user_id is not None:
+        is_admin = is_admin_user(current_user)
+        if is_admin and user_id is not None:
             query = query.where(Receipt.user_id == user_id)
+        elif is_admin and not user_id:
+            pass
         else:
             query = query.where(Receipt.user_id == current_user.id)
 
@@ -340,8 +362,11 @@ async def get_market_total_spent(
         )
 
         # User filter
-        if is_admin_user(current_user) and user_id is not None:
+        is_admin = is_admin_user(current_user)
+        if is_admin and user_id is not None:
             query = query.where(Receipt.user_id == user_id)
+        elif is_admin and not user_id:
+            pass
         else:
             query = query.where(Receipt.user_id == current_user.id)
 
@@ -379,8 +404,11 @@ async def get_market_total_receipts(
         )
 
         # User filter
-        if is_admin_user(current_user) and user_id is not None:
+        is_admin = is_admin_user(current_user)
+        if is_admin and user_id is not None:
             query = query.where(Receipt.user_id == user_id)
+        elif is_admin and not user_id:
+            pass
         else:
             query = query.where(Receipt.user_id == current_user.id)
 
@@ -422,8 +450,11 @@ async def get_market_average_spent(
         )
 
         # User filter
-        if is_admin_user(current_user) and user_id is not None:
+        is_admin = is_admin_user(current_user)
+        if is_admin and user_id is not None:
             query = query.where(Receipt.user_id == user_id)
+        elif is_admin and not user_id:
+            pass
         else:
             query = query.where(Receipt.user_id == current_user.id)
 

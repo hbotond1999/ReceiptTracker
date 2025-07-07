@@ -107,7 +107,7 @@ def generate_address() -> tuple:
 
 def generate_random_date() -> datetime:
     """Generate a random date within the last 2 years"""
-    end_date = datetime.now()
+    end_date = datetime.now() - timedelta(days=2)
     start_date = end_date - timedelta(days=730)  # 2 years ago
     random_days = random.randint(0, 730)
     return start_date + timedelta(days=random_days)
