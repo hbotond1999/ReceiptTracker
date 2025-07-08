@@ -25,6 +25,53 @@ A ReceiptTracker egy modern, többplatformos alkalmazás, amely:
 - **FastAPI backend-et** használ
 - **Google Cloud infrastruktúrán** fut
 
+
+### Éles környezet Környezet
+- **Frontend**: Google Cloud Run konténer
+- **Backend**: Google Cloud Run konténer  
+- **Adatbázis**: Google Cloud SQL (PostgreSQL)
+- **Fájlok**: Google Cloud Storage
+
+## 📱 Támogatott Platformok
+
+- **🌐 Web alkalmazás**: Minden modern böngészőben
+- **📱 Android app**: Google Play Store-ban elérhető
+- **🍎 iOS app**: App Store-ban elérhető
+
+
+## 🔧 Technológiák
+
+### Backend
+- FastAPI (Python)
+- PostgreSQL
+- SQLAlchemy ORM
+- JWT Authentication (RSA256)
+- bcrypt (jelszó hash-elés)
+- OpenAI API integráció
+
+### Frontend
+- Angular
+- Ionic Framework
+- Standalone Components
+- TypeScript
+- Nginx (statikus web szerver)
+
+### Infrastruktúra
+- Docker
+- Google Cloud Platform
+- Cloud Run (konténer szolgáltatás)
+- Cloud SQL (adatbázis)
+- Cloud Storage (fájlkezelés)
+
+### Biztonság
+- JWT (JSON Web Token) authentikáció
+- RSA256 aszimmetrikus titkosítás
+- bcrypt jelszó hash-elés
+- Role-based Access Control (RBAC)
+- Refresh token rotation
+- HTTPS titkosított kommunikáció
+
+
 ## 🚀 Gyors Kezdés
 
 ### Automatikus Setup (Ajánlott)
@@ -136,49 +183,6 @@ A script interaktívan bekéri:
 # PostgreSQL: localhost:5432
 ```
 
-### Éles környezet Környezet
-- **Frontend**: Google Cloud Run konténer
-- **Backend**: Google Cloud Run konténer  
-- **Adatbázis**: Google Cloud SQL (PostgreSQL)
-- **Fájlok**: Google Cloud Storage
-
-## 📱 Támogatott Platformok
-
-- **🌐 Web alkalmazás**: Minden modern böngészőben
-- **📱 Android app**: Google Play Store-ban elérhető
-- **🍎 iOS app**: App Store-ban elérhető
-
-## 🔧 Technológiák
-
-### Backend
-- FastAPI (Python)
-- PostgreSQL
-- SQLAlchemy ORM
-- JWT Authentication (RSA256)
-- bcrypt (jelszó hash-elés)
-- OpenAI API integráció
-
-### Frontend
-- Angular
-- Ionic Framework
-- Standalone Components
-- TypeScript
-- Nginx (statikus web szerver)
-
-### Infrastruktúra
-- Docker & Docker Compose
-- Google Cloud Platform
-- Cloud Run (konténer szolgáltatás)
-- Cloud SQL (adatbázis)
-- Cloud Storage (fájlkezelés)
-
-### Biztonság
-- JWT (JSON Web Token) authentikáció
-- RSA256 aszimmetrikus titkosítás
-- bcrypt jelszó hash-elés
-- Role-based Access Control (RBAC)
-- Refresh token rotation
-- HTTPS titkosított kommunikáció
 
 ## 📊 Projektet Statisztikák
 
