@@ -183,17 +183,6 @@ A script interaktívan bekéri:
 # PostgreSQL: localhost:5432
 ```
 
-
-## 📊 Projektet Statisztikák
-
-- **Backend modulok**: Auth, Receipt, Statistics
-- **Frontend oldalak**: Login, Home, Receipts, Stats, Admin
-- **API végpontok**: REST API FastAPI-val
-- **Adatbázis táblák**: Users, Roles, UserRoleLink, RefreshTokens, Markets, Receipts, ReceiptItems (7 tábla)
-- **Authentikáció**: JWT tokenek RSA256 titkosítással
-- **Jogosultságok**: admin, user szerepkörök
-- **AI integráció**: OpenAI API blokk feldolgozáshoz
-
 ## 🔗 Hasznos Linkek
 
 - [Docker Compose konfiguráció](../docker/docker-compose.yaml)
