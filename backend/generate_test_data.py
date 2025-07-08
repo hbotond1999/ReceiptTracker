@@ -23,23 +23,7 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from auth.models import User
 from receipt.models import Receipt, Market, ReceiptItem
 
-# Load environment variables
-load_dotenv()
-
-# Database setup
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./test.db")
-# SQLite specific configuration for better concurrency
-if "sqlite" in DATABASE_URL:
-    engine = create_engine(
-        DATABASE_URL, 
-        pool_size=1,  # SQLite works better with fewer connections
-        max_overflow=0,
-        pool_pre_ping=True,
-        connect_args={"check_same_thread": False, "timeout": 30}
-    )
-else:
-    # PostgreSQL/MySQL configuration
-    engine = create_engine(DATABASE_URL, pool_size=20, max_overflow=30)
+# Database setup will be done in main() function after loading .env
 
 # Thread-safe lock for progress reporting
 progress_lock = threading.Lock()
@@ -192,7 +176,7 @@ def create_receipt_batch(market_ids: List[int], user_ids: List[int], batch_size:
         traceback.print_exc()
         raise
 
-def create_receipts_and_items_parallel(session: Session, markets: List[Market], users: List[User], count: int):
+def create_receipts_and_items_parallel(session: Session, markets: List[Market], users: List[User], count: int, database_url: str):
     """Create test receipts and receipt items using multiple threads"""
     print(f"Creating {count} receipts using parallel processing...")
     
@@ -202,7 +186,7 @@ def create_receipts_and_items_parallel(session: Session, markets: List[Market], 
     
     # Calculate optimal batch size and thread count
     # SQLite works better with fewer threads due to locking
-    if "sqlite" in DATABASE_URL:
+    if "sqlite" in database_url:
         max_threads = min(os.cpu_count() or 2, 4)  # Limit to 4 threads max for SQLite
     else:
         max_threads = min(os.cpu_count() or 4, 10)  # Limit to 10 threads max for other DBs
@@ -257,6 +241,32 @@ def get_existing_users(session: Session) -> List[User]:
 
 def main():
     """Main function to generate test data"""
+    # Ha van parancssori argumentum, azt használja DATABASE_URL-ként
+    DATABASE_URL = None
+    if len(sys.argv) > 1:
+        DATABASE_URL = sys.argv[1]
+        print(f"Database URL használata: {DATABASE_URL}")
+    else:
+        # Fallback to .env file loading
+        load_dotenv()
+        DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./test.db")
+        print(f"Database URL .env-ből: {DATABASE_URL}")
+    
+    # Database setup
+    global engine
+    # SQLite specific configuration for better concurrency
+    if "sqlite" in DATABASE_URL:
+        engine = create_engine(
+            DATABASE_URL, 
+            pool_size=1,  # SQLite works better with fewer connections
+            max_overflow=0,
+            pool_pre_ping=True,
+            connect_args={"check_same_thread": False, "timeout": 30}
+        )
+    else:
+        # PostgreSQL/MySQL configuration
+        engine = create_engine(DATABASE_URL, pool_size=20, max_overflow=30)
+    
     print("=== Receipt Tracker Test Data Generator (Multithreaded) ===")
     print("This script will generate test data for the Receipt Tracker application.")
     print("- 10 markets")
@@ -314,7 +324,7 @@ def main():
         print(f"\nGenerating {receipt_count} receipts...")
         start_time = time.time()
         
-        create_receipts_and_items_parallel(session, markets, existing_users, receipt_count)
+        create_receipts_and_items_parallel(session, markets, existing_users, receipt_count, DATABASE_URL)
         
         total_time = time.time() - start_time
         

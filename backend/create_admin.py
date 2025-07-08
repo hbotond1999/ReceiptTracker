@@ -1,12 +1,26 @@
 import sys
 import os
 from getpass import getpass
-from sqlmodel import Session, select
-from auth.routes import engine
+from sqlmodel import Session, select, create_engine
 from auth.models import User, Role, RoleEnum
 from auth.utils import get_password_hash, get_user_by_username
+from dotenv import load_dotenv
 
 def main():
+    # Ha van parancssori argumentum, azt használja DATABASE_URL-ként
+    DATABASE_URL = None
+    if len(sys.argv) > 1:
+        DATABASE_URL = sys.argv[1]
+        print(f"Database URL használata: {DATABASE_URL}")
+    else:
+        # Fallback to .env file loading
+        load_dotenv()
+        DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./test.db")
+        print(f"Database URL .env-ből: {DATABASE_URL}")
+    
+    # Database setup
+    engine = create_engine(DATABASE_URL)
+    
     username = input("Admin felhasználónév: ")
     email = input("Email: ")
     fullname = input("Teljes név: ")

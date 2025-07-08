@@ -1,12 +1,25 @@
-from sqlmodel import SQLModel, Session, select
-from auth.routes import engine
+import sys
+import os
+from sqlmodel import SQLModel, Session, select, create_engine
 from auth.models import Role, RoleEnum
 from dotenv import load_dotenv
 from receipt.models import *
 
-load_dotenv()
-
 def init_database():
+    # Ha van parancssori argumentum, azt használja DATABASE_URL-ként
+    DATABASE_URL = None
+    if len(sys.argv) > 1:
+        DATABASE_URL = sys.argv[1]
+        print(f"Database URL használata: {DATABASE_URL}")
+    else:
+        # Fallback to .env file loading
+        load_dotenv()
+        DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./test.db")
+        print(f"Database URL .env-ből: {DATABASE_URL}")
+    
+    # Database setup
+    engine = create_engine(DATABASE_URL)
+    
     """Initialize database tables and default data"""
     print("Initializing database...")
     
