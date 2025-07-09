@@ -10,10 +10,11 @@
 </a>
 
 #### AI-al készült a videó:
-- Telefonon képernyő rőgzítéssel hang nélkül felvett
-- Ezt a videót vertex AI-ra feltötltöttem és a gemini-2.0-flash-preview modellel leiratot generáltam hozzá
-- Clipchamp-en a TTS modellel feliratot generáltam hozzá és AI-al megszerkesztetettem a videót.
+- Telefonon képernyő rőgzítéssel, hang nélkül felvettem az alkalmazást
+- Majd ezt a videót a vertex AI-ra feltöltöttem és a gemini-2.0-flash-preview modellel narrációt generáltam hozzá
+- [Clipchamp-en](https://app.clipchamp.com/) egy TTS modellel (Noemi néven futt) hangot generáltam hozzá és AI-al megszerkesztetettem a videót.
 - Összesen **15 perc** volt.
+
 ## 📁 Dokumentációs Fájlok
 
 ### 🏗️ [Architektúra Dokumentáció](./architecture.md)
