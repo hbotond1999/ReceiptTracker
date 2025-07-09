@@ -6,15 +6,12 @@
 
 ### 🏗️ [Architektúra Dokumentáció](./architecture.md)
 Részletes áttekintés az alkalmazás architektúrájáról, amely tartalmazza:
-- **Rendszer architektúra ábra** (Mermaid diagram) - Produkciós és fejlesztési környezet
+- **Rendszer architektúra ábra** (Mermaid diagram) - Éles és fejlesztési környezet
 - **Komponens leírások** (Frontend, Backend, Adatbázis)
-- **Nginx konfiguráció részletek** (statikus fájl kiszolgálás)
-- **Kétirányú kommunikációs folyamatok**
-- **JWT authentikáció rendszer** (RSA256, token rotation, RBAC)
+- **JWT authentikáció** (RSA256, token rotation, RBAC)
 - **Adatmodell diagram** (Entity Relationship Diagram)
 - **Technológiai stack** részletei
-- **Biztonsági megfontolások**
-- **Skalázhatósági információk**
+- **Skalázhatóság**
 
 ## 🎯 Projekt Áttekintés
 
@@ -34,7 +31,7 @@ A ReceiptTracker egy modern, többplatformos alkalmazás, amely:
 
 ## 📱 Támogatott Platformok
 
-- **🌐 Web alkalmazás**: Minden modern böngészőben
+- **🌐 Web alkalmazás**
 - **📱 Android app**: Google Play Store-ban elérhető
 - **🍎 iOS app**: App Store-ban elérhető
 
@@ -45,16 +42,12 @@ A ReceiptTracker egy modern, többplatformos alkalmazás, amely:
 - FastAPI (Python)
 - PostgreSQL
 - SQLAlchemy ORM
-- JWT Authentication (RSA256)
-- bcrypt (jelszó hash-elés)
-- OpenAI API integráció
+- OpenAI API
 
 ### Frontend
 - Angular
 - Ionic Framework
-- Standalone Components
 - TypeScript
-- Nginx (statikus web szerver)
 
 ### Infrastruktúra
 - Docker

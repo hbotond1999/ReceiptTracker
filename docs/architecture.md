@@ -105,14 +105,12 @@ graph TB
     class OpenAIDev ai
 ```
 
-## Leírások
-
 ### Éles Környezet (Google Cloud)
 
 #### Kliens Alkalmazások
 - **Android App**: Play Store-ban elérhető mobil alkalmazás (közvetlen backend API kommunikáció)
 - **iOS App**: App Store-ban elérhető mobil alkalmazás (közvetlen backend API kommunikáció)
-- **Web kliens**: Böngészőben futó webes felület (statikus fájlok + közvetlen API hívások)
+- **Web kliens**: Böngészőben futó webes felület (statikus fájlok)
 
 #### Google Cloud Platform Szolgáltatások
 - **Frontend Container (Cloud Run)**: Nginx web szerver Angular/Ionic statikus fájlokkal, port 80
@@ -120,8 +118,9 @@ graph TB
   - Multi-process deployment (4 worker)
   - Uvicorn workers (ASGI kompatibilitás)
   - Production-ready konfigurációval
-- **Cloud SQL**: Felügyelt PostgreSQL adatbázis
+- **Cloud SQL**: PostgreSQL adatbázis
 - **Cloud Storage**: Fájlok tárolása (profilképek, blokkképek, RSA kulcsok)
+- **Secret manager**: Jelszavak, api kulcsok tárolása
 
 ### Fejlesztési Környezet (Local Docker)
 
@@ -130,7 +129,6 @@ graph TB
 - **Backend Container**: Gunicorn WSGI szerver, port 8000
   - 4 worker process (konfigurálható)
   - Uvicorn worker class ASGI támogatáshoz
-  - Hot reload fejlesztés során
 - **PostgreSQL Container**: PostgreSQL 17 Alpine adatbázis, port 5432
 
 #### Persistence volumes
