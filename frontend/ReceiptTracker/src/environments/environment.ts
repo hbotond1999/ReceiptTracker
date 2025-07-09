@@ -4,7 +4,7 @@
 
 export const environment = {
   production: false,
-  apiUrl: 'https://receipttracker-216847281581.europe-west1.run.app',
+  apiUrl: 'http://localhost:8000',
 };
 
 /*
