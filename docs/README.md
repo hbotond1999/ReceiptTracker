@@ -2,6 +2,18 @@
 
 Üdvözlünk a ReceiptTracker projekt dokumentációjában! Itt megtalálod az alkalmazás architektúrájával, fejlesztésével és üzembe helyezésével kapcsolatos információkat.
 
+## Bemutató videó
+
+
+<a href="https://drive.google.com/file/d/1o6nS1RKkWH3d9bTuY_hFgFFpADR2sZkt/view?usp=drive_link">
+  <img src="images/app.jpg" width="150px" alt="Video Title" />
+</a>
+
+#### AI-al készült a videó:
+- Telefonon képernyő rőgzítéssel hang nélkül felvett
+- Ezt a videót vertex AI-ra feltötltöttem és a gemini-2.0-flash-preview modellel leiratot generáltam hozzá
+- Clipchamp-en a TTS modellel feliratot generáltam hozzá és AI-al megszerkesztetettem a videót.
+- Összesen **15 perc** volt.
 ## 📁 Dokumentációs Fájlok
 
 ### 🏗️ [Architektúra Dokumentáció](./architecture.md)
