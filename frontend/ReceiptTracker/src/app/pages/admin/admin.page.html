@@ -4,29 +4,44 @@
   </ion-toolbar>
 </ion-header>
 
-<ion-content>
-  <ion-searchbar [(ngModel)]="searchUsername" (ionChange)="search()" placeholder="Felhasználónév keresése"></ion-searchbar>
-  <ion-button expand="block" (click)="openEditModal()">Új felhasználó hozzáadása</ion-button>
+<ion-content class="ion-padding">
+  <ion-searchbar [formControl]="searchUsername" placeholder="Felhasználónév keresése"></ion-searchbar>
 
-  <ion-list>
-    <ion-item *ngFor="let user of users">
-      <ion-label>
-        <h2>{{ user.username }}</h2>
-        <p>{{ user.email }} | Szerepkörök: {{ user.roles?.join(', ') }} | {{ user.disabled ? 'Letiltva' : 'Aktív' }}</p>
-      </ion-label>
-      <ion-button slot="end" fill="clear" (click)="openEditModal(user)">
-        <ion-icon name="create-outline"></ion-icon>
-      </ion-button>
-      <ion-button slot="end" fill="clear" color="danger" (click)="deleteUser(user.id)">
-        <ion-icon name="trash-outline"></ion-icon>
-      </ion-button>
-    </ion-item>
-  </ion-list>
+  <ion-card>
+    <ion-card-header>
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <ion-card-title>Felhasználók</ion-card-title>
+        <ion-button fill="clear" (click)="openEditModal()">
+          <ion-icon name="add-outline"></ion-icon>
+        </ion-button>
+      </div>
+    </ion-card-header>
+    <ion-card-content>
+      <ion-list>
+        <ion-item *ngFor="let user of users">
+          <ion-label>
+            <h2>{{ user.username }}</h2>
+            <p>{{ user.email }} | Szerepkörök: {{ user.roles?.join(', ') }} | 
+              <span [style.color]="user.disabled ? 'red' : 'green'">
+                {{ user.disabled ? 'Letiltva' : 'Aktív' }}
+              </span>
+            </p>
+          </ion-label>
+          <ion-button slot="end" fill="clear" (click)="openEditModal(user)">
+            <ion-icon name="create-outline"></ion-icon>
+          </ion-button>
+          <ion-button slot="end" fill="clear" color="danger" (click)="deleteUser(user.id)">
+            <ion-icon name="trash-outline"></ion-icon>
+          </ion-button>
+        </ion-item>
+      </ion-list>
 
-  <!-- Pagination with count display -->
-  <div style="display: flex; justify-content: center; align-items: center; gap: 1rem; margin-top: 2rem;">
-    <ion-button [disabled]="skip === 0" (click)="changePage('prev')">Előző</ion-button>
-    <span>{{skip + 1}} - {{Math.min(skip + limit, total)}} / {{total}}</span>
-    <ion-button [disabled]="skip + limit >= total" (click)="changePage('next')">Következő</ion-button>
-  </div>
+      <!-- Pagination with count display -->
+      <div style="display: flex; justify-content: center; align-items: center; gap: 1rem; margin-top: 2rem;">
+        <ion-button [disabled]="skip === 0" (click)="changePage('prev')">Előző</ion-button>
+        <span>{{skip + 1}} - {{Math.min(skip + limit, total)}} / {{total}}</span>
+        <ion-button [disabled]="skip + limit >= total" (click)="changePage('next')">Következő</ion-button>
+      </div>
+    </ion-card-content>
+  </ion-card>
 </ion-content>

@@ -1,17 +1,18 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { IonicModule, ModalController, AlertController } from '@ionic/angular';
 import { AuthService } from '../../api/api/auth.service';
 import { UserListOut, UserOut } from '../../api/model/models';
 import { UserEditModalComponent } from './user-edit.modal';
 import { Observable } from 'rxjs';
-import { Subject, takeUntil } from 'rxjs';
+import { Subject, takeUntil, debounceTime } from 'rxjs';
+import { FormControl } from '@angular/forms';
 
 @Component({
   selector: 'app-admin',
   standalone: true,
-  imports: [CommonModule, FormsModule, IonicModule],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, IonicModule],
   templateUrl: './admin.page.html',
   styleUrls: ['./admin.page.scss']
 })
@@ -20,7 +21,7 @@ export class AdminPage implements OnInit, OnDestroy {
   total: number = 0;
   skip: number = 0;
   limit: number = 10;
-  searchUsername: string = '';
+  searchUsername = new FormControl('');
   readonly unsub$ = new Subject<void>();
 
   constructor(
@@ -31,10 +32,21 @@ export class AdminPage implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.loadUsers();
+    this.setupSearchSubscription();
+  }
+
+  setupSearchSubscription() {
+    this.searchUsername.valueChanges.pipe(
+      debounceTime(300),
+      takeUntil(this.unsub$)
+    ).subscribe(() => {
+      this.skip = 0; // Reset to first page when searching
+      this.loadUsers();
+    });
   }
 
   loadUsers() {
-    this.authService.listUsersAuthUsersGet(this.searchUsername, this.skip, this.limit).pipe(
+    this.authService.listUsersAuthUsersGet(this.searchUsername.value || '', this.skip, this.limit).pipe(
       takeUntil(this.unsub$)
     ).subscribe({
       next: (data: UserListOut) => {
@@ -81,11 +93,6 @@ export class AdminPage implements OnInit, OnDestroy {
       ]
     });
     await alert.present();
-  }
-
-  search() {
-    this.skip = 0;
-    this.loadUsers();
   }
 
   changePage(direction: 'next' | 'prev') {
