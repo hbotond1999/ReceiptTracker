@@ -171,9 +171,10 @@ def list_users(
     current_user: DBUser = Depends(require_roles(["admin"]))
 ):
     total = session.exec(select(func.count()).select_from(DBUser)).one()
-    statement = select(DBUser).offset(skip).limit(limit)
+    statement = select(DBUser)
     if username:
-        statement.where(DBUser.username.ilike(f"%{username}%"))
+        statement = statement.where(DBUser.username.ilike(f"%{username}%"))
+    statement = statement.offset(skip).limit(limit)
     users = session.exec(statement).all()
     return UserListOut(
         users=[UserOut(
