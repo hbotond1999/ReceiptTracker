@@ -165,12 +165,15 @@ def register_user_public(user: PublicUserRegister, session: Session = Depends(ge
 @router.get("/users", response_model=UserListOut)
 def list_users(
     session: Session = Depends(get_session),
+    username: str = Query(None),
     skip: int = Query(0, ge=0),
     limit: int = Query(10, ge=1, le=1000),
     current_user: DBUser = Depends(require_roles(["admin"]))
 ):
     total = session.exec(select(func.count()).select_from(DBUser)).one()
     statement = select(DBUser).offset(skip).limit(limit)
+    if username:
+        statement.where(DBUser.username.ilike(f"%{username}%"))
     users = session.exec(statement).all()
     return UserListOut(
         users=[UserOut(

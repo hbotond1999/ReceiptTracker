@@ -193,7 +193,7 @@ export class StatsPage implements OnInit, OnDestroy {
   }
 
   private loadUsers(): Observable<UserOut[]> {
-    return this.authService.listUsersAuthUsersGet(0, 1000).pipe(
+    return this.authService.listUsersAuthUsersGet('', 0, 1000).pipe(
       map(response => response?.users || []),
       catchError(this.handleError('Error loading users', []))
     );
