@@ -60,7 +60,9 @@ export class AdminPage implements OnInit, OnDestroy {
   async openEditModal(user?: UserOut) {
     const modal = await this.modalCtrl.create({
       component: UserEditModalComponent,
-      componentProps: { user }
+      componentProps: { user },
+      breakpoints: [0, 1],
+      initialBreakpoint: 1
     });
     await modal.present();
 

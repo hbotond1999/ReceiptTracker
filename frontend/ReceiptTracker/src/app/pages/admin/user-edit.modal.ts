@@ -21,9 +21,9 @@ export class UserEditModalComponent implements OnInit {
   constructor(private fb: FormBuilder, private modalCtrl: ModalController) {
     this.userForm = this.fb.group({
       username: ['', Validators.required],
-      email: ['', [Validators.required, Validators.email]],
-      fullname: ['', Validators.required],
-      password: [''],
+      email: ['', [Validators.email]],
+      fullname: [''],
+      password: ['', [Validators.required]],
       disabled: [false],
       roles: [[], Validators.required]
     });
@@ -79,4 +79,4 @@ export class UserEditModalComponent implements OnInit {
   cancel() {
     this.modalCtrl.dismiss(null, 'cancel');
   }
-} 
+}

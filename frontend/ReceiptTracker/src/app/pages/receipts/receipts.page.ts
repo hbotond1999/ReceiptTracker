@@ -24,10 +24,10 @@ import {
   IonTitle,
   IonToolbar
 } from '@ionic/angular/standalone';
-import {ReceiptService} from '../../api/api/receipt.service';
-import {MarketOut} from '../../api/model/marketOut';
-import {ReceiptOut} from '../../api/model/receiptOut';
-import {ReceiptListOut} from '../../api/model/receiptListOut';
+import {ReceiptService} from '../../api';
+import {MarketOut} from '../../api';
+import {ReceiptOut} from '../../api';
+import {ReceiptListOut} from '../../api';
 import {FormControl, ReactiveFormsModule} from '@angular/forms';
 import {CommonModule} from '@angular/common';
 import {AlertController, ModalController, ToastController} from '@ionic/angular';
@@ -298,8 +298,11 @@ export class ReceiptsPage implements OnInit, OnDestroy {
     const modal = await this.modalController.create({
       component: ReceiptEditModalComponent,
       componentProps: {
-        receipt: receipt
-      }
+        receipt: receipt,
+        markets: this.markets(),
+      },
+      breakpoints: [0, 1],
+      initialBreakpoint: 1
     });
 
     await modal.present();

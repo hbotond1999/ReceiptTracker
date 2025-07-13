@@ -38,6 +38,8 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), session: Session = D
     user = authenticate_user(session, form_data.username, form_data.password)
     if not user:
         raise HTTPException(status_code=401, detail="Incorrect username or password")
+    if user.disabled:
+        raise HTTPException(status_code=401, detail="User is disabled")
     access_token = utils.create_access_token(data={"sub": user.username, "roles": [role.name for role in user.roles]})
     refresh_token = utils.create_refresh_token(data={"sub": user.username, "roles": [role.name for role in user.roles]}, session=session)
     return TokenOut(access_token=access_token, refresh_token=refresh_token, token_type="bearer")
@@ -62,6 +64,8 @@ def get_current_user(credentials: HTTPAuthorizationCredentials = Security(HTTPBe
     user = utils.get_user_by_username(session, username)
     if user is None:
         raise HTTPException(status_code=401, detail="User not found")
+    if user.disabled:
+        raise HTTPException(status_code=401, detail="User is disabled")
     return user
 
 def require_roles(required_roles: list):
