@@ -1,25 +1,24 @@
+import { Component, Input, OnChanges, OnDestroy, OnInit, SimpleChanges, inject, ElementRef, ViewChild } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import {
-  Component,
-  ElementRef,
-  inject,
-  Input,
-  OnChanges,
-  OnDestroy,
-  OnInit,
-  SimpleChanges,
-  ViewChild
-} from '@angular/core';
-import {CommonModule} from '@angular/common';
-import {IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonSpinner} from '@ionic/angular/standalone';
-import {AggregationType, StatisticService, TimeSeriesData} from '../../../../api';
-import {Subject, takeUntil} from 'rxjs';
-import {DarkModeService} from '../../../../services/dark-mode.service';
+  IonCard,
+  IonCardHeader,
+  IonCardTitle,
+  IonCardContent,
+  IonSpinner
+} from '@ionic/angular/standalone';
+import { ReceiptService } from '../../../../api/api/receipt.service';
+import { TimeSeriesData } from '../../../../api/model/timeSeriesData';
+import { AggregationType } from '../../../../api/model/aggregationType';
+import { Subject, takeUntil } from 'rxjs';
+import { DarkModeService } from '../../../../services/dark-mode.service';
 
 // amCharts 5 imports
 import * as am5 from '@amcharts/amcharts5';
 import * as am5xy from '@amcharts/amcharts5/xy';
 import am5themes_Animated from '@amcharts/amcharts5/themes/Animated';
 import am5themes_Dark from '@amcharts/amcharts5/themes/Dark';
+import {StatisticService} from "../../../../api";
 
 @Component({
   selector: 'app-receipts-chart',
@@ -56,9 +55,7 @@ export class ReceiptsChartComponent implements OnInit, OnChanges, OnDestroy {
     this.loadData();
 
     // Subscribe to dark mode changes
-    this.darkModeService.isDarkMode$.pipe(
-      takeUntil(this.unsub$)
-    ).subscribe(() => {
+    this.darkModeService.isDarkMode$.pipe(takeUntil(this.unsub$)).subscribe(() => {
       if (this.chart) {
         // Reinitialize chart with new theme
         this.loadData();
@@ -91,7 +88,7 @@ export class ReceiptsChartComponent implements OnInit, OnChanges, OnDestroy {
       case AggregationType.Year:
         return { timeUnit: "year" as any, count: 1 };
       default:
-        return { timeUnit: "day" as any, count: 1};
+        return { timeUnit: "day" as any, count: 31 };
     }
   }
 
@@ -132,7 +129,7 @@ export class ReceiptsChartComponent implements OnInit, OnChanges, OnDestroy {
     });
 
     const xAxis = this.chart.xAxes.push(am5xy.DateAxis.new(this.root, {
-      maxZoomCount: 1000,
+      maxZoomCount: 100,
       baseInterval: this.getBaseInterval(),
       renderer: xRenderer,
       tooltip: am5.Tooltip.new(this.root, {})
@@ -146,13 +143,13 @@ export class ReceiptsChartComponent implements OnInit, OnChanges, OnDestroy {
 
     // Create series
     const series = this.chart.series.push(am5xy.LineSeries.new(this.root, {
-      name: "Blokkok",
+      name: "Vásárlások",
       xAxis: xAxis,
       yAxis: yAxis,
       valueYField: "value",
       valueXField: "date",
       tooltip: am5.Tooltip.new(this.root, {
-        labelText: "{valueY} db"
+        labelText: "{valueY} vásárlás"
       })
     }));
 
@@ -181,9 +178,7 @@ export class ReceiptsChartComponent implements OnInit, OnChanges, OnDestroy {
       this.dateTo,
       this.userId || undefined,
       this.aggregationType || AggregationType.Day
-    ).pipe(
-      takeUntil(this.unsub$)
-    ).subscribe({
+    ).pipe(takeUntil(this.unsub$)).subscribe({
       next: (data: TimeSeriesData[]) => {
         this.initializeChart()
         this.isLoading = false;
@@ -204,5 +199,14 @@ export class ReceiptsChartComponent implements OnInit, OnChanges, OnDestroy {
         console.error('Error loading receipts time series data:', error);
       }
     });
+  }
+
+  private cleanup() {
+    this.unsub$.next();
+    this.unsub$.complete();
+
+    if (this.root) {
+      this.root.dispose();
+    }
   }
 }

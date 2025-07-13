@@ -1,19 +1,17 @@
+import { Component, Input, OnChanges, OnDestroy, OnInit, SimpleChanges, inject, ElementRef, ViewChild } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import {
-  Component,
-  ElementRef,
-  inject,
-  Input,
-  OnChanges,
-  OnDestroy,
-  OnInit,
-  SimpleChanges,
-  ViewChild
-} from '@angular/core';
-import {CommonModule} from '@angular/common';
-import {IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonSpinner} from '@ionic/angular/standalone';
-import {AggregationType, StatisticService, TimeSeriesData} from '../../../../api';
-import {Subject, takeUntil} from 'rxjs';
-import {DarkModeService} from '../../../../services/dark-mode.service';
+  IonCard,
+  IonCardHeader,
+  IonCardTitle,
+  IonCardContent,
+  IonSpinner
+} from '@ionic/angular/standalone';
+import {ReceiptService, StatisticService} from '../../../../api';
+import { TimeSeriesData } from '../../../../api';
+import { AggregationType } from '../../../../api';
+import {Subject, Subscription, takeUntil} from 'rxjs';
+import { DarkModeService } from '../../../../services/dark-mode.service';
 
 // amCharts 5 imports
 import * as am5 from '@amcharts/amcharts5';
@@ -42,23 +40,20 @@ export class AmountsChartComponent implements OnInit, OnChanges, OnDestroy {
   @Input() aggregationType?: AggregationType;
 
   @ViewChild('chartContainer', { static: false }) chartContainer!: ElementRef;
-
+  private readonly unsub$ = new Subject<void>();
   private statisticService = inject(StatisticService);
   private darkModeService = inject(DarkModeService);
   private root?: am5.Root;
   private chart?: am5xy.XYChart;
-  private readonly unsub$ = new Subject<void>();
 
   chartId = Math.random().toString(36).substr(2, 9);
   isLoading = false;
 
   ngOnInit() {
-      this.loadData();
+    this.loadData();
 
     // Subscribe to dark mode changes
-    this.darkModeService.isDarkMode$.pipe(
-      takeUntil(this.unsub$)
-    ).subscribe(() => {
+    this.darkModeService.isDarkMode$.pipe(takeUntil(this.unsub$)).subscribe(() => {
       if (this.chart) {
         this.loadData();
       }
@@ -75,12 +70,7 @@ export class AmountsChartComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   ngOnDestroy() {
-    this.unsub$.next();
-    this.unsub$.complete();
-
-    if (this.root) {
-      this.root.dispose();
-    }
+    this.cleanup();
   }
 
   private getBaseInterval() {
@@ -175,14 +165,13 @@ export class AmountsChartComponent implements OnInit, OnChanges, OnDestroy {
 
     this.isLoading = true;
 
+
     this.statisticService.getAmountsTimeseriesStatisticTimeseriesAmountsGet(
       this.dateFrom,
       this.dateTo,
       this.userId || undefined,
       this.aggregationType || AggregationType.Day
-    ).pipe(
-      takeUntil(this.unsub$)
-    ).subscribe({
+    ).pipe(takeUntil(this.unsub$)).subscribe({
       next: (data: TimeSeriesData[]) => {
         this.isLoading = false;
         this.initializeChart();
@@ -203,5 +192,14 @@ export class AmountsChartComponent implements OnInit, OnChanges, OnDestroy {
         console.error('Error loading amounts time series data:', error);
       }
     });
+  }
+
+  private cleanup() {
+    this.unsub$.next();
+    this.unsub$.complete();
+
+    if (this.root) {
+      this.root.dispose();
+    }
   }
 }
