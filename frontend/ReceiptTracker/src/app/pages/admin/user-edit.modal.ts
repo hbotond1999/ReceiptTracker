@@ -1,9 +1,8 @@
-import { Component, Input, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { IonicModule, ModalController } from '@ionic/angular';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { UserOut, UserUpdateRequest, UserInDB, Role } from '../../api/model/models';
+import {Component, Input, OnInit} from '@angular/core';
+import {CommonModule} from '@angular/common';
+import {FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators} from '@angular/forms';
+import {IonicModule, ModalController} from '@ionic/angular';
+import {Role, UserInDB, UserOut, UserUpdateRequest} from '../../api/model/models';
 
 @Component({
   selector: 'app-user-edit-modal',

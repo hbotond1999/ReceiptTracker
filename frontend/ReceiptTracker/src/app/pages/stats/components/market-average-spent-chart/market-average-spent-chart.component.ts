@@ -1,24 +1,15 @@
-
-import { Component, Input, OnChanges, OnDestroy, OnInit, SimpleChanges, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import {
-  IonCard,
-  IonCardHeader,
-  IonCardTitle,
-  IonCardContent,
-  IonSpinner
-} from '@ionic/angular/standalone';
-import { MarketAverageSpentList } from '../../../../api';
-import { MarketAverageSpent } from '../../../../api';
-import {Subject, Subscription, takeUntil} from 'rxjs';
-import { DarkModeService } from '../../../../services/dark-mode.service';
+import {Component, inject, Input, OnChanges, OnDestroy, OnInit, SimpleChanges} from '@angular/core';
+import {CommonModule} from '@angular/common';
+import {IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonSpinner} from '@ionic/angular/standalone';
+import {MarketAverageSpent, MarketAverageSpentList, StatisticService} from '../../../../api';
+import {Subject, takeUntil} from 'rxjs';
+import {DarkModeService} from '../../../../services/dark-mode.service';
 
 // amCharts 5 imports
 import * as am5 from '@amcharts/amcharts5';
 import * as am5xy from '@amcharts/amcharts5/xy';
 import am5themes_Animated from '@amcharts/amcharts5/themes/Animated';
 import am5themes_Dark from '@amcharts/amcharts5/themes/Dark';
-import {StatisticService} from "../../../../api";
 
 @Component({
   selector: 'app-market-average-spent-chart',

@@ -1,9 +1,9 @@
 import {Injectable} from '@angular/core';
 import {CanActivate, Router} from '@angular/router';
 import {Store} from '@ngrx/store';
-import {selectUserProfile, selectAuthComplete, selectIsAuthenticated} from './store/auth/auth.selectors';
+import {selectAuthComplete, selectIsAuthenticated, selectUserProfile} from './store/auth/auth.selectors';
 import {Observable} from 'rxjs';
-import {map, take, filter, switchMap} from 'rxjs/operators';
+import {filter, map, switchMap, take} from 'rxjs/operators';
 
 @Injectable({ providedIn: 'root' })
 export class AdminGuard implements CanActivate {

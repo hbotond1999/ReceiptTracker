@@ -24,10 +24,7 @@ import {
   IonTitle,
   IonToolbar
 } from '@ionic/angular/standalone';
-import {ReceiptService} from '../../api';
-import {MarketOut} from '../../api';
-import {ReceiptOut} from '../../api';
-import {ReceiptListOut} from '../../api';
+import {MarketOut, ReceiptListOut, ReceiptOut, ReceiptService} from '../../api';
 import {FormControl, ReactiveFormsModule} from '@angular/forms';
 import {CommonModule} from '@angular/common';
 import {AlertController, ModalController, ToastController} from '@ionic/angular';

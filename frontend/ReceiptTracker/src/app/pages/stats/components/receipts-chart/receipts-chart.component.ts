@@ -1,17 +1,20 @@
-import { Component, Input, OnChanges, OnDestroy, OnInit, SimpleChanges, inject, ElementRef, ViewChild } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import {
-  IonCard,
-  IonCardHeader,
-  IonCardTitle,
-  IonCardContent,
-  IonSpinner
-} from '@ionic/angular/standalone';
-import { ReceiptService } from '../../../../api/api/receipt.service';
-import { TimeSeriesData } from '../../../../api/model/timeSeriesData';
-import { AggregationType } from '../../../../api/model/aggregationType';
-import { Subject, takeUntil } from 'rxjs';
-import { DarkModeService } from '../../../../services/dark-mode.service';
+  Component,
+  ElementRef,
+  inject,
+  Input,
+  OnChanges,
+  OnDestroy,
+  OnInit,
+  SimpleChanges,
+  ViewChild
+} from '@angular/core';
+import {CommonModule} from '@angular/common';
+import {IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonSpinner} from '@ionic/angular/standalone';
+import {TimeSeriesData} from '../../../../api/model/timeSeriesData';
+import {AggregationType} from '../../../../api/model/aggregationType';
+import {Subject, takeUntil} from 'rxjs';
+import {DarkModeService} from '../../../../services/dark-mode.service';
 
 // amCharts 5 imports
 import * as am5 from '@amcharts/amcharts5';

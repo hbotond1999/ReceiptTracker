@@ -1,13 +1,11 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { IonicModule, ModalController, AlertController } from '@ionic/angular';
-import { AuthService } from '../../api/api/auth.service';
-import { UserListOut, UserOut } from '../../api/model/models';
-import { UserEditModalComponent } from './user-edit.modal';
-import { Observable } from 'rxjs';
-import { Subject, takeUntil, debounceTime } from 'rxjs';
-import { FormControl } from '@angular/forms';
+import {Component, OnDestroy, OnInit} from '@angular/core';
+import {CommonModule} from '@angular/common';
+import {FormControl, FormsModule, ReactiveFormsModule} from '@angular/forms';
+import {AlertController, IonicModule, ModalController} from '@ionic/angular';
+import {AuthService} from '../../api/api/auth.service';
+import {UserListOut, UserOut} from '../../api/model/models';
+import {UserEditModalComponent} from './user-edit.modal';
+import {debounceTime, Subject, takeUntil} from 'rxjs';
 
 @Component({
   selector: 'app-admin',
