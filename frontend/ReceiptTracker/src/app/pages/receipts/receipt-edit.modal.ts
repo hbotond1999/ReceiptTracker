@@ -116,7 +116,7 @@ export class ReceiptEditModalComponent implements OnInit {
 
   onSave() {
     if (this.form.valid) {
-      this.modalController.dismiss({ save: this.form.value });
+      this.modalController.dismiss({ updated: true, receiptData: this.form.value });
     } else {
       this.form.markAllAsTouched();
     }
