@@ -7,6 +7,27 @@ Ez egy fastapi + angualr projekt. A boltban történő blokkok feldolgozását t
 
 Az angular részen ionic frameworköt használunk. Minden UI komponens ionic legyen. A komponensek stand alone-k! Modern szép UI legyen.
 
+Mindig irazkoz le így:
+```
+export class ExampleComponent implements OnInit, OnDestroy {
+
+  constructor(private someService: SomeService) { }
+  
+  readonly unsub$ = new Subject<void>();
+    
+  ngOnInit(): void {
+    this.someService.getData().pipe(
+      takeUntil( unsub$ )
+    ).subscribe( ... );
+  }
+    
+  ngOnDestroy(): void {
+    this.unsub$.next();
+    this.unsub$.complete();
+  }
+}
+```
+
 Mindig nézd meg a backend implementációját a frontend fejlesztés .
 
 
