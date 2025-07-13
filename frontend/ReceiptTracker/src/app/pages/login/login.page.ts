@@ -77,13 +77,14 @@ export class LoginPage implements OnInit, OnDestroy {
   ];
   sub !: Subscription;
   private registrationSub?: Subscription;
+  private authSubscription?: Subscription;
+  private registerSubscription?: Subscription;
 
   constructor(
     private fb: FormBuilder,
     private store: Store,
     private router: Router,
     private biometricService: BiometricService,
-    private actions$: Actions
   ) {
     addIcons({ fingerPrint, eye, checkmark });
 
@@ -103,14 +104,14 @@ export class LoginPage implements OnInit, OnDestroy {
     this.loading$ = this.store.select(selectAuthLoading);
     this.error$ = this.store.select(selectAuthError);
 
-    this.store.select(selectIsAuthenticated).subscribe(isAuth => {
+    this.authSubscription = this.store.select(selectIsAuthenticated).subscribe(isAuth => {
       if (isAuth) {
         this.router.navigate(['home']);
       }
     });
 
     // Listen for successful registration and errors
-      this.store.select(selectRegister).subscribe((register) => {
+    this.registerSubscription = this.store.select(selectRegister).subscribe((register) => {
 
       if (!register.loading && !this.isLoginMode) {
         if (!register.error) {
@@ -254,12 +255,17 @@ export class LoginPage implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
-    if (this.sub)
-    {
+    if (this.sub) {
       this.sub.unsubscribe();
     }
     if (this.registrationSub) {
       this.registrationSub.unsubscribe();
+    }
+    if (this.authSubscription) {
+      this.authSubscription.unsubscribe();
+    }
+    if (this.registerSubscription) {
+      this.registerSubscription.unsubscribe();
     }
   }
 }
