@@ -1,24 +1,15 @@
-
-import { Component, Input, OnChanges, OnDestroy, OnInit, SimpleChanges, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import {
-  IonCard,
-  IonCardHeader,
-  IonCardTitle,
-  IonCardContent,
-  IonSpinner
-} from '@ionic/angular/standalone';
-import { MarketAverageSpentList } from '../../../../api';
-import { MarketAverageSpent } from '../../../../api';
-import { Subscription } from 'rxjs';
-import { DarkModeService } from '../../../../services/dark-mode.service';
+import {Component, inject, Input, OnChanges, OnDestroy, OnInit, SimpleChanges} from '@angular/core';
+import {CommonModule} from '@angular/common';
+import {IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonSpinner} from '@ionic/angular/standalone';
+import {MarketAverageSpent, MarketAverageSpentList, StatisticService} from '../../../../api';
+import {Subject, takeUntil} from 'rxjs';
+import {DarkModeService} from '../../../../services/dark-mode.service';
 
 // amCharts 5 imports
 import * as am5 from '@amcharts/amcharts5';
 import * as am5xy from '@amcharts/amcharts5/xy';
 import am5themes_Animated from '@amcharts/amcharts5/themes/Animated';
 import am5themes_Dark from '@amcharts/amcharts5/themes/Dark';
-import {StatisticService} from "../../../../api";
 
 @Component({
   selector: 'app-market-average-spent-chart',
@@ -39,21 +30,20 @@ export class MarketAverageSpentChartComponent implements OnInit, OnChanges, OnDe
   @Input() dateTo!: string;
   @Input() userId?: number | null;
 
+  private readonly unsub$ = new Subject<void>();
   private statisticService = inject(StatisticService);
   private darkModeService = inject(DarkModeService);
   private root?: am5.Root;
   private chart?: am5xy.XYChart;
-  private subscription?: Subscription;
-  private darkModeSubscription?: Subscription;
 
   chartId = Math.random().toString(36).substr(2, 9);
   isLoading = false;
 
   ngOnInit() {
-      this.loadData();
+    this.loadData();
 
     // Subscribe to dark mode changes
-    this.darkModeSubscription = this.darkModeService.isDarkMode$.subscribe(() => {
+    this.darkModeService.isDarkMode$.pipe(takeUntil(this.unsub$)).subscribe(() => {
       if (this.chart) {
         // Reinitialize chart with new theme
         this.loadData();
@@ -104,12 +94,12 @@ export class MarketAverageSpentChartComponent implements OnInit, OnChanges, OnDe
       })
     }));
 
-      xAxis.get("renderer").labels.template.setAll({
-        rotation: -45,
-        centerY: am5.p50,
-        centerX: am5.p100,
-        paddingRight: 10
-      });
+    xAxis.get("renderer").labels.template.setAll({
+      rotation: -45,
+      centerY: am5.p50,
+      centerX: am5.p100,
+      paddingRight: 10
+    });
 
     const yAxis = this.chart.yAxes.push(am5xy.ValueAxis.new(this.root, {
       renderer: am5xy.AxisRendererY.new(this.root, {})
@@ -135,13 +125,12 @@ export class MarketAverageSpentChartComponent implements OnInit, OnChanges, OnDe
   private loadData() {
     if (!this.dateFrom || !this.dateTo) return;
     this.isLoading = true;
-    if (this.subscription) this.subscription.unsubscribe();
 
-    this.subscription = this.statisticService.getMarketAverageSpentStatisticMarketAverageSpentGet(
+    this.statisticService.getMarketAverageSpentStatisticMarketAverageSpentGet(
       this.dateFrom,
       this.dateTo,
       this.userId || undefined
-    ).subscribe({
+    ).pipe(takeUntil(this.unsub$)).subscribe({
       next: (data: MarketAverageSpentList) => {
         this.initializeChart();
         this.isLoading = false;
@@ -166,13 +155,8 @@ export class MarketAverageSpentChartComponent implements OnInit, OnChanges, OnDe
   }
 
   private cleanup() {
-    if (this.subscription) {
-      this.subscription.unsubscribe();
-    }
-
-    if (this.darkModeSubscription) {
-      this.darkModeSubscription.unsubscribe();
-    }
+    this.unsub$.next();
+    this.unsub$.complete();
 
     if (this.root) {
       this.root.dispose();

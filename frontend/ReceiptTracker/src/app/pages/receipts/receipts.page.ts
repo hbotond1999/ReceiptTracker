@@ -1,42 +1,39 @@
-import { Component, signal } from '@angular/core';
+import {Component, OnDestroy, OnInit, signal} from '@angular/core';
 import {
-  IonHeader,
-  IonToolbar,
-  IonTitle,
-  IonContent,
-  IonList,
-  IonItem,
-  IonLabel,
-  IonInput,
-  IonDatetime,
-  IonDatetimeButton,
-  IonModal,
-  IonSelect,
-  IonSelectOption,
-  IonButton,
-  IonIcon,
-  IonAccordionGroup,
   IonAccordion,
-  IonSearchbar,
-  IonSpinner,
-  IonNote,
+  IonAccordionGroup,
+  IonButton,
   IonCard,
+  IonCardContent,
   IonCardHeader,
   IonCardTitle,
-  IonCardContent
+  IonContent,
+  IonDatetime,
+  IonDatetimeButton,
+  IonHeader,
+  IonIcon,
+  IonItem,
+  IonLabel,
+  IonList,
+  IonModal,
+  IonNote,
+  IonSearchbar,
+  IonSelect,
+  IonSelectOption,
+  IonSpinner,
+  IonTitle,
+  IonToolbar
 } from '@ionic/angular/standalone';
-import { ReceiptService } from '../../api/api/receipt.service';
-import { MarketOut } from '../../api/model/marketOut';
-import { ReceiptOut } from '../../api/model/receiptOut';
-import { ReceiptListOut } from '../../api/model/receiptListOut';
-import { FormControl, ReactiveFormsModule } from '@angular/forms';
-import { CommonModule } from '@angular/common';
-import { AlertController, ModalController, ToastController } from '@ionic/angular';
-import { ReceiptEditModalComponent } from './receipt-edit.modal';
-import {chevronDownOutline, chevronUpOutline, searchOutline, downloadOutline} from "ionicons/icons";
+import {MarketOut, ReceiptListOut, ReceiptOut, ReceiptService} from '../../api';
+import {FormControl, ReactiveFormsModule} from '@angular/forms';
+import {CommonModule} from '@angular/common';
+import {AlertController, ModalController, ToastController} from '@ionic/angular';
+import {ReceiptEditModalComponent} from './receipt-edit.modal';
+import {chevronDownOutline, chevronUpOutline, downloadOutline, searchOutline} from "ionicons/icons";
 import {Store} from "@ngrx/store";
 import {selectAccessToken} from "../../store/auth/auth.selectors";
 import {take, tap} from "rxjs/operators";
+import {Subject, takeUntil} from 'rxjs';
 
 const MIN_DATE = new Date(2023, 0, 1).getTime();
 const now = new Date();
@@ -48,12 +45,12 @@ const MAX_DATE = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 
   templateUrl: './receipts.page.html',
   styleUrls: ['./receipts.page.scss'],
   imports: [
-    IonHeader, IonToolbar, IonTitle, IonContent, IonList, IonItem, IonLabel, IonInput, IonDatetime, IonDatetimeButton, IonModal, IonSelect, IonSelectOption, IonAccordionGroup, IonAccordion, IonSearchbar, IonSpinner, IonNote, ReactiveFormsModule, CommonModule,
-    ReceiptEditModalComponent, IonButton, IonIcon, IonCard, IonCardHeader, IonCardTitle, IonCardContent
+    IonHeader, IonToolbar, IonTitle, IonContent, IonList, IonItem, IonLabel, IonDatetime, IonDatetimeButton, IonModal, IonSelect, IonSelectOption, IonAccordionGroup, IonAccordion, IonSearchbar, IonSpinner, IonNote, ReactiveFormsModule, CommonModule,
+    IonButton, IonIcon, IonCard, IonCardHeader, IonCardTitle, IonCardContent
   ],
   providers: [ReceiptService]
 })
-export class ReceiptsPage {
+export class ReceiptsPage implements OnInit, OnDestroy {
   receipts = signal<ReceiptOut[]>([]);
   total = signal(0);
   skip = signal(0);
@@ -78,20 +75,45 @@ export class ReceiptsPage {
 
   icons = { chevronDownOutline, chevronUpOutline, searchOutline, downloadOutline };
 
+  // Unsubscribe subject for takeUntil pattern
+  private readonly unsub$ = new Subject<void>();
+
   constructor(
     private receiptService: ReceiptService,
     private alertController: AlertController,
     private modalController: ModalController,
     private toastController: ToastController,
     private store: Store
-  ) {
+  ) {}
+
+  ngOnInit() {
     this.loadMarkets();
     this.loadReceipts();
+    this.setupFormSubscriptions();
+  }
+
+  ngOnDestroy() {
+    this.unsub$.next();
+    this.unsub$.complete();
+  }
+
+  private setupFormSubscriptions() {
     // Szűrők változására újratölt
-    this.itemName.valueChanges.subscribe(() => this.onFilterChange());
-    this.marketId.valueChanges.subscribe(() => this.onFilterChange());
-    this.orderBy.valueChanges.subscribe(() => this.onFilterChange());
-    this.orderDir.valueChanges.subscribe(() => this.onFilterChange());
+    this.itemName.valueChanges.pipe(
+      takeUntil(this.unsub$)
+    ).subscribe(() => this.onFilterChange());
+
+    this.marketId.valueChanges.pipe(
+      takeUntil(this.unsub$)
+    ).subscribe(() => this.onFilterChange());
+
+    this.orderBy.valueChanges.pipe(
+      takeUntil(this.unsub$)
+    ).subscribe(() => this.onFilterChange());
+
+    this.orderDir.valueChanges.pipe(
+      takeUntil(this.unsub$)
+    ).subscribe(() => this.onFilterChange());
   }
 
   onDateFromChange(ev: CustomEvent) {
@@ -129,7 +151,9 @@ export class ReceiptsPage {
 
   loadMarkets() {
     this.marketLoading.set(true);
-    this.receiptService.getMarketsReceiptMarketsGet(0, 100).subscribe({
+    this.receiptService.getMarketsReceiptMarketsGet(0, 100).pipe(
+      takeUntil(this.unsub$)
+    ).subscribe({
       next: (markets) => this.markets.set(markets),
       complete: () => this.marketLoading.set(false)
     });
@@ -150,6 +174,8 @@ export class ReceiptsPage {
       this.orderBy.value || undefined,
       this.orderDir.value || undefined,
       'body'
+    ).pipe(
+      takeUntil(this.unsub$)
     ).subscribe({
       next: (result: ReceiptListOut) => {
         this.receipts.set(result.receipts);
@@ -199,110 +225,114 @@ export class ReceiptsPage {
         }
       ]
     });
+
     await alert.present();
   }
 
   deleteReceipt(receiptId: number) {
-    this.receiptService.deleteReceiptReceiptReceiptReceiptIdDelete(receiptId, 'body').subscribe({
-      next: () => this.loadReceipts(),
-      error: (err: any) => {
-        this.alertController.create({
-          header: 'Hiba',
-          message: 'A törlés nem sikerült!',
-          buttons: ['OK']
-        }).then(a => a.present());
+    this.receiptService.deleteReceiptReceiptReceiptReceiptIdDelete(receiptId, 'body').pipe(
+      takeUntil(this.unsub$)
+    ).subscribe({
+      next: () => {
+        this.showToast('Blokk sikeresen törölve!', 'success');
+        this.loadReceipts(); // Újratöltés
+      },
+      error: (error: any) => {
+        console.error('Error deleting receipt:', error);
+        this.showToast('Hiba a törlés során!', 'danger');
       }
     });
   }
 
   downloadImage(receipt: ReceiptOut) {
-    // API endpoint URL összeállítása
-    const baseUrl = this.receiptService.configuration.basePath;
-    const downloadUrl = `${baseUrl}/receipt/receipt/${receipt.id}/image`;
-
-    // Fájl letöltése
-    const link = document.createElement('a');
-    link.href = downloadUrl;
-
-    // Fájl kiterjesztés meghatározása
-    let defaultFilename = receipt.original_filename;
-    link.download = defaultFilename;
-    
-    // Authorization header hozzáadása
     this.store.select(selectAccessToken).pipe(
       take(1),
-      tap((token) => {
+      tap(token => {
+        if (!token) {
+          this.showToast('Nincs érvényes hozzáférési token!', 'danger');
+          return;
+        }
+
+        // API endpoint URL összeállítása
+        const baseUrl = 'http://192.168.88.20:8000'; // TODO: environment-ből
+        const downloadUrl = `${baseUrl}/receipt/receipt/${receipt.id}/image`;
+
+        // Fetch request a token-nel
         fetch(downloadUrl, {
+          method: 'GET',
           headers: {
             'Authorization': `Bearer ${token}`
           }
         })
-          .then(response => {
-            if (!response.ok) {
-              throw new Error('Letöltési hiba');
-            }
-            return response.blob();
-          })
-          .then(blob => {
-            const url = window.URL.createObjectURL(blob);
-            link.href = url;
-           
-            link.click();
-            window.URL.revokeObjectURL(url);
-            this.toastController.create({
-              message: 'Kép letöltése sikeres!',
-              duration: 2000,
-              color: 'success'
-            }).then(toast => toast.present());
-          })
-          .catch(error => {
-            console.error('Letöltési hiba:', error);
-            this.toastController.create({
-              message: 'A letöltés nem sikerült!',
-              duration: 2000,
-              color: 'danger'
-            }).then(toast => toast.present());
-          });
+        .then(response => {
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+          return response.blob();
+        })
+        .then(blob => {
+          // Fájl letöltése
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.style.display = 'none';
+          a.href = url;
+          a.download = `receipt_${receipt.market.name}_${receipt.receipt_number}.jpg`;
+          document.body.appendChild(a);
+          a.click();
+          window.URL.revokeObjectURL(url);
+          document.body.removeChild(a);
+          this.showToast('Kép sikeresen letöltve!', 'success');
+        })
+        .catch(error => {
+          console.error('Download error:', error);
+          this.showToast('Hiba a letöltés során!', 'danger');
+        });
       })
-    ).subscribe()
+    ).subscribe();
   }
 
   async editReceipt(receipt: ReceiptOut) {
     const modal = await this.modalController.create({
       component: ReceiptEditModalComponent,
       componentProps: {
-        receipt,
-        markets: this.markets()
+        receipt: receipt,
+        markets: this.markets(),
       },
       breakpoints: [0, 1],
       initialBreakpoint: 1
     });
-    modal.onWillDismiss().then((result) => {
-      if (result.data && result.data.save) {
-        this.updateReceipt(receipt.id, result.data.save);
-      }
-    });
+
     await modal.present();
+
+    const { data } = await modal.onWillDismiss();
+    if (data && data.updated) {
+      this.updateReceipt(receipt.id, data.receiptData);
+    }
   }
 
   updateReceipt(receiptId: number, data: any) {
-    this.receiptService.updateReceiptReceiptReceiptIdPut(receiptId, data, 'body').subscribe({
+    this.receiptService.updateReceiptReceiptReceiptIdPut(receiptId, data, 'body').pipe(
+      takeUntil(this.unsub$)
+    ).subscribe({
       next: () => {
-        this.loadReceipts();
-        this.toastController.create({
-          message: 'Blokk sikeresen frissítve!',
-          duration: 2000,
-          color: 'success'
-        }).then(t => t.present());
+        this.showToast('Blokk sikeresen frissítve!', 'success');
+        this.loadReceipts(); // Újratöltés
       },
-      error: () => {
-        this.toastController.create({
-          message: 'A frissítés nem sikerült!',
-          duration: 2000,
-          color: 'danger'
-        }).then(t => t.present());
+      error: (error: any) => {
+        console.error('Error updating receipt:', error);
+        this.showToast('Hiba a frissítés során!', 'danger');
       }
     });
+  }
+
+  private async showToast(message: string, color: 'success' | 'danger') {
+    const toast = await this.toastController.create({
+      message: message,
+      duration: 2000,
+      color: color,
+      position: 'top'
+    });
+    await toast.present();
   }
 
   protected readonly Math = Math;

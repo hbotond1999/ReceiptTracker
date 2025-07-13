@@ -1,17 +1,10 @@
-import { Component, Input, OnChanges, OnDestroy, OnInit, SimpleChanges, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import {
-  IonCard,
-  IonCardHeader,
-  IonCardTitle,
-  IonCardContent,
-  IonSpinner
-} from '@ionic/angular/standalone';
-import { ReceiptService } from '../../../../api/api/receipt.service';
-import { TotalSpentKPI } from '../../../../api/model/totalSpentKPI';
-import { TotalReceiptsKPI } from '../../../../api/model/totalReceiptsKPI';
-import { AverageReceiptValueKPI } from '../../../../api/model/averageReceiptValueKPI';
-import { Subscription } from 'rxjs';
+import {Component, inject, Input, OnChanges, OnDestroy, OnInit, SimpleChanges} from '@angular/core';
+import {CommonModule} from '@angular/common';
+import {IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonSpinner} from '@ionic/angular/standalone';
+import {TotalSpentKPI} from '../../../../api/model/totalSpentKPI';
+import {TotalReceiptsKPI} from '../../../../api/model/totalReceiptsKPI';
+import {AverageReceiptValueKPI} from '../../../../api/model/averageReceiptValueKPI';
+import {Subject, takeUntil} from 'rxjs';
 import {StatisticService} from "../../../../api";
 
 export type KPIType = 'totalSpent' | 'totalReceipts' | 'averageReceiptValue';
@@ -40,7 +33,7 @@ export class KpiCardComponent implements OnInit, OnChanges, OnDestroy {
   @Input() unit?: string;
 
   private statisticService = inject(StatisticService);
-  private subscription?: Subscription;
+  private readonly unsub$ = new Subject<void>();
 
   value: number | null = null;
   isLoading = false;
@@ -56,7 +49,8 @@ export class KpiCardComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   ngOnDestroy() {
-    this.cleanup();
+    this.unsub$.next();
+    this.unsub$.complete();
   }
 
   private loadData() {
@@ -67,17 +61,14 @@ export class KpiCardComponent implements OnInit, OnChanges, OnDestroy {
     this.isLoading = true;
     this.value = null;
 
-    // Unsubscribe from previous subscription
-    if (this.subscription) {
-      this.subscription.unsubscribe();
-    }
-
     switch (this.kpiType) {
       case 'totalSpent':
-        this.subscription = this.statisticService.getTotalSpentKpiStatisticKpiTotalSpentGet(
+        this.statisticService.getTotalSpentKpiStatisticKpiTotalSpentGet(
           this.dateFrom,
           this.dateTo,
           this.userId || undefined
+        ).pipe(
+          takeUntil(this.unsub$)
         ).subscribe({
           next: (data: TotalSpentKPI) => {
             this.isLoading = false;
@@ -91,10 +82,12 @@ export class KpiCardComponent implements OnInit, OnChanges, OnDestroy {
         break;
 
       case 'totalReceipts':
-        this.subscription = this.statisticService.getTotalReceiptsKpiStatisticKpiTotalReceiptsGet(
+        this.statisticService.getTotalReceiptsKpiStatisticKpiTotalReceiptsGet(
           this.dateFrom,
           this.dateTo,
           this.userId || undefined
+        ).pipe(
+          takeUntil(this.unsub$)
         ).subscribe({
           next: (data: TotalReceiptsKPI) => {
             this.isLoading = false;
@@ -108,10 +101,12 @@ export class KpiCardComponent implements OnInit, OnChanges, OnDestroy {
         break;
 
       case 'averageReceiptValue':
-        this.subscription = this.statisticService.getAverageReceiptValueKpiStatisticKpiAverageReceiptValueGet(
+        this.statisticService.getAverageReceiptValueKpiStatisticKpiAverageReceiptValueGet(
           this.dateFrom,
           this.dateTo,
           this.userId || undefined
+        ).pipe(
+          takeUntil(this.unsub$)
         ).subscribe({
           next: (data: AverageReceiptValueKPI) => {
             this.isLoading = false;
@@ -123,12 +118,6 @@ export class KpiCardComponent implements OnInit, OnChanges, OnDestroy {
           }
         });
         break;
-    }
-  }
-
-  private cleanup() {
-    if (this.subscription) {
-      this.subscription.unsubscribe();
     }
   }
 }

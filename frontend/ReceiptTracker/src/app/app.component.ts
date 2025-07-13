@@ -1,9 +1,18 @@
-import { Component, OnInit } from '@angular/core';
-import { IonApp, IonRouterOutlet } from '@ionic/angular/standalone';
-import { Store } from '@ngrx/store';
-import { autoLogin } from './store/auth/auth.actions';
+import {Component, OnInit} from '@angular/core';
+import {IonApp, IonRouterOutlet} from '@ionic/angular/standalone';
+import {Store} from '@ngrx/store';
+import {autoLogin} from './store/auth/auth.actions';
 import {addIcons} from "ionicons";
-import {chevronDownOutline, downloadOutline, chevronUpOutline, logoIonic, closeOutline, addOutline, trashOutline, createOutline} from "ionicons/icons";
+import {
+  addOutline,
+  chevronDownOutline,
+  chevronUpOutline,
+  closeOutline,
+  createOutline,
+  downloadOutline,
+  logoIonic,
+  trashOutline
+} from "ionicons/icons";
 
 @Component({
   selector: 'app-root',

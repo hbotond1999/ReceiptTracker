@@ -1,9 +1,9 @@
-import { Injectable } from '@angular/core';
-import { HttpEvent, HttpHandler, HttpInterceptor, HttpRequest, HttpErrorResponse } from '@angular/common/http';
-import { Observable, throwError } from 'rxjs';
-import { Store } from '@ngrx/store';
-import { selectAccessToken } from './store/auth/auth.selectors';
-import { take, switchMap, catchError } from 'rxjs/operators';
+import {Injectable} from '@angular/core';
+import {HttpErrorResponse, HttpEvent, HttpHandler, HttpInterceptor, HttpRequest} from '@angular/common/http';
+import {Observable, throwError} from 'rxjs';
+import {Store} from '@ngrx/store';
+import {selectAccessToken} from './store/auth/auth.selectors';
+import {catchError, switchMap, take} from 'rxjs/operators';
 import * as AuthActions from './store/auth/auth.actions';
 
 @Injectable()
@@ -45,4 +45,4 @@ export class AuthInterceptor implements HttpInterceptor {
       })
     );
   }
-} 
+}

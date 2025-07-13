@@ -1,27 +1,27 @@
 import {Component, Input, OnInit} from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { FormArray, FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import {CommonModule} from '@angular/common';
+import {FormArray, FormBuilder, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
 import {
-  IonModal,
-  IonInput,
   IonButton,
-  IonList,
+  IonButtons,
+  IonContent,
+  IonDatetime,
+  IonFooter,
+  IonHeader,
+  IonIcon,
+  IonInput,
   IonItem,
   IonLabel,
-  IonIcon,
+  IonList,
   IonSelect,
   IonSelectOption,
-  IonDatetime,
-  IonTextarea,
-  IonHeader,
-  IonToolbar,
+  IonText,
   IonTitle,
-  IonContent,
-  IonButtons, IonText, IonFooter
+  IonToolbar
 } from '@ionic/angular/standalone';
-import { ReceiptOut } from '../../api/model/receiptOut';
-import { MarketOut } from '../../api/model/marketOut';
-import { ModalController } from '@ionic/angular';
+import {ReceiptOut} from '../../api/model/receiptOut';
+import {MarketOut} from '../../api/model/marketOut';
+import {ModalController} from '@ionic/angular';
 
 @Component({
   selector: 'app-receipt-edit-modal',
@@ -30,7 +30,7 @@ import { ModalController } from '@ionic/angular';
   styleUrls: ['./receipt-edit.modal.scss'],
   imports: [
     CommonModule, ReactiveFormsModule,
-    IonModal, IonInput, IonButton, IonList, IonItem, IonLabel, IonIcon, IonSelect, IonSelectOption, IonDatetime, IonTextarea, IonHeader, IonToolbar, IonTitle, IonContent, IonButtons, IonText, IonFooter
+    IonInput, IonButton, IonList, IonItem, IonLabel, IonIcon, IonSelect, IonSelectOption, IonDatetime, IonHeader, IonToolbar, IonTitle, IonContent, IonButtons, IonText, IonFooter
   ]
 })
 export class ReceiptEditModalComponent implements OnInit {
@@ -72,11 +72,11 @@ export class ReceiptEditModalComponent implements OnInit {
           unit: [item.unit, Validators.required],
           price: [item.price, [Validators.required, Validators.min(0.01)]]
         });
-        
+
         // Auto-calculate price when unit_price or quantity changes
         itemGroup.get('unit_price')?.valueChanges.subscribe(() => this.calculatePrice(itemGroup));
         itemGroup.get('quantity')?.valueChanges.subscribe(() => this.calculatePrice(itemGroup));
-        
+
         this.items.push(itemGroup);
       });
     }
@@ -95,11 +95,11 @@ export class ReceiptEditModalComponent implements OnInit {
       unit: ['db', Validators.required],
       price: [0, [Validators.required, Validators.min(0.01)]]
     });
-    
+
     // Auto-calculate price when unit_price or quantity changes
     newItem.get('unit_price')?.valueChanges.subscribe(() => this.calculatePrice(newItem));
     newItem.get('quantity')?.valueChanges.subscribe(() => this.calculatePrice(newItem));
-    
+
     this.items.push(newItem);
   }
 

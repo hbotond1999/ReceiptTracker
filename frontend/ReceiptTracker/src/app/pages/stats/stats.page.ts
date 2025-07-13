@@ -1,38 +1,42 @@
-import { Component, OnInit, OnDestroy, signal, computed, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { FormsModule, ReactiveFormsModule, FormControl } from '@angular/forms';
+import {Component, computed, inject, OnDestroy, OnInit, signal} from '@angular/core';
+import {CommonModule} from '@angular/common';
+import {FormControl, FormsModule, ReactiveFormsModule} from '@angular/forms';
 import {
-  IonHeader,
-  IonToolbar,
-  IonTitle,
-  IonContent,
-  IonSelect,
-  IonSelectOption,
   IonButton,
   IonCard,
+  IonCardContent,
   IonCardHeader,
   IonCardTitle,
-  IonCardContent,
-  IonLabel,
-  IonDatetimeButton,
+  IonContent,
   IonDatetime,
-  IonModal
+  IonDatetimeButton,
+  IonHeader,
+  IonLabel,
+  IonModal,
+  IonSelect,
+  IonSelectOption,
+  IonTitle,
+  IonToolbar
 } from '@ionic/angular/standalone';
 
-import { ReceiptService } from '../../api/api/receipt.service';
-import { AuthService } from '../../api/api/auth.service';
-import { UserOut } from '../../api/model/userOut';
-import { AggregationType } from '../../api/model/aggregationType';
-import { Observable, switchMap, map, catchError, of, Subscription } from 'rxjs';
+import {ReceiptService} from '../../api/api/receipt.service';
+import {AuthService} from '../../api/api/auth.service';
+import {UserOut} from '../../api/model/userOut';
+import {AggregationType} from '../../api/model/aggregationType';
+import {catchError, map, Observable, of, Subject, switchMap, takeUntil} from 'rxjs';
 
 // Chart components
-import { ReceiptsChartComponent } from './components/receipts-chart/receipts-chart.component';
-import { AmountsChartComponent } from './components/amounts-chart/amounts-chart.component';
-import { KpiCardComponent } from './components/kpi-card/kpi-card.component';
-import { TopItemsComponent } from './components/top-items/top-items.component';
-import { MarketTotalSpentChartComponent } from './components/market-total-spent-chart/market-total-spent-chart.component';
-import { MarketTotalReceiptsChartComponent } from './components/market-total-receipts-chart/market-total-receipts-chart.component';
-import { MarketAverageSpentChartComponent } from './components/market-average-spent-chart/market-average-spent-chart.component';
+import {ReceiptsChartComponent} from './components/receipts-chart/receipts-chart.component';
+import {AmountsChartComponent} from './components/amounts-chart/amounts-chart.component';
+import {KpiCardComponent} from './components/kpi-card/kpi-card.component';
+import {TopItemsComponent} from './components/top-items/top-items.component';
+import {MarketTotalSpentChartComponent} from './components/market-total-spent-chart/market-total-spent-chart.component';
+import {
+  MarketTotalReceiptsChartComponent
+} from './components/market-total-receipts-chart/market-total-receipts-chart.component';
+import {
+  MarketAverageSpentChartComponent
+} from './components/market-average-spent-chart/market-average-spent-chart.component';
 
 @Component({
   selector: 'app-stats',
@@ -71,6 +75,9 @@ export class StatsPage implements OnInit, OnDestroy {
   // Services
   private readonly receiptService = inject(ReceiptService);
   private readonly authService = inject(AuthService);
+
+  // Unsubscribe subject for takeUntil pattern
+  private readonly unsub$ = new Subject<void>();
 
   // Constants
   private readonly DEFAULT_DATE_RANGE: [string, string] = [new Date(new Date().getFullYear(), 0, 1).toISOString().split('T')[0], new Date().toISOString().split('T')[0]];
@@ -114,14 +121,13 @@ export class StatsPage implements OnInit, OnDestroy {
     switchMap(user => this.isUserAdmin(user) ? this.loadUsers() : of([]))
   );
 
-  private subscriptions: Subscription[] = [];
-
   ngOnInit(): void {
     this.initializeComponent();
   }
 
   ngOnDestroy(): void {
-    this.subscriptions.forEach(sub => sub.unsubscribe());
+    this.unsub$.next();
+    this.unsub$.complete();
   }
 
   // Event handlers
@@ -168,25 +174,26 @@ export class StatsPage implements OnInit, OnDestroy {
   }
 
   private setupFormSubscriptions(): void {
-    this.subscriptions.push(
-      this.userId.valueChanges.subscribe(userId =>
-        this.selectedUserId.set(userId)
-      ),
-      this.aggregationType.valueChanges.subscribe(aggregationType => {
-        const type = aggregationType || AggregationType.Day;
-        this.selectedAggregationType.set(type);
-      })
+    this.userId.valueChanges.pipe(
+      takeUntil(this.unsub$)
+    ).subscribe(userId =>
+      this.selectedUserId.set(userId)
     );
+
+    this.aggregationType.valueChanges.pipe(
+      takeUntil(this.unsub$)
+    ).subscribe(aggregationType => {
+      const type = aggregationType || AggregationType.Day;
+      this.selectedAggregationType.set(type);
+    });
   }
-
-
 
   private isUserAdmin(user: UserOut | null): boolean {
     return user?.roles?.some(role => role === 'admin') || false;
   }
 
   private loadUsers(): Observable<UserOut[]> {
-    return this.authService.listUsersAuthUsersGet(0, 1000).pipe(
+    return this.authService.listUsersAuthUsersGet('', 0, 1000).pipe(
       map(response => response?.users || []),
       catchError(this.handleError('Error loading users', []))
     );

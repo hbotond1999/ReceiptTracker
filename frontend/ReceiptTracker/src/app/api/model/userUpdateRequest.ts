@@ -10,13 +10,11 @@
 import {Role} from './role';
 
 
-export interface UserInDB {
-    username: string;
+export interface UserUpdateRequest {
     email?: string | null;
     fullname?: string | null;
     profile_picture?: string | null;
     disabled?: boolean | null;
-    roles?: Array<Role>;
-    hashed_password: string;
+    roles?: Array<Role> | null;
 }
 

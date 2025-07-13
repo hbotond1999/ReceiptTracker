@@ -1,24 +1,36 @@
-import { Injectable } from '@angular/core';
-import { CanActivate, Router } from '@angular/router';
-import { Store } from '@ngrx/store';
-import { selectUserProfile } from './store/auth/auth.selectors';
-import { Observable } from 'rxjs';
-import { map, take } from 'rxjs/operators';
+import {Injectable} from '@angular/core';
+import {CanActivate, Router} from '@angular/router';
+import {Store} from '@ngrx/store';
+import {selectAuthComplete, selectIsAuthenticated, selectUserProfile} from './store/auth/auth.selectors';
+import {Observable} from 'rxjs';
+import {filter, map, switchMap, take} from 'rxjs/operators';
 
 @Injectable({ providedIn: 'root' })
 export class AdminGuard implements CanActivate {
   constructor(private store: Store, private router: Router) {}
 
   canActivate(): Observable<boolean> {
-    return this.store.select(selectUserProfile).pipe(
+    return this.store.select(selectAuthComplete).pipe(
+      filter(complete => complete), // Wait until auth process is completely finished
+      switchMap(() => this.store.select(selectIsAuthenticated)),
       take(1),
-      map(profile => {
-        if (!profile || !profile.roles || !profile.roles.includes('admin')) {
-          this.router.navigate(['home']);
-          return false;
+      switchMap(isAuth => {
+        if (!isAuth) {
+          this.router.navigate(['login']);
+          return [false];
         }
-        return true;
+        // If authenticated, check admin role
+        return this.store.select(selectUserProfile).pipe(
+          take(1),
+          map(profile => {
+            if (!profile || !profile.roles || !profile.roles.includes('admin')) {
+              this.router.navigate(['home']);
+              return false;
+            }
+            return true;
+          })
+        );
       })
     );
   }
-} 
+}

@@ -1,5 +1,5 @@
-import { Injectable } from '@angular/core';
-import { NativeBiometric, BiometryType } from 'capacitor-native-biometric';
+import {Injectable} from '@angular/core';
+import {BiometryType, NativeBiometric} from 'capacitor-native-biometric';
 
 @Injectable({
   providedIn: 'root'
@@ -65,4 +65,4 @@ export class BiometricService {
         return 'Biometrikus azonosítás';
     }
   }
-} 
+}

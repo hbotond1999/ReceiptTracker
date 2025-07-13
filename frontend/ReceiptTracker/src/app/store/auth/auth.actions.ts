@@ -1,5 +1,6 @@
-import { createAction, props } from '@ngrx/store';
-import { UserOut } from '../../api/model/userOut';
+import {createAction, props} from '@ngrx/store';
+import {UserOut} from '../../api/model/userOut';
+import {PublicUserRegister} from '../../api/model/publicUserRegister';
 
 export const login = createAction('[Auth] Login', props<{ username: string; password: string }>());
 export const loginSuccess = createAction('[Auth] Login Success', props<{ accessToken: string; refreshToken: string; expiresAt: number }>());
@@ -25,4 +26,9 @@ export const refreshTokenFailure = createAction('[Auth] Refresh Token Failure', 
 
 export const autoLogin = createAction('[Auth] Auto Login');
 export const autoLoginSuccess = createAction('[Auth] Auto Login Success', props<{ accessToken: string; refreshToken: string; expiresAt: number }>());
-export const autoLoginFailure = createAction('[Auth] Auto Login Failure'); 
+export const autoLoginFailure = createAction('[Auth] Auto Login Failure');
+
+// Registration actions
+export const register = createAction('[Auth] Register', props<{ userData: PublicUserRegister }>());
+export const registerSuccess = createAction('[Auth] Register Success', props<{ userProfile: UserOut }>());
+export const registerFailure = createAction('[Auth] Register Failure', props<{ error: string }>());

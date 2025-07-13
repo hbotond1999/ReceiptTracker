@@ -1,20 +1,18 @@
-import { Component, Input, OnChanges, OnDestroy, OnInit, SimpleChanges, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import {Component, inject, Input, OnChanges, OnDestroy, OnInit, SimpleChanges} from '@angular/core';
+import {CommonModule} from '@angular/common';
 import {
   IonCard,
+  IonCardContent,
   IonCardHeader,
   IonCardTitle,
-  IonCardContent,
-  IonSpinner,
-  IonList,
   IonItem,
   IonLabel,
-  IonNote
+  IonList,
+  IonNote,
+  IonSpinner
 } from '@ionic/angular/standalone';
-import { TopItemsKPI } from '../../../../api';
-import { TopItem } from '../../../../api';
-import { Subscription } from 'rxjs';
-import {StatisticService} from "../../../../api";
+import {StatisticService, TopItem, TopItemsKPI} from '../../../../api';
+import {Subject, takeUntil} from 'rxjs';
 
 @Component({
   selector: 'app-top-items',
@@ -41,7 +39,7 @@ export class TopItemsComponent implements OnInit, OnChanges, OnDestroy {
   @Input() limit: number = 10;
 
   private statisticService = inject(StatisticService);
-  private subscription?: Subscription;
+  private readonly unsub$ = new Subject<void>();
 
   topItems: TopItem[] = [];
   isLoading = false;
@@ -57,7 +55,8 @@ export class TopItemsComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   ngOnDestroy() {
-    this.cleanup();
+    this.unsub$.next();
+    this.unsub$.complete();
   }
 
   private loadData() {
@@ -67,16 +66,13 @@ export class TopItemsComponent implements OnInit, OnChanges, OnDestroy {
 
     this.isLoading = true;
 
-    // Unsubscribe from previous subscription
-    if (this.subscription) {
-      this.subscription.unsubscribe();
-    }
-
-    this.subscription = this.statisticService.getTopItemsKpiStatisticKpiTopItemsGet(
+    this.statisticService.getTopItemsKpiStatisticKpiTopItemsGet(
       this.dateFrom,
       this.dateTo,
       this.userId || undefined,
       this.limit
+    ).pipe(
+      takeUntil(this.unsub$)
     ).subscribe({
       next: (data: TopItemsKPI) => {
         this.isLoading = false;
@@ -88,11 +84,5 @@ export class TopItemsComponent implements OnInit, OnChanges, OnDestroy {
         this.topItems = [];
       }
     });
-  }
-
-  private cleanup() {
-    if (this.subscription) {
-      this.subscription.unsubscribe();
-    }
   }
 }

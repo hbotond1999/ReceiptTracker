@@ -9,7 +9,7 @@ from dotenv import load_dotenv
 import shutil
 
 from auth import utils, schemas
-from auth.schemas import TokenOut, UserOut, UserListOut, ProfilePictureOut
+from auth.schemas import TokenOut, UserOut, UserListOut, ProfilePictureOut, UserUpdateRequest, PublicUserRegister
 from auth.models import User as DBUser, Role
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -38,6 +38,8 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), session: Session = D
     user = authenticate_user(session, form_data.username, form_data.password)
     if not user:
         raise HTTPException(status_code=401, detail="Incorrect username or password")
+    if user.disabled:
+        raise HTTPException(status_code=401, detail="User is disabled")
     access_token = utils.create_access_token(data={"sub": user.username, "roles": [role.name for role in user.roles]})
     refresh_token = utils.create_refresh_token(data={"sub": user.username, "roles": [role.name for role in user.roles]}, session=session)
     return TokenOut(access_token=access_token, refresh_token=refresh_token, token_type="bearer")
@@ -62,6 +64,8 @@ def get_current_user(credentials: HTTPAuthorizationCredentials = Security(HTTPBe
     user = utils.get_user_by_username(session, username)
     if user is None:
         raise HTTPException(status_code=401, detail="User not found")
+    if user.disabled:
+        raise HTTPException(status_code=401, detail="User is disabled")
     return user
 
 def require_roles(required_roles: list):
@@ -72,17 +76,15 @@ def require_roles(required_roles: list):
     return role_checker
 
 @router.post("/register", response_model=UserOut, dependencies=[Depends(require_roles(["admin"]))])
-def register_user(user: schemas.UserInDB, session: Session = Depends(get_session)):
+def register_user_admin(user: schemas.UserInDB, session: Session = Depends(get_session)):
     # Ellenőrizzük, hogy a felhasználónév már létezik-e
     if utils.get_user_by_username(session, user.username):
         raise HTTPException(status_code=400, detail="Username already registered")
     
-    # Get default user role from database
     default_role = session.exec(select(Role).where(Role.name == "user")).first()
     if not default_role:
         raise HTTPException(status_code=500, detail="Default user role not found")
     
-    # Get roles from user input or use default
     roles_to_assign = []
     if user.roles:
         for role_name in user.roles:
@@ -120,15 +122,63 @@ def register_user(user: schemas.UserInDB, session: Session = Depends(get_session
         roles=[role.name for role in db_user.roles]
     )
 
+@router.post("/register/public", response_model=UserOut)
+def register_user_public(user: PublicUserRegister, session: Session = Depends(get_session)):
+    # Ellenőrizzük, hogy a felhasználónév már létezik-e
+    if utils.get_user_by_username(session, user.username):
+        raise HTTPException(status_code=400, detail="Username already registered")
+    
+    # Ellenőrizzük, hogy az email már nem foglalt-e (ha meg van adva)
+    if user.email:
+        existing_user = session.exec(select(DBUser).where(DBUser.email == user.email)).first()
+        if existing_user:
+            raise HTTPException(status_code=400, detail="Email already registered")
+    
+    default_role = session.exec(select(Role).where(Role.name == "user")).first()
+    if not default_role:
+        raise HTTPException(status_code=500, detail="Default user role not found")
+    
+    db_user = DBUser(
+        username=user.username,
+        email=user.email,
+        fullname=user.fullname,
+        profile_picture=None,
+        hashed_password=utils.get_password_hash(user.password),
+        disabled=False,  # Publikus regisztráció esetén mindig aktív
+    )
+    session.add(db_user)
+    session.commit()
+    session.refresh(db_user)
+    
+    # Assign default user role
+    db_user.roles = [default_role]
+    session.add(db_user)
+    session.commit()
+    session.refresh(db_user)
+    
+    return UserOut(
+        id=db_user.id or 0,
+        username=db_user.username,
+        email=db_user.email,
+        fullname=db_user.fullname,
+        profile_picture=db_user.profile_picture,
+        disabled=db_user.disabled,
+        roles=[role.name for role in db_user.roles]
+    )
+
 @router.get("/users", response_model=UserListOut)
 def list_users(
     session: Session = Depends(get_session),
+    username: str = Query(None),
     skip: int = Query(0, ge=0),
     limit: int = Query(10, ge=1, le=1000),
     current_user: DBUser = Depends(require_roles(["admin"]))
 ):
     total = session.exec(select(func.count()).select_from(DBUser)).one()
-    statement = select(DBUser).offset(skip).limit(limit)
+    statement = select(DBUser)
+    if username:
+        statement = statement.where(DBUser.username.ilike(f"%{username}%"))
+    statement = statement.offset(skip).limit(limit)
     users = session.exec(statement).all()
     return UserListOut(
         users=[UserOut(
@@ -172,4 +222,85 @@ def get_me(current_user: DBUser = Depends(get_current_user)):
         profile_picture=current_user.profile_picture,
         disabled=current_user.disabled,
         roles=[role.name for role in current_user.roles]
-    ) 
+    )
+
+@router.put("/users/{user_id}", response_model=UserOut)
+def update_user(
+    user_id: int,
+    user_update: UserUpdateRequest,
+    current_user: DBUser = Depends(get_current_user),
+    session: Session = Depends(get_session)
+):
+    # Ellenőrizzük, hogy a felhasználó admin-e vagy saját magát frissíti-e
+    is_admin = any(role.name == "admin" for role in current_user.roles)
+    is_own_profile = current_user.id == user_id
+    
+    if not is_admin and not is_own_profile:
+        raise HTTPException(status_code=403, detail="You can only update your own profile or need admin privileges")
+    
+    # Megkeressük a frissítendő felhasználót
+    statement = select(DBUser).where(DBUser.id == user_id)
+    user_to_update = session.exec(statement).first()
+    
+    if not user_to_update:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Ha nem admin és saját magát frissíti, akkor nem módosíthatja a disabled státust és a role-okat
+    if not is_admin:
+        if user_update.disabled is not None:
+            raise HTTPException(status_code=403, detail="You cannot change your disabled status")
+        if user_update.roles is not None:
+            raise HTTPException(status_code=403, detail="You cannot change your roles")
+    
+    # Frissítjük a felhasználó adatait
+    if user_update.email is not None:
+        # Ellenőrizzük, hogy az email már nem foglalt-e (kivéve ha ugyanaz a felhasználó)
+        if user_update.email != user_to_update.email:
+            existing_user = session.exec(select(DBUser).where(DBUser.email == user_update.email)).first()
+            if existing_user and existing_user.id != user_id:
+                raise HTTPException(status_code=400, detail="Email already registered")
+        user_to_update.email = user_update.email
+    
+    if user_update.fullname is not None:
+        user_to_update.fullname = user_update.fullname
+    
+    if user_update.profile_picture is not None:
+        user_to_update.profile_picture = user_update.profile_picture
+    
+    if user_update.disabled is not None and is_admin:
+        user_to_update.disabled = user_update.disabled
+    
+    # Role-ok frissítése (csak admin számára)
+    if user_update.roles is not None and is_admin:
+        roles_to_assign = []
+        for role_name in user_update.roles:
+            role = session.exec(select(Role).where(Role.name == role_name)).first()
+            if role:
+                roles_to_assign.append(role)
+        if roles_to_assign:
+            user_to_update.roles = roles_to_assign
+    
+    session.add(user_to_update)
+    session.commit()
+    session.refresh(user_to_update)
+    
+    return UserOut(
+        id=user_to_update.id or 0,
+        username=user_to_update.username,
+        email=user_to_update.email,
+        fullname=user_to_update.fullname,
+        profile_picture=user_to_update.profile_picture,
+        disabled=user_to_update.disabled,
+        roles=[role.name for role in user_to_update.roles]
+    )
+
+@router.delete("/users/{user_id}", response_model=TokenOut, dependencies=[Depends(require_roles(["admin"]))])
+def delete_users(user_id: int, session: Session = Depends(get_session)):
+    statement = select(DBUser).where(DBUser.id == user_id)
+    user = session.exec(statement).one()
+    if user:
+        session.delete(user)
+        session.commit()
+        return
+    else:
+        raise HTTPException(status_code=404, detail="User not found")

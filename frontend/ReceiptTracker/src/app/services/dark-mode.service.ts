@@ -1,6 +1,6 @@
-import { Injectable, signal } from '@angular/core';
-import { BehaviorSubject, fromEvent } from 'rxjs';
-import { map, tap } from "rxjs/operators";
+import {Injectable, signal} from '@angular/core';
+import {BehaviorSubject, fromEvent} from 'rxjs';
+import {map, tap} from "rxjs/operators";
 
 @Injectable({
   providedIn: 'root'
@@ -19,7 +19,7 @@ export class DarkModeService {
 
   constructor() {
     console.log("DarkModeService initialized, current dark mode:", this.getDarkModeState());
-    
+
     // Listen for dark mode changes using fromEvent for better RxJS integration
     fromEvent(this.darkModeQuery, 'change').pipe(
       map((event: any) => event.matches),
@@ -28,7 +28,7 @@ export class DarkModeService {
       this.darkModeSubject.next(isDark);
       this.isDarkMode.set(isDark);
     });
-    
+
     // Also set up the traditional event listener as fallback
     this.darkModeQuery.addEventListener('change', (e) => {
       console.log("Traditional listener - dark mode changed:", e.matches);

@@ -29,15 +29,15 @@
   border-radius: 12px;
   padding: 32px 24px;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
-  
-  
+
+
 }
 
 // Header section
 .login-header {
   text-align: center;
   margin-bottom: 32px;
-  
+
 
 }
 
@@ -62,7 +62,6 @@
 
 // Error message
 .error {
-  color: var(--ion-color-danger);
   font-size: 14px;
   margin: 16px 0;
   text-align: center;
@@ -72,10 +71,23 @@
   border-left: 4px solid var(--ion-color-danger);
 }
 
+// Validation error messages
+.validation-error {
+  color: var(--ion-color-danger);
+  font-size: 12px;
+  margin: 4px 0 16px 0;
+  padding-left: 16px;
+
+  span {
+    display: block;
+    margin-bottom: 2px;
+  }
+}
+
 // Biometric section
 .biometric-section {
   margin-bottom: 24px;
-  
+
 }
 
 // Divider
@@ -83,7 +95,7 @@
   text-align: center;
   margin: 24px 0;
   position: relative;
-  
+
   &::before {
     content: '';
     position: absolute;
@@ -93,7 +105,7 @@
     height: 1px;
     background-color: var(--ion-color-medium);
   }
-  
+
   span {
     background-color: var(--ion-background-color);
     padding: 0 15px;
@@ -106,7 +118,7 @@
 .biometric-management {
   text-align: center;
   margin: 16px 0;
-  
+
 }
 
 // Login button
@@ -114,7 +126,25 @@
   margin: 24px 0 0 0;
   height: 48px;
   font-weight: 600;
-  
+
+}
+
+// Toggle section
+.toggle-section {
+  text-align: center;
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid var(--ion-color-light);
+
+  ion-button {
+    --color: var(--ion-color-primary);
+    font-size: 14px;
+    text-transform: none;
+
+    &:hover {
+      --color: var(--ion-color-primary-shade);
+    }
+  }
 }
 
 // Ion items
@@ -124,12 +154,12 @@ ion-item {
   margin: 16px 0;
   --border-radius: 8px;
   --background: var(--ion-color-light);
-  
+
 }
 
 // Ion buttons
 ion-button[expand="block"] {
   margin: 16px 0;
   height: 48px;
-  
+
 }

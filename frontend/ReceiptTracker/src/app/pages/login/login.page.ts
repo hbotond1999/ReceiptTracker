@@ -1,16 +1,41 @@
 import {Component, OnDestroy, OnInit} from '@angular/core';
-import { FormBuilder, FormGroup, ReactiveFormsModule, FormsModule, Validators } from '@angular/forms';
-import { Store } from '@ngrx/store';
-import { login, biometricLogin, enableBiometric } from '../../store/auth/auth.actions';
-import { selectAuthError, selectAuthLoading, selectIsAuthenticated } from '../../store/auth/auth.selectors';
-import { IonContent, IonHeader, IonTitle, IonToolbar, IonInput, IonButton, IonItem, IonLabel, IonSpinner, IonIcon, IonCheckbox, IonToast, IonAlert } from '@ionic/angular/standalone';
-import { CommonModule } from '@angular/common';
-import {Observable, Subscription} from 'rxjs';
-import { Router } from '@angular/router';
-import { BiometricService } from '../../services/biometric.service';
-import { BiometryType } from 'capacitor-native-biometric';
-import { addIcons } from 'ionicons';
-import { fingerPrint, eye, checkmark } from 'ionicons/icons';
+import {
+  AbstractControl,
+  FormBuilder,
+  FormGroup,
+  FormsModule,
+  ReactiveFormsModule,
+  ValidationErrors,
+  Validators
+} from '@angular/forms';
+import {Store} from '@ngrx/store';
+import {biometricLogin, enableBiometric, login, register} from '../../store/auth/auth.actions';
+import {
+  selectAuthError,
+  selectAuthLoading,
+  selectIsAuthenticated,
+  selectRegister
+} from '../../store/auth/auth.selectors';
+import {
+  IonAlert,
+  IonButton,
+  IonCheckbox,
+  IonContent,
+  IonIcon,
+  IonInput,
+  IonItem,
+  IonLabel,
+  IonSpinner,
+  IonToast
+} from '@ionic/angular/standalone';
+import {CommonModule} from '@angular/common';
+import {Observable, Subject, takeUntil} from 'rxjs';
+import {Router} from '@angular/router';
+import {BiometricService} from '../../services/biometric.service';
+import {BiometryType} from 'capacitor-native-biometric';
+import {addIcons} from 'ionicons';
+import {checkmark, eye, fingerPrint} from 'ionicons/icons';
+import {PublicUserRegister} from '../../api/model/publicUserRegister';
 
 @Component({
   selector: 'app-login',
@@ -20,9 +45,6 @@ import { fingerPrint, eye, checkmark } from 'ionicons/icons';
     ReactiveFormsModule,
     FormsModule,
     IonContent,
-    IonHeader,
-    IonTitle,
-    IonToolbar,
     IonInput,
     IonButton,
     IonItem,
@@ -37,9 +59,12 @@ import { fingerPrint, eye, checkmark } from 'ionicons/icons';
   styleUrls: ['./login.page.scss']
 })
 export class LoginPage implements OnInit, OnDestroy {
-  form: FormGroup;
+  loginForm: FormGroup;
+  readonly unsub$ = new Subject<void>();
+  registerForm: FormGroup;
   loading$: Observable<boolean>;
   error$: Observable<string | null>;
+  isLoginMode = true;
 
   // Biometric properties
   biometricAvailable = false;
@@ -66,26 +91,55 @@ export class LoginPage implements OnInit, OnDestroy {
       role: 'cancel'
     }
   ];
-  sub !: Subscription;
 
   constructor(
     private fb: FormBuilder,
     private store: Store,
     private router: Router,
-    private biometricService: BiometricService
+    private biometricService: BiometricService,
   ) {
     addIcons({ fingerPrint, eye, checkmark });
 
-    this.form = this.fb.group({
+    this.loginForm = this.fb.group({
       username: ['', Validators.required],
       password: ['', Validators.required]
     });
+
+    this.registerForm = this.fb.group({
+      username: ['', [Validators.required, Validators.minLength(3)]],
+      email: ['', [Validators.email]],
+      fullname: [''],
+      password: ['', [Validators.required, Validators.minLength(6)]],
+      confirmPassword: ['', Validators.required]
+    }, { validators: this.passwordMatchValidator });
+
     this.loading$ = this.store.select(selectAuthLoading);
     this.error$ = this.store.select(selectAuthError);
 
-    this.store.select(selectIsAuthenticated).subscribe(isAuth => {
+    this.store.select(selectIsAuthenticated).pipe(
+      takeUntil(this.unsub$)
+    ).subscribe(isAuth => {
       if (isAuth) {
         this.router.navigate(['home']);
+      }
+    });
+
+    // Listen for successful registration and errors
+    this.store.select(selectRegister).pipe(
+        takeUntil(this.unsub$)
+      )
+      .subscribe((register) => {
+
+      if (!register.loading && !this.isLoginMode) {
+        if (!register.error) {
+          // Sikeres regisztráció - automatikus bejelentkezés történt
+          this.showToast('Sikeres regisztráció és bejelentkezés!', 'success');
+          this.isLoginMode = true;
+          this.registerForm.reset();
+        } else {
+          // Hiba történt regisztráció során
+          this.showToast(register.error, 'danger');
+        }
       }
     });
   }
@@ -94,7 +148,7 @@ export class LoginPage implements OnInit, OnDestroy {
     await this.checkBiometricAvailability();
     if (this.biometricAvailable && this.hasBiometricCredentials)
     {
-      this.sub = this.store.select(selectIsAuthenticated).subscribe(isAuthenticated => {
+      this.store.select(selectIsAuthenticated).pipe(takeUntil(this.unsub$)).subscribe(isAuthenticated => {
         if (!isAuthenticated) {
           this.biometricLogin()
         }
@@ -112,8 +166,16 @@ export class LoginPage implements OnInit, OnDestroy {
   }
 
   submit() {
-    if (this.form.valid) {
-      const { username, password } = this.form.value;
+    if (this.isLoginMode) {
+      this.submitLogin();
+    } else {
+      this.submitRegister();
+    }
+  }
+
+  submitLogin() {
+    if (this.loginForm.valid) {
+      const { username, password } = this.loginForm.value;
       this.store.dispatch(login({ username, password }));
 
       // If biometric is available and user wants to enable it
@@ -121,8 +183,44 @@ export class LoginPage implements OnInit, OnDestroy {
         this.store.dispatch(enableBiometric({ username, password }));
       }
     } else {
-      this.form.markAllAsTouched();
+      this.loginForm.markAllAsTouched();
     }
+  }
+
+  submitRegister() {
+    if (this.registerForm.valid) {
+      const { username, email, fullname, password } = this.registerForm.value;
+      const userData: PublicUserRegister = {
+        username,
+        email: email || null,
+        fullname: fullname || null,
+        password
+      };
+      this.store.dispatch(register({ userData }));
+    } else {
+      this.registerForm.markAllAsTouched();
+    }
+  }
+
+  toggleMode() {
+    this.isLoginMode = !this.isLoginMode;
+    // Reset forms when switching modes
+    if (this.isLoginMode) {
+      this.registerForm.reset();
+    } else {
+      this.loginForm.reset();
+    }
+  }
+
+  passwordMatchValidator(control: AbstractControl): ValidationErrors | null {
+    const password = control.get('password');
+    const confirmPassword = control.get('confirmPassword');
+
+    if (password && confirmPassword && password.value !== confirmPassword.value) {
+      return { passwordMismatch: true };
+    }
+
+    return null;
   }
 
   biometricLogin() {
@@ -174,9 +272,7 @@ export class LoginPage implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
-    if (this.sub)
-    {
-      this.sub.unsubscribe();
-    }
+    this.unsub$.next();
+    this.unsub$.complete();
   }
 }

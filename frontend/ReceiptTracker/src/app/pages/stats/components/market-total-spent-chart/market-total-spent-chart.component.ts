@@ -1,17 +1,10 @@
-import { Component, Input, OnChanges, OnDestroy, OnInit, SimpleChanges, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import {
-  IonCard,
-  IonCardHeader,
-  IonCardTitle,
-  IonCardContent,
-  IonSpinner
-} from '@ionic/angular/standalone';
-import { ReceiptService } from '../../../../api/api/receipt.service';
-import { MarketTotalSpentList } from '../../../../api/model/marketTotalSpentList';
-import { MarketTotalSpent } from '../../../../api/model/marketTotalSpent';
-import { Subscription } from 'rxjs';
-import { DarkModeService } from '../../../../services/dark-mode.service';
+import {Component, inject, Input, OnChanges, OnDestroy, OnInit, SimpleChanges} from '@angular/core';
+import {CommonModule} from '@angular/common';
+import {IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonSpinner} from '@ionic/angular/standalone';
+import {MarketTotalSpentList} from '../../../../api/model/marketTotalSpentList';
+import {MarketTotalSpent} from '../../../../api/model/marketTotalSpent';
+import {Subject, takeUntil} from 'rxjs';
+import {DarkModeService} from '../../../../services/dark-mode.service';
 
 // amCharts 5 imports
 import * as am5 from '@amcharts/amcharts5';
@@ -43,16 +36,15 @@ export class MarketTotalSpentChartComponent implements OnInit, OnChanges, OnDest
   private darkModeService = inject(DarkModeService);
   private root?: am5.Root;
   private chart?: am5xy.XYChart;
-  private subscription?: Subscription;
-  private darkModeSubscription?: Subscription;
+  private readonly unsub$ = new Subject<void>();
 
   chartId = Math.random().toString(36).substr(2, 9);
   isLoading = false;
 
   ngOnInit() {
-      this.loadData();
+    this.loadData();
     // Subscribe to dark mode changes
-    this.darkModeSubscription = this.darkModeService.isDarkMode$.subscribe(() => {
+    this.darkModeService.isDarkMode$.pipe(takeUntil(this.unsub$)).subscribe(() => {
       if (this.chart) {
         // Reinitialize chart with new theme
         this.loadData();
@@ -69,7 +61,12 @@ export class MarketTotalSpentChartComponent implements OnInit, OnChanges, OnDest
   }
 
   ngOnDestroy() {
-    this.cleanup();
+    this.unsub$.next();
+    this.unsub$.complete();
+
+    if (this.root) {
+      this.root.dispose();
+    }
   }
 
   private initializeChart() {
@@ -139,15 +136,11 @@ export class MarketTotalSpentChartComponent implements OnInit, OnChanges, OnDest
 
     this.isLoading = true;
 
-    if (this.subscription) {
-      this.subscription.unsubscribe();
-    }
-
-    this.subscription = this.statisticService.getMarketTotalSpentStatisticMarketTotalSpentGet(
+    this.statisticService.getMarketTotalSpentStatisticMarketTotalSpentGet(
       this.dateFrom,
       this.dateTo,
       this.userId || undefined
-    ).subscribe({
+    ).pipe(takeUntil(this.unsub$)).subscribe({
       next: (data: MarketTotalSpentList) => {
         this.isLoading = false;
         this.initializeChart();
@@ -171,13 +164,8 @@ export class MarketTotalSpentChartComponent implements OnInit, OnChanges, OnDest
   }
 
   private cleanup() {
-    if (this.subscription) {
-      this.subscription.unsubscribe();
-    }
-
-    if (this.darkModeSubscription) {
-      this.darkModeSubscription.unsubscribe();
-    }
+    this.unsub$.next();
+    this.unsub$.complete();
 
     if (this.root) {
       this.root.dispose();
