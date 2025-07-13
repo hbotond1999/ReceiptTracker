@@ -1,0 +1,70 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-title>{{ isCreate ? 'Új felhasználó' : 'Felhasználó szerkesztése' }}</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="cancel()">
+        <ion-icon name="close-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <form [formGroup]="userForm" (ngSubmit)="save()">
+    <ion-list>
+      <ion-item>
+        <ion-label position="stacked">Felhasználónév</ion-label>
+        <ion-input formControlName="username"></ion-input>
+      </ion-item>
+      <ion-text color="danger" *ngIf="userForm.get('username')?.touched && userForm.get('username')?.invalid">
+        <p>A felhasználónév megadása kötelező.</p>
+      </ion-text>
+
+      <ion-item>
+        <ion-label position="stacked">Email</ion-label>
+        <ion-input formControlName="email" type="email"></ion-input>
+      </ion-item>
+      <ion-text color="danger" *ngIf="userForm.get('email')?.touched && userForm.get('email')?.invalid">
+        <p>Érvényes email cím megadása kötelező.</p>
+      </ion-text>
+
+      <ion-item>
+        <ion-label position="stacked">Teljes név</ion-label>
+        <ion-input formControlName="fullname"></ion-input>
+      </ion-item>
+      <ion-text color="danger" *ngIf="userForm.get('fullname')?.touched && userForm.get('fullname')?.invalid">
+        <p>A teljes név megadása kötelező.</p>
+      </ion-text>
+
+      <ion-item *ngIf="isCreate">
+        <ion-label position="stacked">Jelszó</ion-label>
+        <ion-input formControlName="password" type="password"></ion-input>
+      </ion-item>
+      <ion-text color="danger" *ngIf="isCreate && userForm.get('password')?.touched && userForm.get('password')?.invalid">
+        <p>A jelszó megadása kötelező.</p>
+      </ion-text>
+
+      <ion-item>
+        <ion-label>Letiltva</ion-label>
+        <ion-toggle formControlName="disabled"></ion-toggle>
+      </ion-item>
+
+      <ion-item>
+        <ion-label position="stacked">Szerepkörök</ion-label>
+        <ion-select formControlName="roles" multiple="true">
+          <ion-select-option *ngFor="let role of roles" [value]="role">{{ role }}</ion-select-option>
+        </ion-select>
+      </ion-item>
+      <ion-text color="danger" *ngIf="userForm.get('roles')?.touched && userForm.get('roles')?.invalid">
+        <p>Legalább egy szerepkör kiválasztása kötelező.</p>
+      </ion-text>
+    </ion-list>
+  </form>
+</ion-content>
+
+<ion-footer>
+  <div style="display: flex; gap: 1rem; justify-content: flex-end; padding: 1rem;">
+    <ion-button type="button" color="medium" (click)="cancel()">Mégse</ion-button>
+    <ion-button type="button" color="primary" [disabled]="userForm.invalid" (click)="save()">{{ isCreate ? 'Létrehozás' : 'Mentés' }}</ion-button>
+  </div>
+</ion-footer> 
