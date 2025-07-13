@@ -10,7 +10,7 @@ import {
 } from '../../store/auth/auth.selectors';
 import { IonContent, IonHeader, IonTitle, IonToolbar, IonInput, IonButton, IonItem, IonLabel, IonSpinner, IonIcon, IonCheckbox, IonToast, IonAlert } from '@ionic/angular/standalone';
 import { CommonModule } from '@angular/common';
-import {Observable, Subscription, combineLatest} from 'rxjs';
+import {Observable, Subscription, combineLatest, Subject, takeUntil} from 'rxjs';
 import { Router } from '@angular/router';
 import { BiometricService } from '../../services/biometric.service';
 import { BiometryType } from 'capacitor-native-biometric';
@@ -45,6 +45,7 @@ import { Actions, ofType } from '@ngrx/effects';
 })
 export class LoginPage implements OnInit, OnDestroy {
   loginForm: FormGroup;
+  readonly unsub$ = new Subject<void>();
   registerForm: FormGroup;
   loading$: Observable<boolean>;
   error$: Observable<string | null>;
@@ -75,10 +76,6 @@ export class LoginPage implements OnInit, OnDestroy {
       role: 'cancel'
     }
   ];
-  sub !: Subscription;
-  private registrationSub?: Subscription;
-  private authSubscription?: Subscription;
-  private registerSubscription?: Subscription;
 
   constructor(
     private fb: FormBuilder,
@@ -104,14 +101,19 @@ export class LoginPage implements OnInit, OnDestroy {
     this.loading$ = this.store.select(selectAuthLoading);
     this.error$ = this.store.select(selectAuthError);
 
-    this.authSubscription = this.store.select(selectIsAuthenticated).subscribe(isAuth => {
+    this.store.select(selectIsAuthenticated).pipe(
+      takeUntil(this.unsub$)
+    ).subscribe(isAuth => {
       if (isAuth) {
         this.router.navigate(['home']);
       }
     });
 
     // Listen for successful registration and errors
-    this.registerSubscription = this.store.select(selectRegister).subscribe((register) => {
+    this.store.select(selectRegister).pipe(
+        takeUntil(this.unsub$)
+      )
+      .subscribe((register) => {
 
       if (!register.loading && !this.isLoginMode) {
         if (!register.error) {
@@ -131,7 +133,7 @@ export class LoginPage implements OnInit, OnDestroy {
     await this.checkBiometricAvailability();
     if (this.biometricAvailable && this.hasBiometricCredentials)
     {
-      this.sub = this.store.select(selectIsAuthenticated).subscribe(isAuthenticated => {
+      this.store.select(selectIsAuthenticated).pipe(takeUntil(this.unsub$)).subscribe(isAuthenticated => {
         if (!isAuthenticated) {
           this.biometricLogin()
         }
@@ -255,17 +257,7 @@ export class LoginPage implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
-    if (this.sub) {
-      this.sub.unsubscribe();
-    }
-    if (this.registrationSub) {
-      this.registrationSub.unsubscribe();
-    }
-    if (this.authSubscription) {
-      this.authSubscription.unsubscribe();
-    }
-    if (this.registerSubscription) {
-      this.registerSubscription.unsubscribe();
-    }
+    this.unsub$.next();
+    this.unsub$.complete();
   }
 }
