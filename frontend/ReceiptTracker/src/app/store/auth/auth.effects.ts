@@ -48,6 +48,43 @@ export class AuthEffects {
     )
   );
 
+  // Register effect
+  register$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(AuthActions.register),
+      mergeMap(({ userData }) =>
+        this.authService.registerUserPublicAuthRegisterPublicPost(userData).pipe(
+          mergeMap(userProfile => {
+            // Sikeres regisztráció után automatikus bejelentkezés
+            return this.authService.loginAuthLoginPost(userData.username, userData.password).pipe(
+              mergeMap((tokenOut: TokenOut) => {
+                const expiresIn = 3600;
+                const expiresAt = Date.now() + (expiresIn * 1000) - 5000;
+                return from(Promise.all([
+                  this.storage.set('accessToken', tokenOut.access_token),
+                  this.storage.set('refreshToken', tokenOut.refresh_token),
+                  this.storage.set('expiresAt', expiresAt)
+                ])).pipe(
+                  map(() => AuthActions.loginSuccess({
+                    accessToken: tokenOut.access_token,
+                    refreshToken: tokenOut.refresh_token,
+                    expiresAt
+                  }))
+                );
+              })
+            );
+          }),
+          catchError(error => {
+            console.error('Registration error:', error);
+            const errorMessage = error?.error?.detail || 'Registration failed';
+
+            return of(AuthActions.registerFailure({ error: errorMessage }));
+          })
+        )
+      )
+    )
+  );
+
   // Enable biometric authentication
   enableBiometric$ = createEffect(() =>
     this.actions$.pipe(
@@ -59,8 +96,8 @@ export class AuthEffects {
           server: 'ReceiptTracker'
         })).pipe(
           map(() => AuthActions.enableBiometricSuccess()),
-          catchError(error => of(AuthActions.enableBiometricFailure({ 
-            error: error?.message || 'Biometric setup failed' 
+          catchError(error => of(AuthActions.enableBiometricFailure({
+            error: error?.message || 'Biometric setup failed'
           })))
         )
       )
@@ -78,11 +115,11 @@ export class AuthEffects {
           subtitle: 'Használja ujjlenyomatát vagy arcfelismerést a bejelentkezéshez',
           description: 'Helyezze ujját a szenzorra vagy nézzen a kamerába'
         } as BiometricOptions)).pipe(
-          mergeMap(() => 
+          mergeMap(() =>
             from(NativeBiometric.getCredentials({
               server: 'ReceiptTracker'
             })).pipe(
-              mergeMap(credentials => 
+              mergeMap(credentials =>
                 this.authService.loginAuthLoginPost(credentials.username, credentials.password).pipe(
                   mergeMap((tokenOut: TokenOut) => {
                     const expiresIn = 3600;
@@ -99,15 +136,15 @@ export class AuthEffects {
                       }))
                     );
                   }),
-                  catchError(error => of(AuthActions.biometricLoginFailure({ 
-                    error: error?.error?.detail || 'Biometric login failed' 
+                  catchError(error => of(AuthActions.biometricLoginFailure({
+                    error: error?.error?.detail || 'Biometric login failed'
                   })))
                 )
               )
             )
           ),
-          catchError(error => of(AuthActions.biometricLoginFailure({ 
-            error: error?.message || 'Biometric verification failed' 
+          catchError(error => of(AuthActions.biometricLoginFailure({
+            error: error?.message || 'Biometric verification failed'
           })))
         )
       )
@@ -156,7 +193,7 @@ export class AuthEffects {
           mergeMap(([accessToken, refreshToken, expiresAt]) => {
             const now = Date.now();
             const isTokenExpired = !expiresAt || now >= expiresAt;
-            
+
             // Ha van érvényes access token és nem járt le
             if (accessToken && !isTokenExpired) {
               return of(AuthActions.autoLoginSuccess({ accessToken, refreshToken, expiresAt }));
@@ -269,4 +306,4 @@ export class AuthEffects {
     ),
     { dispatch: false }
   );
-} 
+}

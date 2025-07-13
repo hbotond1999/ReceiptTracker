@@ -23,6 +23,7 @@ model/marketTotalSpentList.ts
 model/marketUpdateRequest.ts
 model/models.ts
 model/profilePictureOut.ts
+model/publicUserRegister.ts
 model/receiptCreateRequest.ts
 model/receiptItemCreateRequest.ts
 model/receiptItemOut.ts
@@ -40,6 +41,7 @@ model/totalSpentKPI.ts
 model/userInDB.ts
 model/userListOut.ts
 model/userOut.ts
+model/userUpdateRequest.ts
 model/validationError.ts
 model/validationErrorLocInner.ts
 model/wordCloudItem.ts
