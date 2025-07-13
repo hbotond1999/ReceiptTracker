@@ -1,16 +1,32 @@
 import {Component, OnDestroy, OnInit} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {FormControl, FormsModule, ReactiveFormsModule} from '@angular/forms';
-import {AlertController, IonicModule, ModalController} from '@ionic/angular';
+import {AlertController, ModalController} from '@ionic/angular';
 import {AuthService} from '../../api/api/auth.service';
 import {UserListOut, UserOut} from '../../api/model/models';
 import {UserEditModalComponent} from './user-edit.modal';
 import {debounceTime, Subject, takeUntil} from 'rxjs';
+import {
+  IonButton,
+  IonCard,
+  IonCardContent,
+  IonCardHeader,
+  IonCardTitle,
+  IonContent,
+  IonHeader,
+  IonIcon,
+  IonItem,
+  IonLabel,
+  IonList,
+  IonSearchbar,
+  IonTitle,
+  IonToolbar
+} from "@ionic/angular/standalone";
 
 @Component({
   selector: 'app-admin',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, IonicModule],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, IonHeader, IonToolbar, IonTitle, IonContent, IonSearchbar, IonCard, IonCardHeader, IonCardTitle, IonButton, IonIcon, IonCardContent, IonList, IonItem, IonLabel],
   templateUrl: './admin.page.html',
   styleUrls: ['./admin.page.scss']
 })

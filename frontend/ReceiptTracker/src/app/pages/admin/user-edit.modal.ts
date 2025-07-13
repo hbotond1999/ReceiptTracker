@@ -1,13 +1,31 @@
 import {Component, Input, OnInit} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators} from '@angular/forms';
-import {IonicModule, ModalController} from '@ionic/angular';
+import {ModalController} from '@ionic/angular';
 import {Role, UserInDB, UserOut, UserUpdateRequest} from '../../api/model/models';
+import {
+  IonButton,
+  IonButtons,
+  IonContent,
+  IonFooter,
+  IonHeader,
+  IonIcon,
+  IonInput,
+  IonItem,
+  IonLabel,
+  IonList,
+  IonSelect,
+  IonSelectOption,
+  IonText,
+  IonTitle,
+  IonToggle,
+  IonToolbar
+} from "@ionic/angular/standalone";
 
 @Component({
   selector: 'app-user-edit-modal',
   standalone: true,
-  imports: [CommonModule, IonicModule, FormsModule, ReactiveFormsModule],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, IonHeader, IonToolbar, IonTitle, IonButtons, IonIcon, IonButton, IonContent, IonList, IonItem, IonLabel, IonInput, IonText, IonToggle, IonSelect, IonSelectOption, IonFooter],
   templateUrl: './user-edit.modal.html',
   styleUrls: ['./user-edit.modal.scss']
 })
