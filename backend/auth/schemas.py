@@ -25,6 +25,19 @@ class User(BaseModel):
 class UserInDB(User):
     hashed_password: str
 
+class PublicUserRegister(BaseModel):
+    username: str
+    email: Optional[str] = None
+    fullname: Optional[str] = None
+    password: str
+
+class UserUpdateRequest(BaseModel):
+    email: Optional[str] = None
+    fullname: Optional[str] = None
+    profile_picture: Optional[str] = None
+    disabled: Optional[bool] = None
+    roles: Optional[List[Role]] = None
+
 class LoginRequest(BaseModel):
     username: str
     password: str
