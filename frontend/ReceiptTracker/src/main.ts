@@ -1,19 +1,19 @@
-import { bootstrapApplication } from '@angular/platform-browser';
-import { RouteReuseStrategy, provideRouter, withPreloading, PreloadAllModules } from '@angular/router';
-import { IonicRouteStrategy, provideIonicAngular } from '@ionic/angular/standalone';
-import {provideHttpClient, HTTP_INTERCEPTORS, withInterceptors, withInterceptorsFromDi} from '@angular/common/http';
-import { provideApi } from './app/api/provide-api';
-import { environment } from './environments/environment';
-import { routes } from './app/app.routes';
-import { AppComponent } from './app/app.component';
-import { defineCustomElements } from '@ionic/pwa-elements/loader';
-import { provideStore } from '@ngrx/store';
-import { provideEffects } from '@ngrx/effects';
-import { authReducer } from './app/store/auth/auth.reducer';
-import { AuthEffects } from './app/store/auth/auth.effects';
-import { AuthInterceptor } from './app/auth.interceptor';
-import { Storage } from '@ionic/storage-angular';
-import { provideStoreDevtools } from '@ngrx/store-devtools';
+import {bootstrapApplication} from '@angular/platform-browser';
+import {PreloadAllModules, provideRouter, RouteReuseStrategy, withPreloading} from '@angular/router';
+import {IonicRouteStrategy, provideIonicAngular} from '@ionic/angular/standalone';
+import {HTTP_INTERCEPTORS, provideHttpClient, withInterceptorsFromDi} from '@angular/common/http';
+import {provideApi} from './app/api/provide-api';
+import {environment} from './environments/environment';
+import {routes} from './app/app.routes';
+import {AppComponent} from './app/app.component';
+import {defineCustomElements} from '@ionic/pwa-elements/loader';
+import {provideStore} from '@ngrx/store';
+import {provideEffects} from '@ngrx/effects';
+import {authReducer} from './app/store/auth/auth.reducer';
+import {AuthEffects} from './app/store/auth/auth.effects';
+import {AuthInterceptor} from './app/auth.interceptor';
+import {Storage} from '@ionic/storage-angular';
+import {provideStoreDevtools} from '@ngrx/store-devtools';
 import {ModalController} from "@ionic/angular";
 
 // Ionic Storage init

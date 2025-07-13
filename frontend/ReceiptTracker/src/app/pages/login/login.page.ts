@@ -1,23 +1,41 @@
 import {Component, OnDestroy, OnInit} from '@angular/core';
-import { FormBuilder, FormGroup, ReactiveFormsModule, FormsModule, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
-import { Store } from '@ngrx/store';
-import { login, biometricLogin, enableBiometric, register, registerSuccess, registerFailure } from '../../store/auth/auth.actions';
+import {
+  AbstractControl,
+  FormBuilder,
+  FormGroup,
+  FormsModule,
+  ReactiveFormsModule,
+  ValidationErrors,
+  Validators
+} from '@angular/forms';
+import {Store} from '@ngrx/store';
+import {biometricLogin, enableBiometric, login, register} from '../../store/auth/auth.actions';
 import {
   selectAuthError,
   selectAuthLoading,
   selectIsAuthenticated,
   selectRegister
 } from '../../store/auth/auth.selectors';
-import { IonContent, IonHeader, IonTitle, IonToolbar, IonInput, IonButton, IonItem, IonLabel, IonSpinner, IonIcon, IonCheckbox, IonToast, IonAlert } from '@ionic/angular/standalone';
-import { CommonModule } from '@angular/common';
-import {Observable, Subscription, combineLatest, Subject, takeUntil} from 'rxjs';
-import { Router } from '@angular/router';
-import { BiometricService } from '../../services/biometric.service';
-import { BiometryType } from 'capacitor-native-biometric';
-import { addIcons } from 'ionicons';
-import { fingerPrint, eye, checkmark } from 'ionicons/icons';
-import { PublicUserRegister } from '../../api/model/publicUserRegister';
-import { Actions, ofType } from '@ngrx/effects';
+import {
+  IonAlert,
+  IonButton,
+  IonCheckbox,
+  IonContent,
+  IonIcon,
+  IonInput,
+  IonItem,
+  IonLabel,
+  IonSpinner,
+  IonToast
+} from '@ionic/angular/standalone';
+import {CommonModule} from '@angular/common';
+import {Observable, Subject, takeUntil} from 'rxjs';
+import {Router} from '@angular/router';
+import {BiometricService} from '../../services/biometric.service';
+import {BiometryType} from 'capacitor-native-biometric';
+import {addIcons} from 'ionicons';
+import {checkmark, eye, fingerPrint} from 'ionicons/icons';
+import {PublicUserRegister} from '../../api/model/publicUserRegister';
 
 @Component({
   selector: 'app-login',
@@ -27,9 +45,6 @@ import { Actions, ofType } from '@ngrx/effects';
     ReactiveFormsModule,
     FormsModule,
     IonContent,
-    IonHeader,
-    IonTitle,
-    IonToolbar,
     IonInput,
     IonButton,
     IonItem,

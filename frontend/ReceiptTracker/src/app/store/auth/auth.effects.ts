@@ -1,15 +1,15 @@
-import { Injectable } from '@angular/core';
-import { Actions, createEffect, ofType } from '@ngrx/effects';
-import { Store } from '@ngrx/store';
-import { of, from, timer } from 'rxjs';
-import { map, mergeMap, catchError, switchMap, tap, withLatestFrom } from 'rxjs/operators';
+import {Injectable} from '@angular/core';
+import {Actions, createEffect, ofType} from '@ngrx/effects';
+import {Store} from '@ngrx/store';
+import {from, of, timer} from 'rxjs';
+import {catchError, map, mergeMap, switchMap, tap, withLatestFrom} from 'rxjs/operators';
 import * as AuthActions from './auth.actions';
 import * as AuthSelectors from './auth.selectors';
-import { AuthService } from '../../api/api/auth.service';
-import { TokenOut } from '../../api/model/tokenOut';
-import { Storage } from '@ionic/storage-angular';
-import { Router } from '@angular/router';
-import { NativeBiometric, BiometricOptions } from 'capacitor-native-biometric';
+import {AuthService} from '../../api/api/auth.service';
+import {TokenOut} from '../../api/model/tokenOut';
+import {Storage} from '@ionic/storage-angular';
+import {Router} from '@angular/router';
+import {BiometricOptions, NativeBiometric} from 'capacitor-native-biometric';
 
 @Injectable()
 export class AuthEffects {

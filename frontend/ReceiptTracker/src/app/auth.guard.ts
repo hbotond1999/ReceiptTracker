@@ -1,9 +1,9 @@
-import { Injectable } from '@angular/core';
-import { CanActivate, Router } from '@angular/router';
-import { Store } from '@ngrx/store';
-import { selectIsAuthenticated, selectAuthLoading } from './store/auth/auth.selectors';
-import { Observable } from 'rxjs';
-import { map, take, filter, switchMap } from 'rxjs/operators';
+import {Injectable} from '@angular/core';
+import {CanActivate, Router} from '@angular/router';
+import {Store} from '@ngrx/store';
+import {selectAuthLoading, selectIsAuthenticated} from './store/auth/auth.selectors';
+import {Observable} from 'rxjs';
+import {filter, map, switchMap, take} from 'rxjs/operators';
 
 @Injectable({ providedIn: 'root' })
 export class AuthGuard implements CanActivate {
@@ -23,4 +23,4 @@ export class AuthGuard implements CanActivate {
       })
     );
   }
-} 
+}

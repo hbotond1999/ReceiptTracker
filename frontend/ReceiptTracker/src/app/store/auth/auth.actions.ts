@@ -1,6 +1,6 @@
-import { createAction, props } from '@ngrx/store';
-import { UserOut } from '../../api/model/userOut';
-import { PublicUserRegister } from '../../api/model/publicUserRegister';
+import {createAction, props} from '@ngrx/store';
+import {UserOut} from '../../api/model/userOut';
+import {PublicUserRegister} from '../../api/model/publicUserRegister';
 
 export const login = createAction('[Auth] Login', props<{ username: string; password: string }>());
 export const loginSuccess = createAction('[Auth] Login Success', props<{ accessToken: string; refreshToken: string; expiresAt: number }>());

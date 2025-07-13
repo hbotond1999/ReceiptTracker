@@ -1,4 +1,4 @@
-import { UserOut } from '../../api/model/userOut';
+import {UserOut} from '../../api/model/userOut';
 
 export interface AuthState {
   accessToken: string | null;
@@ -18,4 +18,4 @@ export const initialAuthState: AuthState = {
   isAuthenticated: false,
   loading: false,
   error: null,
-}; 
+};

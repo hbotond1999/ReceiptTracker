@@ -1,20 +1,34 @@
-import { Component } from '@angular/core';
-import { IonHeader, IonToolbar, IonTitle, IonContent, IonButton, IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonToast, IonFab, IonFabButton, IonIcon, IonSpinner, IonLabel, IonItem, IonInput } from '@ionic/angular/standalone';
-import { Store } from '@ngrx/store';
-import { logout } from '../../store/auth/auth.actions';
-import { Router } from '@angular/router';
-import { selectUserProfile } from '../../store/auth/auth.selectors';
-import { Observable } from 'rxjs';
-import { CommonModule } from '@angular/common';
-import { ReceiptService } from '../../api/api/receipt.service';
-import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
+import {Component} from '@angular/core';
+import {
+  IonButton,
+  IonCard,
+  IonCardContent,
+  IonCardHeader,
+  IonCardTitle,
+  IonContent,
+  IonHeader,
+  IonIcon,
+  IonLabel,
+  IonSpinner,
+  IonTitle,
+  IonToast,
+  IonToolbar
+} from '@ionic/angular/standalone';
+import {Store} from '@ngrx/store';
+import {logout} from '../../store/auth/auth.actions';
+import {Router} from '@angular/router';
+import {selectUserProfile} from '../../store/auth/auth.selectors';
+import {Observable} from 'rxjs';
+import {CommonModule} from '@angular/common';
+import {ReceiptService} from '../../api/api/receipt.service';
+import {Camera, CameraResultType, CameraSource} from '@capacitor/camera';
 
 @Component({
   selector: 'app-home',
   standalone: true,
   templateUrl: './home.page.html',
   styleUrls: ['home.page.scss'],
-  imports: [CommonModule, IonHeader, IonToolbar, IonTitle, IonContent, IonButton, IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonToast, IonFab, IonFabButton, IonIcon, IonSpinner, IonLabel, IonItem, IonInput],
+  imports: [CommonModule, IonHeader, IonToolbar, IonTitle, IonContent, IonButton, IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonToast, IonIcon, IonSpinner, IonLabel],
 })
 export class HomePage {
   userProfile$: Observable<any>;
