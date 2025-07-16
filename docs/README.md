@@ -1,3 +1,6 @@
+[English version of this documentation (README.en.md)](./README.en.md)  
+[English version of the architecture documentation (architecture.en.md)](./architecture.en.md)
+
 # ReceiptTracker Dokumentáció
 
 Üdvözlünk a ReceiptTracker projekt dokumentációjában! Itt megtalálod az alkalmazás architektúrájával, fejlesztésével és üzembe helyezésével kapcsolatos információkat.
