@@ -8,6 +8,11 @@ export interface AuthState {
   isAuthenticated: boolean;
   loading: boolean;
   error: string | null;
+  register: {
+    loading: boolean;
+    error: string | null;
+    success: boolean;
+  };
 }
 
 export const initialAuthState: AuthState = {
@@ -18,4 +23,9 @@ export const initialAuthState: AuthState = {
   isAuthenticated: false,
   loading: false,
   error: null,
+  register: {
+    loading: false,
+    error: null,
+    success: false,
+  },
 };

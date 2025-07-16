@@ -9,7 +9,7 @@ import {
   Validators
 } from '@angular/forms';
 import {Store} from '@ngrx/store';
-import {biometricLogin, enableBiometric, login, register} from '../../store/auth/auth.actions';
+import {biometricLogin, clearError, clearRegisterState, enableBiometric, login, register} from '../../store/auth/auth.actions';
 import {
   selectAuthError,
   selectAuthLoading,
@@ -72,6 +72,7 @@ export class LoginPage implements OnInit, OnDestroy {
   biometricTypeDisplayName = '';
   hasBiometricCredentials = false;
   enableBiometricAfterLogin = false;
+  showBiometricLoginButton = false;
 
   // Toast and alert states
   showSuccessToast = false;
@@ -129,16 +130,17 @@ export class LoginPage implements OnInit, OnDestroy {
         takeUntil(this.unsub$)
       )
       .subscribe((register) => {
-
-      if (!register.loading && !this.isLoginMode) {
-        if (!register.error) {
-          // Sikeres regisztráció - automatikus bejelentkezés történt
-          this.showToast('Sikeres regisztráció és bejelentkezés!', 'success');
-          this.isLoginMode = true;
-          this.registerForm.reset();
-        } else {
-          // Hiba történt regisztráció során
-          this.showToast(register.error, 'danger');
+      if (!this.isLoginMode) { // Csak registration mode-ban figyelünk
+        if (!register.loading) {
+          if (register.success && !register.error) {
+            // Sikeres regisztráció - automatikus bejelentkezés történt
+            this.showToast('Sikeres regisztráció és bejelentkezés!', 'success');
+            this.isLoginMode = true;
+            this.registerForm.reset();
+          } else if (register.error) {
+            // Hiba történt regisztráció során
+            this.showToast(register.error, 'danger');
+          }
         }
       }
     });
@@ -146,22 +148,22 @@ export class LoginPage implements OnInit, OnDestroy {
 
   async ngOnInit() {
     await this.checkBiometricAvailability();
-    if (this.biometricAvailable && this.hasBiometricCredentials)
-    {
-      this.store.select(selectIsAuthenticated).pipe(takeUntil(this.unsub$)).subscribe(isAuthenticated => {
-        if (!isAuthenticated) {
-          this.biometricLogin()
-        }
-      });
-    }
   }
 
   async checkBiometricAvailability() {
-    this.biometricAvailable = await this.biometricService.isBiometricAvailable();
-    if (this.biometricAvailable) {
-      this.biometricType = await this.biometricService.getBiometricType();
-      this.biometricTypeDisplayName = this.biometricService.getBiometricTypeDisplayName(this.biometricType);
-      this.hasBiometricCredentials = await this.biometricService.hasBiometricCredentials();
+    try {
+      this.biometricAvailable = await this.biometricService.isBiometricAvailable();
+      if (this.biometricAvailable) {
+        this.biometricType = await this.biometricService.getBiometricType();
+        this.biometricTypeDisplayName = this.biometricService.getBiometricTypeDisplayName(this.biometricType);
+        this.hasBiometricCredentials = await this.biometricService.hasBiometricCredentials();
+        this.showBiometricLoginButton = this.hasBiometricCredentials;
+      }
+    } catch (error) {
+      console.error('Biometric availability check failed:', error);
+      this.biometricAvailable = false;
+      this.hasBiometricCredentials = false;
+      this.showBiometricLoginButton = false;
     }
   }
 
@@ -176,11 +178,20 @@ export class LoginPage implements OnInit, OnDestroy {
   submitLogin() {
     if (this.loginForm.valid) {
       const { username, password } = this.loginForm.value;
+      
+      // First dispatch login
       this.store.dispatch(login({ username, password }));
 
-      // If biometric is available and user wants to enable it
+      // If biometric is available and user wants to enable it, listen for login success
       if (this.biometricAvailable && this.enableBiometricAfterLogin) {
-        this.store.dispatch(enableBiometric({ username, password }));
+        this.store.select(selectIsAuthenticated).pipe(
+          takeUntil(this.unsub$)
+        ).subscribe(isAuthenticated => {
+          if (isAuthenticated) {
+            this.store.dispatch(enableBiometric({ username, password }));
+            this.showToast('Biometrikus azonosítás beállítva!', 'success');
+          }
+        });
       }
     } else {
       this.loginForm.markAllAsTouched();
@@ -210,6 +221,9 @@ export class LoginPage implements OnInit, OnDestroy {
     } else {
       this.loginForm.reset();
     }
+    // Reset any previous errors and register state
+    this.store.dispatch(clearError());
+    this.store.dispatch(clearRegisterState());
   }
 
   passwordMatchValidator(control: AbstractControl): ValidationErrors | null {
@@ -223,13 +237,23 @@ export class LoginPage implements OnInit, OnDestroy {
     return null;
   }
 
-  biometricLogin() {
-    if (!this.biometricAvailable || !this.hasBiometricCredentials) {
-      this.showToast('Biometrikus azonosítás nem érhető el', 'danger');
+  async biometricLogin() {
+    if (!this.biometricAvailable) {
+      this.showToast('Biometrikus azonosítás nem érhető el ezen az eszközön', 'danger');
       return;
     }
 
-    this.store.dispatch(biometricLogin());
+    if (!this.hasBiometricCredentials) {
+      this.showToast('Nincsenek mentett biometrikus adatok. Kérjük jelentkezzen be felhasználónévvel és jelszóval, majd engedélyezze a biometrikus azonosítást.', 'danger');
+      return;
+    }
+
+    try {
+      this.store.dispatch(biometricLogin());
+    } catch (error) {
+      console.error('Biometric login error:', error);
+      this.showToast('Hiba a biometrikus bejelentkezés során', 'danger');
+    }
   }
 
   onEnableBiometricChange(event: any) {

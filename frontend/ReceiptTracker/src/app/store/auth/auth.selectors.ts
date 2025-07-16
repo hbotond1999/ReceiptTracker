@@ -9,7 +9,7 @@ export const selectUserProfile = createSelector(selectAuthState, (state) => stat
 export const selectIsAuthenticated = createSelector(selectAuthState, (state) => state.isAuthenticated);
 export const selectAuthLoading = createSelector(selectAuthState, (state) => state.loading);
 export const selectAuthError = createSelector(selectAuthState, (state) => state.error);
-export const selectRegister = createSelector(selectAuthState, (state) => {return {error: state.error, loading: state.loading}});
+export const selectRegister = createSelector(selectAuthState, (state) => state.register);
 
 // Selector that indicates when the auth process is completely finished
 export const selectAuthComplete = createSelector(

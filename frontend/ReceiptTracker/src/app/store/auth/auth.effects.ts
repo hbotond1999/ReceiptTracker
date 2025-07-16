@@ -9,7 +9,7 @@ import {AuthService} from '../../api/api/auth.service';
 import {TokenOut} from '../../api/model/tokenOut';
 import {Storage} from '@ionic/storage-angular';
 import {Router} from '@angular/router';
-import {BiometricOptions, NativeBiometric} from 'capacitor-native-biometric';
+import {BiometricService} from '../../services/biometric.service';
 
 @Injectable()
 export class AuthEffects {
@@ -18,7 +18,8 @@ export class AuthEffects {
     private authService: AuthService,
     private storage: Storage,
     private store: Store,
-    private router: Router
+    private router: Router,
+    private biometricService: BiometricService
   ) {}
 
   // Login effect
@@ -65,7 +66,7 @@ export class AuthEffects {
                   this.storage.set('refreshToken', tokenOut.refresh_token),
                   this.storage.set('expiresAt', expiresAt)
                 ])).pipe(
-                  map(() => AuthActions.loginSuccess({
+                  map(() => AuthActions.registerSuccess({
                     accessToken: tokenOut.access_token,
                     refreshToken: tokenOut.refresh_token,
                     expiresAt
@@ -90,11 +91,7 @@ export class AuthEffects {
     this.actions$.pipe(
       ofType(AuthActions.enableBiometric),
       mergeMap(({ username, password }) =>
-        from(NativeBiometric.setCredentials({
-          username,
-          password,
-          server: 'ReceiptTracker'
-        })).pipe(
+        from(this.biometricService.setCredentials(username, password)).pipe(
           map(() => AuthActions.enableBiometricSuccess()),
           catchError(error => of(AuthActions.enableBiometricFailure({
             error: error?.message || 'Biometric setup failed'
@@ -109,16 +106,9 @@ export class AuthEffects {
     this.actions$.pipe(
       ofType(AuthActions.biometricLogin),
       mergeMap(() =>
-        from(NativeBiometric.verifyIdentity({
-          reason: 'Bejelentkezés biometrikus azonosítással',
-          title: 'Biometrikus azonosítás',
-          subtitle: 'Használja ujjlenyomatát vagy arcfelismerést a bejelentkezéshez',
-          description: 'Helyezze ujját a szenzorra vagy nézzen a kamerába'
-        } as BiometricOptions)).pipe(
+        from(this.biometricService.verifyIdentity()).pipe(
           mergeMap(() =>
-            from(NativeBiometric.getCredentials({
-              server: 'ReceiptTracker'
-            })).pipe(
+            from(this.biometricService.getCredentials()).pipe(
               mergeMap(credentials =>
                 this.authService.loginAuthLoginPost(credentials.username, credentials.password).pipe(
                   mergeMap((tokenOut: TokenOut) => {
@@ -163,6 +153,14 @@ export class AuthEffects {
   biometricLoginSuccess$ = createEffect(() =>
     this.actions$.pipe(
       ofType(AuthActions.biometricLoginSuccess),
+      map(() => AuthActions.loadUserProfile())
+    )
+  );
+
+  // RegisterSuccess után user profil betöltése
+  registerSuccess$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(AuthActions.registerSuccess),
       map(() => AuthActions.loadUserProfile())
     )
   );
