@@ -29,12 +29,10 @@ import {
   IonToast
 } from '@ionic/angular/standalone';
 import {CommonModule} from '@angular/common';
-import {Observable, Subject, takeUntil} from 'rxjs';
+import {Subject, takeUntil} from 'rxjs';
 import {Router} from '@angular/router';
 import {BiometricService} from '../../services/biometric.service';
 import {BiometryType} from 'capacitor-native-biometric';
-import {addIcons} from 'ionicons';
-import {checkmark, eye, fingerPrint} from 'ionicons/icons';
 import {PublicUserRegister} from '../../api/model/publicUserRegister';
 
 @Component({
@@ -59,11 +57,22 @@ import {PublicUserRegister} from '../../api/model/publicUserRegister';
   styleUrls: ['./login.page.scss']
 })
 export class LoginPage implements OnInit, OnDestroy {
-  loginForm: FormGroup;
+  loginForm: FormGroup = this.fb.group({
+    username: ['', Validators.required],
+    password: ['', Validators.required]
+  });
   readonly unsub$ = new Subject<void>();
-  registerForm: FormGroup;
-  loading$: Observable<boolean>;
-  error$: Observable<string | null>;
+  registerForm: FormGroup = this.fb.group({
+    username: ['', [Validators.required, Validators.minLength(3)]],
+    email: ['', [Validators.email]],
+    fullname: [''],
+    password: ['', [Validators.required, Validators.minLength(6)]],
+    confirmPassword: ['', Validators.required]
+  }, { validators: this.passwordMatchValidator });
+
+  loading$ = this.store.select(selectAuthLoading);
+  error$ = this.store.select(selectAuthError);
+
   isLoginMode = true;
 
   // Biometric properties
@@ -99,55 +108,47 @@ export class LoginPage implements OnInit, OnDestroy {
     private router: Router,
     private biometricService: BiometricService,
   ) {
-    addIcons({ fingerPrint, eye, checkmark });
 
-    this.loginForm = this.fb.group({
-      username: ['', Validators.required],
-      password: ['', Validators.required]
-    });
+  }
 
-    this.registerForm = this.fb.group({
-      username: ['', [Validators.required, Validators.minLength(3)]],
-      email: ['', [Validators.email]],
-      fullname: [''],
-      password: ['', [Validators.required, Validators.minLength(6)]],
-      confirmPassword: ['', Validators.required]
-    }, { validators: this.passwordMatchValidator });
-
-    this.loading$ = this.store.select(selectAuthLoading);
-    this.error$ = this.store.select(selectAuthError);
+  async ngOnInit() {
+    await this.checkBiometricAvailability();
 
     this.store.select(selectIsAuthenticated).pipe(
       takeUntil(this.unsub$)
     ).subscribe(isAuth => {
+      console.log('Authentication state changed:', isAuth);
       if (isAuth) {
-        this.router.navigate(['home']);
+        console.log('User authenticated, navigating to home...');
+        this.router.navigate(['home']).then(success => {
+          console.log('Navigation to home successful:', success);
+        }).catch(error => {
+          console.error('Navigation to home failed:', error);
+        });
+      }
+      if (this.hasBiometricCredentials && !isAuth) {
+        this.biometricLogin()
       }
     });
 
     // Listen for successful registration and errors
     this.store.select(selectRegister).pipe(
-        takeUntil(this.unsub$)
-      )
-      .subscribe((register) => {
-      if (!this.isLoginMode) { // Csak registration mode-ban figyelünk
-        if (!register.loading) {
-          if (register.success && !register.error) {
-            // Sikeres regisztráció - automatikus bejelentkezés történt
-            this.showToast('Sikeres regisztráció és bejelentkezés!', 'success');
-            this.isLoginMode = true;
-            this.registerForm.reset();
-          } else if (register.error) {
-            // Hiba történt regisztráció során
-            this.showToast(register.error, 'danger');
+      takeUntil(this.unsub$)
+    ).subscribe((register) => {
+        if (!this.isLoginMode) { // Csak registration mode-ban figyelünk
+          if (!register.loading) {
+            if (register.success && !register.error) {
+              // Sikeres regisztráció - automatikus bejelentkezés történt
+              this.showToast('Sikeres regisztráció és bejelentkezés!', 'success');
+              this.isLoginMode = true;
+              this.registerForm.reset();
+            } else if (register.error) {
+              // Hiba történt regisztráció során
+              this.showToast(register.error, 'danger');
+            }
           }
         }
-      }
-    });
-  }
-
-  async ngOnInit() {
-    await this.checkBiometricAvailability();
+      });
   }
 
   async checkBiometricAvailability() {
@@ -178,7 +179,7 @@ export class LoginPage implements OnInit, OnDestroy {
   submitLogin() {
     if (this.loginForm.valid) {
       const { username, password } = this.loginForm.value;
-      
+
       // First dispatch login
       this.store.dispatch(login({ username, password }));
 
@@ -237,7 +238,7 @@ export class LoginPage implements OnInit, OnDestroy {
     return null;
   }
 
-  async biometricLogin() {
+  biometricLogin() {
     if (!this.biometricAvailable) {
       this.showToast('Biometrikus azonosítás nem érhető el ezen az eszközön', 'danger');
       return;

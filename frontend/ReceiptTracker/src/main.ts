@@ -38,7 +38,7 @@ bootstrapApplication(AppComponent, {
     provideApi(environment.apiUrl),
     provideStore({ auth: authReducer }),
     provideEffects([AuthEffects]),
-    provideStoreDevtools({ maxAge: 25, logOnly: !environment.production }),
+    !environment.production ? provideStoreDevtools({ maxAge: 25, logOnly: !environment.production }) : [],
     { provide: Storage, useValue: storage }
   ],
 });
