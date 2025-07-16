@@ -56,6 +56,31 @@ export const authReducer = createReducer(
     error: null,
   })),
   on(AuthActions.autoLoginFailure, () => ({ ...initialAuthState, loading: false })),
-  on(AuthActions.registerFailure, (state, {error}) => ({ ...state, loading: false, error: error })),
-  on(AuthActions.register, (state, { userData }) => ({ ...state, loading: true, error: null })),
+  
+  // Register actions
+  on(AuthActions.register, (state) => ({ 
+    ...state, 
+    register: { loading: true, error: null, success: false } 
+  })),
+  on(AuthActions.registerSuccess, (state, { accessToken, refreshToken, expiresAt }) => ({
+    ...state,
+    accessToken,
+    refreshToken,
+    expiresAt,
+    isAuthenticated: true,
+    loading: false,
+    error: null,
+    register: { loading: false, error: null, success: true }
+  })),
+  on(AuthActions.registerFailure, (state, { error }) => ({ 
+    ...state, 
+    register: { loading: false, error, success: false } 
+  })),
+  
+  // Utility actions
+  on(AuthActions.clearError, (state) => ({ ...state, error: null })),
+  on(AuthActions.clearRegisterState, (state) => ({ 
+    ...state, 
+    register: { loading: false, error: null, success: false } 
+  })),
   );

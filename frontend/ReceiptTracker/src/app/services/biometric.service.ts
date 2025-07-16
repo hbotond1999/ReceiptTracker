@@ -1,5 +1,5 @@
 import {Injectable} from '@angular/core';
-import {BiometryType, NativeBiometric} from 'capacitor-native-biometric';
+import {BiometryType, NativeBiometric, BiometricOptions} from 'capacitor-native-biometric';
 
 @Injectable({
   providedIn: 'root'
@@ -37,6 +37,44 @@ export class BiometricService {
     } catch (error) {
       console.error('Biometric credentials check failed:', error);
       return false;
+    }
+  }
+
+  async setCredentials(username: string, password: string): Promise<void> {
+    try {
+      await NativeBiometric.setCredentials({
+        username,
+        password,
+        server: 'ReceiptTracker'
+      });
+    } catch (error) {
+      console.error('Set biometric credentials failed:', error);
+      throw error;
+    }
+  }
+
+  async verifyIdentity(): Promise<any> {
+    try {
+      return await NativeBiometric.verifyIdentity({
+        reason: 'Bejelentkezés biometrikus azonosítással',
+        title: 'Biometrikus azonosítás',
+        subtitle: 'Használja ujjlenyomatát vagy arcfelismerést a bejelentkezéshez',
+        description: 'Helyezze ujját a szenzorra vagy nézzen a kamerába'
+      } as BiometricOptions);
+    } catch (error) {
+      console.error('Biometric verification failed:', error);
+      throw error;
+    }
+  }
+
+  async getCredentials(): Promise<{username: string, password: string}> {
+    try {
+      return await NativeBiometric.getCredentials({
+        server: 'ReceiptTracker'
+      });
+    } catch (error) {
+      console.error('Get biometric credentials failed:', error);
+      throw error;
     }
   }
 

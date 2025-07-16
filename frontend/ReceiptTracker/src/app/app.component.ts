@@ -4,12 +4,12 @@ import {Store} from '@ngrx/store';
 import {autoLogin} from './store/auth/auth.actions';
 import {addIcons} from "ionicons";
 import {
-  addOutline,
+  addOutline, checkmark,
   chevronDownOutline,
   chevronUpOutline,
   closeOutline,
   createOutline,
-  downloadOutline,
+  downloadOutline, eye, fingerPrint,
   logoIonic,
   trashOutline
 } from "ionicons/icons";
@@ -18,13 +18,14 @@ import {
   selector: 'app-root',
   templateUrl: 'app.component.html',
   imports: [IonApp, IonRouterOutlet],
+  standalone: true
 })
 export class AppComponent implements OnInit {
   constructor(private store: Store) {}
 
   ngOnInit() {
     this.store.dispatch(autoLogin());
-    addIcons({ logoIonic,downloadOutline, chevronUpOutline, chevronDownOutline, trashOutline, createOutline, closeOutline, addOutline });
+    addIcons({ logoIonic,downloadOutline, chevronUpOutline, chevronDownOutline, trashOutline, createOutline, closeOutline, addOutline, fingerPrint, eye, checkmark });
 
   }
 }

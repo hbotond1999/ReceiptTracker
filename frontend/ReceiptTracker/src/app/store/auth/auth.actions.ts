@@ -30,5 +30,9 @@ export const autoLoginFailure = createAction('[Auth] Auto Login Failure');
 
 // Registration actions
 export const register = createAction('[Auth] Register', props<{ userData: PublicUserRegister }>());
-export const registerSuccess = createAction('[Auth] Register Success', props<{ userProfile: UserOut }>());
+export const registerSuccess = createAction('[Auth] Register Success', props<{ accessToken: string; refreshToken: string; expiresAt: number }>());
 export const registerFailure = createAction('[Auth] Register Failure', props<{ error: string }>());
+
+// Utility actions
+export const clearError = createAction('[Auth] Clear Error');
+export const clearRegisterState = createAction('[Auth] Clear Register State');
